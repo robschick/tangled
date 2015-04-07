@@ -17,7 +17,7 @@ days <- 182 # number of days == 6 months
 tangle    <- makeTangle()
 idx       <- which(!is.na(tangle$StartDate)) # Find animals with a valid start date
 tangle    <- tangle[idx,] # Keep animals with a valid start date
-tangle$ID <- seq_along(1:nrow(tangle))
+tangle$ID <- seq_along(1:nrow(tangle)) £
 tangID    <- tangle$ID
 tangle$wingt6mo <- tangle$EndDate - tangle$StartDate > days
 
