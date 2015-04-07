@@ -7,7 +7,6 @@ library(plyr)
 rm(list=ls())
 source(file='/Users/rob/Documents/code/rss10/rightwhales/makeTangle.r')
 source(file = '/Users/rob/Documents/code/rss10/rightwhales/cleanMerge.r')
-setwd(wkdir)
 load(file="data/egsightings.rdata")
 sixMo <- TRUE # if true restricts the long entanglement windows to be just 6 - months
 days <- 182 # number of days == 6 months
@@ -39,6 +38,7 @@ tndat <- tangle[which(is.na(tdx)),]
 
 tndat$LastDatewGear <- as.Date('1600-01-01', '%Y-%m-%d') # Adding a fake date so it maintains formatting
 tndat$EndDatePlus12 <- tndat$EndDate + (365 * 24 * 60 * 60) 
+tndat$EndDatePlus6 <- tndat$EndDate + (182 * 24 * 60 * 60) 
 tndat$EndDateMinus6 <- as.Date('1600-01-01', '%Y-%m-%d') # Adding a fake date so it maintains formatting
 idx6 <- which(tndat$EndDate - tndat$StartDate > days)
 tndat$EndDateMinus6[idx6] <- tndat$EndDate[idx6] - ((days) * 24 * 60 * 60) 
@@ -56,6 +56,7 @@ tangleOut <- rbind(m1, m2) # Finally we bind these two data frames together
 
 tangleOut$LastDatewGear <- as.Date(tangleOut$Last.date.w.gear, '%d-%b-%y')
 tangleOut$EndDatePlus12 <- tangleOut$LastDatewGear + days(365)
+tangleOut$EndDatePlus6 <- tangleOut$LastDatewGear + days(182)
 
 tangleOut$EndDateMinus6 <- as.Date('1600-01-01', '%Y-%m-%d') # Adding a fake date so it maintains formatting
 idx6 <- which(tangleOut$EndDate - tangleOut$StartDate > days)
@@ -74,14 +75,20 @@ tangleOut$smonyr   <- paste(str_sub(tangleOut$StartDate, 6, 7), str_sub(tangleOu
 tangleOut$emonyr   <- paste(str_sub(tangleOut$EndDate, 6, 7), str_sub(tangleOut$EndDate, 1, 4), sep = '-')
 tangleOut$e12monyr <- paste(str_sub(tangleOut$EndDatePlus12, 6, 7), str_sub(tangleOut$EndDatePlus12, 1, 4), sep = '-')
 tangleOut$emin6monyr <- paste(str_sub(tangleOut$EndDateMinus6, 6, 7), str_sub(tangleOut$EndDateMinus6, 1, 4), sep = '-')
+tangleOut$e6monyr <- paste(str_sub(tangleOut$EndDatePlus6, 6, 7), str_sub(tangleOut$EndDatePlus6, 1, 4), sep = '-')
+tangleOut$ldwgmonyr <- paste(str_sub(tangleOut$LastDatewGear, 6, 7), str_sub(tangleOut$LastDatewGear, 1, 4), sep = '-')
 ws0   <- which(str_locate(str_sub(tangleOut$StartDate, 6, 7), '0')[, 1] == 1)
 we0   <- which(str_locate(str_sub(tangleOut$EndDate, 6, 7), '0')[, 1] == 1)
 we120 <- which(str_locate(str_sub(tangleOut$EndDatePlus12, 6, 7), '0')[, 1] == 1)
 we60 <- which(str_locate(str_sub(tangleOut$EndDateMinus6, 6, 7), '0')[, 1] == 1)
+wep60 <- which(str_locate(str_sub(tangleOut$EndDatePlus6, 6, 7), '0')[, 1] == 1)
+weld60 <- which(str_locate(str_sub(tangleOut$LastDatewGear, 6, 7), '0')[, 1] == 1)
 tangleOut[ws0, 'smonyr'] <- str_replace(tangleOut[ws0, 'smonyr'], '0', "")
 tangleOut[we0, 'emonyr'] <- str_replace(tangleOut[we0, 'emonyr'], '0', "")
 tangleOut[we120, 'e12monyr'] <- str_replace(tangleOut[we120, 'e12monyr'], '0', "")
 tangleOut[we60, 'emin6monyr'] <- str_replace(tangleOut[we60, 'emin6monyr'], '0', "")
+tangleOut[wep60, 'e6monyr'] <- str_replace(tangleOut[wep60, 'e6monyr'], '0', "")
+tangleOut[weld60, 'ldwgmonyr'] <- str_replace(tangleOut[weld60, 'ldwgmonyr'], '0', "")
 
 
 # this next chunk is to make sure I have a common integer that refers to the different combinations
