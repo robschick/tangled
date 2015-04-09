@@ -21,7 +21,7 @@ tangID    <- tangle$ID
 tangle$wingt6mo <- tangle$EndDate - tangle$StartDate > days
 
 # Now we want to add the gear carrying information
-etime <- read.csv(file = 'data/TimingEntanglement.csv', header = TRUE)
+etime <- read.csv(file = 'data/TimingEntanglementReformatDate.csv', header = TRUE)
 # ID     <- sort(unique(sights[,'SightingEGNo']))
 # n      <- length(ID)
 startYr <- 1970
