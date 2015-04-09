@@ -54,6 +54,7 @@ colnames(m2)[colnames(m2) == 'EventNo.x'] <- 'EventNo'
 m2 <- m2[,c(1,3,2,4:20)]
 tangleOut <- rbind(m1, m2) # Finally we bind these two data frames together
 
+
 tangleOut$LastDatewGear <- as.Date(tangleOut$Last.date.w.gear, '%d-%b-%y')
 tangleOut$EndDatePlus12 <- tangleOut$LastDatewGear + days(365)
 tangleOut$EndDatePlus6 <- tangleOut$LastDatewGear + days(182)
