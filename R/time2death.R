@@ -63,8 +63,8 @@ pdf(file = '/Users/rob/Dropbox/Talks/2015/SEIT_RightWhales/time2die.pdf', width 
 par(xpd = FALSE)
   plot(x, xlim=c(0, 250), ylim=c(1, 6), xlab='Time until Death (Years)', ylab="", type="n", las = 1, bty = 'n', axes = FALSE)
   axis(side = 2, at = seq(6), 
-       labels = c('Severe \n Gear', 'Mod. \n Gear', 'Severe \n No Gear', 
-                  'Min. \n Gear', 'Mod. \n No Gear', 'Min. \n No Gear'), las = 1, cex.axis = .75)
+     labels = c('Severe\n Gear', 'Moderate\nGear', 'Severe\nNo Gear', 
+                'Minor\nGear', 'Moderate\nNo Gear', 'Minor\nNo Gear'), las = 1, cex.axis = .75)
   axis(side = 1, at = seq(0, 20 * 12, by = 12), labels = seq(0, 20 * 12, by = 12) / 12, cex.axis = .65) # x axis
   abline(v = seq(12, 20 * 12, by = 12), col = 'grey80')
   abline(v = seq(60, 20 * 12, by = 60), col = 'grey40')
@@ -76,13 +76,13 @@ par(xpd = FALSE)
 dev.off()
 
 pdf(file = '/Users/rob/Dropbox/Talks/2015/SEIT_RightWhales/time2dieAll.pdf', width = 9.4, height = 5.9)
-plot(x, xlim=c(0, 250), ylim=c(1, 6), xlab='Time (Years)', ylab="", type="n", las = 1, bty = 'n', axes = FALSE)
-axis(side = 2, at = seq(6), 
-     labels = c('Severe \n Gear', 'Mod. \n Gear', 'Severe \n No Gear', 
-                'Min. \n Gear', 'Mod. \n No Gear', 'Min. \n No Gear'), las = 1, cex.axis = .75)
-axis(side = 1, at = seq(0, 20 * 12, by = 12), labels = seq(0, 20 * 12, by = 12) / 12, cex.axis = .65) # x axis
-abline(v = seq(12, 20 * 12, by = 12), col = 'grey80')
-abline(v = seq(60, 20 * 12, by = 60), col = 'grey40')
+  plot(x, xlim=c(0, 250), ylim=c(1, 6), xlab='Time (Years)', ylab="", type="n", las = 1, bty = 'n', axes = FALSE)
+  axis(side = 2, at = seq(6), 
+     labels = c('Severe\n Gear', 'Moderate\nGear', 'Severe\nNo Gear', 
+                'Minor\nGear', 'Moderate\nNo Gear', 'Minor\nNo Gear'), las = 1, cex.axis = .75)
+  axis(side = 1, at = seq(0, 20 * 12, by = 12), labels = seq(0, 20 * 12, by = 12) / 12, cex.axis = .65) # x axis
+  abline(v = seq(12, 20 * 12, by = 12), col = 'grey80')
+  abline(v = seq(60, 20 * 12, by = 60), col = 'grey40')
   denstrip(x = df$m2die[df$gearInj == 1], at = 1, ticks = median(df$m2die[df$gearInj == 1]), twd = 3)
   denstrip(x = df$m2die[df$gearInj == 2], at = 2, ticks = median(df$m2die[df$gearInj == 2]), twd = 3)
   denstrip(x = df$m2die[df$gearInj == 3], at = 3, ticks = median(df$m2die[df$gearInj == 3]), twd = 3)
