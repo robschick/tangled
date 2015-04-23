@@ -8,6 +8,7 @@ rm(list=ls())
 source(file='/Users/rob/Documents/code/rss10/rightwhales/makeTangle.r')
 source(file = '/Users/rob/Documents/code/rss10/rightwhales/cleanMerge.r')
 load(file="../data/egsightings.rdata")
+days <- 182
 
 # next chunk is to bring in the entanglement table and pare it down
 tangle    <- makeTangle()
@@ -16,6 +17,8 @@ tangle    <- tangle[idx,] # Keep animals with a valid start date
 tangle$ID <- seq_along(1:nrow(tangle)) #
 tangID    <- tangle$ID
 tangle$wingt6mo <- tangle$EndDate - tangle$StartDate > days
+tangle <- tangle[,-which(colnames(tangle) == 'EntanglementComment')]
+tangle <- tangle[,-which(colnames(tangle) == 'TimeFrame')]
 
 # Now we want to add the gear carrying information
 etime <- read.csv(file = 'data/TimingEntanglementReformatDate.csv', header = TRUE)
