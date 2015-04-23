@@ -7,10 +7,7 @@ library(plyr)
 rm(list=ls())
 source(file='/Users/rob/Documents/code/rss10/rightwhales/makeTangle.r')
 source(file = '/Users/rob/Documents/code/rss10/rightwhales/cleanMerge.r')
-load(file="data/egsightings.rdata")
-sixMo <- TRUE # if true restricts the long entanglement windows to be just 6 - months
-days <- 182 # number of days == 6 months
-# prior to the End Date
+load(file="../data/egsightings.rdata")
 
 # next chunk is to bring in the entanglement table and pare it down
 tangle    <- makeTangle()
