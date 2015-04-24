@@ -8,7 +8,7 @@ rm(list=ls())
 source(file='/Users/rob/Documents/code/rss10/rightwhales/makeTangle.r')
 source(file = '/Users/rob/Documents/code/rss10/rightwhales/cleanMerge.r')
 load(file="../data/egsightings.rdata")
-days <- 182
+days <- months(6)
 
 # next chunk is to bring in the entanglement table and pare it down
 tangle    <- makeTangle()
@@ -17,11 +17,11 @@ tangle    <- tangle[idx,] # Keep animals with a valid start date
 tangle$ID <- seq_along(1:nrow(tangle)) #
 tangID    <- tangle$ID
 tangle$wingt6mo <- tangle$EndDate - tangle$StartDate > days
-tangle <- tangle[,-which(colnames(tangle) == 'EntanglementComment')]
-tangle <- tangle[,-which(colnames(tangle) == 'TimeFrame')]
+# tangle <- tangle[,-which(colnames(tangle) == 'EntanglementComment')]
+# tangle <- tangle[,-which(colnames(tangle) == 'TimeFrame')]
 
 # Now we want to add the gear carrying information
-etime <- read.csv(file = 'data/TimingEntanglementReformatDate.csv', header = TRUE)
+etime <- read.csv(file = '../data/TimingEntanglementReformatDate.csv', header = TRUE)
 # ID     <- sort(unique(sights[,'SightingEGNo']))
 # n      <- length(ID)
 startYr <- 1970
@@ -35,13 +35,25 @@ tvec <- tangle$EntanglementComment
 tdx  <- str_match(tvec, 'GEAR')
 tdat <- tangle[which(tdx == "GEAR"),]
 tndat <- tangle[which(is.na(tdx)),]
+tndat$wlength <- tndat$EndDate - tndat$StartDate
+tndat$StartDateWindow <- tndat$StartDate
+tndat$EndDateWindow <- tndat$EndDate
 
-tndat$LastDatewGear <- as.Date('1600-01-01', '%Y-%m-%d') # Adding a fake date so it maintains formatting
-tndat$EndDatePlus12 <- tndat$EndDate + (365 * 24 * 60 * 60) 
-tndat$EndDatePlus6 <- tndat$EndDate + (182 * 24 * 60 * 60) 
-tndat$EndDateMinus6 <- as.Date('1600-01-01', '%Y-%m-%d') # Adding a fake date so it maintains formatting
-idx6 <- which(tndat$EndDate - tndat$StartDate > days)
-tndat$EndDateMinus6[idx6] <- tndat$EndDate[idx6] - ((days) * 24 * 60 * 60) 
+# anything >= 3 months gets three months
+idx6 <- which(tndat$wlength > 3 * (365.25/12))
+tndat$StartDateWindow[idx6] <- tndat$EndDate[idx6] %m-% months(3)
+
+# anything >= 1 & <2 months gets 1 months
+idx6 <- which(tndat$EndDate - tndat$StartDate >= 1 * (365.25/12) & tndat$EndDate - tndat$StartDate < 2 * (365.25/12))
+tndat$StartDateWindow[idx6] <- tndat$EndDate[idx6] %m-% months(1)
+
+# anything <1 months gets 1 months
+idx6 <- which(tndat$EndDate - tndat$StartDate < 1 * (365.25/12))
+tndat$StartDateWindow[idx6] <- tndat$EndDate[idx6] %m-% months(1)
+
+# anything >= 2 & <3 months gets 2 months
+idx6 <- which(tndat$EndDate - tndat$StartDate >= 2 * (365.25/12) & tndat$EndDate - tndat$StartDate < 3 * (365.25/12))
+tndat$StartDateWindow[idx6] <- tndat$EndDate[idx6] %m-% months(2)
 
 # The merge call will bring in the gear carrying times from etime.
 # Note that I'm doing two merges because some animals in etime have NA for EventNo, which causes them to be lost in a merge based on both EGNo and EventNo
@@ -56,22 +68,75 @@ tangleOut <- rbind(m1, m2) # Finally we bind these two data frames together
 
 
 tangleOut$LastDatewGear <- as.Date(tangleOut$Last.date.w.gear, '%d-%b-%y')
-tangleOut$EndDatePlus12 <- tangleOut$LastDatewGear + days(365)
-tangleOut$EndDatePlus6 <- tangleOut$LastDatewGear + days(182)
+tangleOut$LineGone <- as.Date(tangleOut$line.gone, '%d-%b-%y')
+# if > 3 months btw LDGW & Line gone, add 3 months to LDWG to construct the end window
+tangleOut$postDec6moTF <- ifelse((tangleOut$LineGone - tangleOut$LastDatewGear) > days & is.finite(tangleOut$LineGone), TRUE, FALSE)
+tangleOut$EndDateWindow <- as.Date('1600-01-01', '%Y-%m-%d')
+idx <- which(tangleOut$postDec6moTF == TRUE)
+tangleOut$EndDateWindow[idx] <-  tangleOut$LastDatewGear[idx] %m+% months(3)
 
-tangleOut$EndDateMinus6 <- as.Date('1600-01-01', '%Y-%m-%d') # Adding a fake date so it maintains formatting
-idx6 <- which(tangleOut$EndDate - tangleOut$StartDate > days)
-tangleOut$EndDateMinus6[idx6] <- tangleOut$EndDate[idx6] - days(days)
-idx <- is.na(tangleOut$LastDatewGear) & tangleOut$gear == 1
-# tangleOut$EndDatePlus12[idx] <- tangleOut$EndDate[idx] + (365 * 24 * 60 * 60) # this is if you use 'EndDate' as the start of recovery
-tangleOut$EndDatePlus12[idx] <- as.Date(tangleOut$line.gone, '%d-%b-%y')[idx] + days(365) # this is if you use 'line.gone' as the start of recovery
-# note that the same column name (EndDatePlus12) has different meaning. For scarred whales, it's time since
-# the entanglement window closed; for gear-carrying whales, it's the time since it was last
-# seen carrying gear
-colx <- which(colnames(tangleOut) %in% colnames(etime)[!colnames(etime) %in% colnames(tangle)])
-tangleOut <- tangleOut[,-colx]
-tangleOut <- rbind(tndat, tangleOut)
+# Cases where there is no LDWG: add 3 months from the EndDate in these cases
+idx <- which(!is.finite(tangleOut$LastDatewGear))
+tangleOut$EndDateWindow[idx] <-  tangleOut$EndDate[idx] %m+% months(3)
 
+idx <- which(is.finite(tangleOut$LineGone) & tangleOut$postDec6moTF == FALSE)
+tangleOut$EndDateWindow[idx] <- tangleOut$LineGone[idx]
+idx <- which(!is.finite(tangleOut$LineGone) & tangleOut$postDec6moTF == FALSE)
+tangleOut$EndDateWindow[idx] <- tangleOut$LastDatewGear[idx] %m+% months(3)
+
+###################################
+# Set up the pre-detection window(s) for gear animals
+tangleOut$StartDateWindow <- as.Date('1600-01-01', '%Y-%m-%d')
+tangleOut$wlength <- tangleOut$EndDate - tangleOut$StartDate
+tangleOut$predDectWindow3TF <- ifelse(tangleOut$wlength >= 3 * (365.25/12), TRUE, FALSE)
+
+# if greater than 3, make the window start 3 months prior to detection:
+tangleOut$StartDateWindow[tangleOut$predDectWindow3TF] <- tangleOut$EndDate[tangleOut$predDectWindow3TF] %m-% months(3)
+# if greater than 2 & < 3, make the window start 2 months prior to detection:
+tangleOut$StartDateWindow[tangleOut$wlength > 2 * (365.25/12) & tangleOut$wlength <= 3 * (365.25/12)] <- tangleOut$EndDate[tangleOut$wlength > 2 * (365.25/12) & tangleOut$wlength <= 3 * (365.25/12)] %m-% months(2) # 2 months
+# if greater than 1 & < 2, make the window start 1 months prior to detection:
+tangleOut$StartDateWindow[tangleOut$wlength > 1 * (365.25/12) & tangleOut$wlength <= 2 * (365.25/12)] <- tangleOut$EndDate[tangleOut$wlength > 1 * (365.25/12) & tangleOut$wlength <= 2 * (365.25/12)] %m-% months(1) # 2 months
+# if less than 1, make the window start 1 month3 prior to detection:
+tangleOut$StartDateWindow[tangleOut$wlength < 1 * (365.25/12)] <- tangleOut$EndDate[tangleOut$wlength < 1 * (365.25/12)]  %m-% months(1) # 1 months
+tangleOutAll <- tangleOut # doing this for later on comparison checking, i.e. if I need the comments, etc.
+
+
+
+# pare down the columns for merging the gear and non-gear whales
+cidx <- c("EGNo", "EventNo", "StartDate", "EndDate", "Severity", "gear", 'LastDatewGear',   'LineGone', "EndDateWindow", "StartDateWindow")
+tndat$LastDatewGear <- as.Date('1600-01-01', '%Y-%m-%d')
+tndat$LineGone <- as.Date('1600-01-01', '%Y-%m-%d')
+ngearsub <- tndat[, which(colnames(tndat) %in% cidx)]
+gearsub <- tangleOut[, which(colnames(tangleOut) %in% cidx)]
+tangleOut <- rbind(ngearsub, gearsub)
+
+# this next chunk is to make sure I have a common integer that refers to the different combinations
+tangleOut$gearInj <- NA
+id1 <- which(tangleOut$Severity == 'minor' & tangleOut$gear == 0)
+id2 <- which(tangleOut$Severity == 'minor' & tangleOut$gear == 1)
+id3 <- which(tangleOut$Severity == 'moderate' & tangleOut$gear == 0)
+id4 <- which(tangleOut$Severity == 'moderate' & tangleOut$gear == 1)
+id5 <- which(tangleOut$Severity == 'severe' & tangleOut$gear == 0)
+id6 <- which(tangleOut$Severity == 'severe' & tangleOut$gear == 1)
+tangleOut$gearInj[id1] <- 6
+tangleOut$gearInj[id2] <- 4
+tangleOut$gearInj[id3] <- 5 
+tangleOut$gearInj[id4] <- 2
+tangleOut$gearInj[id5] <- 3
+tangleOut$gearInj[id6] <- 1
+
+# I'm doing this for the shiny app:
+tcase <- data.frame(egno = c(1027, 1403, 2212, 1247, 1158, 1102, 1113, 1004, 1602, 1301), 
+                    event =c(3, 2, 3, 2, 4, 1, 2, 1, 4, 1))
+idx <- rep(0, length.out = nrow(tcase))
+for(i in 1:nrow(tcase)){
+  idx[i] <- which(tangleOut$EGNo == tcase[i, 1]& tangleOut$EventNo == tcase[i, 2])
+}
+
+tshiny <- tangleOut[idx, ]
+save(tshiny, file="../inst/shiny-examples/myapp/shinyEntData.rdata")
+
+# have to get the dates pared down to make sense with our time indexing in the main file.
 tangleOut$smonyr   <- paste(str_sub(tangleOut$StartDate, 6, 7), str_sub(tangleOut$StartDate, 1, 4), sep = '-')
 tangleOut$emonyr   <- paste(str_sub(tangleOut$EndDate, 6, 7), str_sub(tangleOut$EndDate, 1, 4), sep = '-')
 tangleOut$e12monyr <- paste(str_sub(tangleOut$EndDatePlus12, 6, 7), str_sub(tangleOut$EndDatePlus12, 1, 4), sep = '-')
@@ -92,21 +157,5 @@ tangleOut[wep60, 'e6monyr'] <- str_replace(tangleOut[wep60, 'e6monyr'], '0', "")
 tangleOut[weld60, 'ldwgmonyr'] <- str_replace(tangleOut[weld60, 'ldwgmonyr'], '0', "")
 
 
-# this next chunk is to make sure I have a common integer that refers to the different combinations
-tangleOut$gearInj <- NA
-id1 <- which(tangleOut$Severity == 'minor' & tangleOut$gear == 0)
-id2 <- which(tangleOut$Severity == 'minor' & tangleOut$gear == 1)
-id3 <- which(tangleOut$Severity == 'moderate' & tangleOut$gear == 0)
-id4 <- which(tangleOut$Severity == 'moderate' & tangleOut$gear == 1)
-id5 <- which(tangleOut$Severity == 'severe' & tangleOut$gear == 0)
-id6 <- which(tangleOut$Severity == 'severe' & tangleOut$gear == 1)
-tangleOut$gearInj[id1] <- 6
-tangleOut$gearInj[id2] <- 4
-tangleOut$gearInj[id3] <- 5 
-tangleOut$gearInj[id4] <- 2
-tangleOut$gearInj[id5] <- 3
-tangleOut$gearInj[id6] <- 1
-
-
 # Save the data into one rdata file
-save(tangleOut, sixMo, file="data/egAmyEntData.rdata")
+save(tangleOut, file="data/egAmyEntData.rdata")
