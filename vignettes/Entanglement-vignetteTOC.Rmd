@@ -1,0 +1,40 @@
+---
+title: "Entanglement Analysis"
+author: "Rob Schick"
+date: "`r Sys.Date()`"
+output:
+    html_document:
+      css: custom.css
+      toc: yes
+vignette: >
+  %\VignetteIndexEntry{Entanglement Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+This will produce a vignette of the analyses we will conduct for the entanglement paper. The analyses we will build through are as follows:
+
+- Compare Health of entangled vs. non-entangled animals
+- Compare health before, during and after entanglement
+- Tabulate incidents of entanglement by age/reproductive class and severity
+- Examine health scores of entangled whales in relationship to year-specific health threshold (from Rolland et al)
+- Plot health and reproduction as a function of median inter-calf interval and whether an animal is over this median
+- Tabulate survival from last detection
+- Plot this over time by entanglement severity
+- Plot cumulative impacts over time of right whales
+
+Each of these will have its own section, as needed, and the links to these sections are provided on the left. Let's get to work.
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Health of Entangled vs. Non-entangled Animals
+The goal of this section is to look at the health of entangled whales versus whales that were not entangled. To do this we need a few definitions. 
+
+```{r, child = 'healthAffectedByEntanglements.Rmd'}
+
+```
+
+
+
