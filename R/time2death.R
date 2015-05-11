@@ -4,6 +4,7 @@
 rm(list=ls())
 library(ggplot2)
 library(lubridate)
+library(denstrip)
 library(reshape)
 library(scales)
 library(grid)
@@ -14,7 +15,7 @@ library(plyr)
 source('/Users/rob/Documents/code/rss10/rightwhales/makeYearmon.r')
 wd <- '/Users/rob/Documents/research/projects/PCAD/rightwhales/'
 setwd(wd)
-load(file = paste(wd, 'gibbsoutput/eg_105_ng_50000_BIG_50000.rdata', sep = '') )
+load(file = paste(wd, 'gibbsoutput/eg_2015_newData_JUVTRUE__50000_wkspc.rdata', sep = '') )
 load(file="data/egAmyEntData.rdata")
 tSub <- tangleOut
 
@@ -49,16 +50,24 @@ df <- df[df$knownD == FALSE,]
 df$emonyrID <- match(df$emonyr, myName)
 df$ldwgmonyrID <- match(df$ldwgmonyr, myName)
 df$m2die <- ifelse(!is.na(df$ldwgmonyrID), df$dtime - df$ldwgmonyrID, df$dtime - df$emonyrID)
+dfsum <- data.frame(label = c('Severe - gear', 'Moderate - gear', 'Severe - no gear', 'Minor - gear', 'Moderate - no gear', 'Minor - no gear'),
+                    medianMonths = floor(aggregate(df$m2die, list(df$gearInj), median, na.rm = TRUE))[, 2], 
+                    sdMonths = floor(aggregate(df$m2die, list(df$gearInj), sd, na.rm = TRUE))[, 2])
+write.csv(dfsum, file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/data/timeAlive.csv', row.names = FALSE)
+
 
 dfsub <- events[events$dtime < nt,] # as compared to df, this includes all animals presumed dead before nt
 dfsub <- dfsub[dfsub$knownD == FALSE,]
 dfsub$emonyrID <- match(dfsub$emonyr, myName)
 dfsub$ldwgmonyrID <- match(dfsub$ldwgmonyr, myName)
 dfsub$m2die <- ifelse(!is.na(dfsub$ldwgmonyrID), dfsub$dtime - dfsub$ldwgmonyrID, dfsub$dtime - dfsub$emonyrID)
-
+dfsubsum <- data.frame(label = c('Severe - gear', 'Moderate - gear', 'Severe - no gear', 'Minor - gear', 'Moderate - no gear', 'Minor - no gear'),
+                       medianMonths = floor(aggregate(dfsub$m2die, list(dfsub$gearInj), median, na.rm = TRUE))[, 2], 
+                    sdMonths = floor(aggregate(dfsub$m2die, list(dfsub$gearInj), sd, na.rm = TRUE))[, 2])
+write.csv(dfsubsum, file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/data/time2Death.csv', row.names = FALSE)
 
 # # Plot out the distributions
-pdf(file = '/Users/rob/Dropbox/Talks/2015/SEIT_RightWhales/time2die.pdf', width = 9.4, height = 5.9)
+pdf(file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/time2die.pdf', width = 9.4, height = 5.9)
   x <- seq(-4, 4, length=10000)
 par(xpd = FALSE)
   plot(x, xlim=c(0, 250), ylim=c(1, 6), xlab='Time until Death (Years)', ylab="", type="n", las = 1, bty = 'n', axes = FALSE)
@@ -75,7 +84,7 @@ par(xpd = FALSE)
   denstrip(x = dfsub$m2die[dfsub$gearInj == 6], at = 6, ticks = median(dfsub$m2die[dfsub$gearInj == 6]), twd = 3)
 dev.off()
 
-pdf(file = '/Users/rob/Dropbox/Talks/2015/SEIT_RightWhales/time2dieAll.pdf', width = 9.4, height = 5.9)
+pdf(file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/time2dieAll.pdf', width = 9.4, height = 5.9)
   plot(x, xlim=c(0, 250), ylim=c(1, 6), xlab='Time (Years)', ylab="", type="n", las = 1, bty = 'n', axes = FALSE)
   axis(side = 2, at = seq(6), 
      labels = c('Severe\n Gear', 'Moderate\nGear', 'Severe\nNo Gear', 
@@ -90,3 +99,4 @@ pdf(file = '/Users/rob/Dropbox/Talks/2015/SEIT_RightWhales/time2dieAll.pdf', wid
   denstrip(x = df$m2die[df$gearInj == 5], at = 5, ticks = median(df$m2die[df$gearInj == 5]), twd = 3)
   denstrip(x = df$m2die[df$gearInj == 6], at = 6, ticks = median(df$m2die[df$gearInj == 6]), twd = 3)
 dev.off()
+
