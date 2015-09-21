@@ -100,3 +100,6 @@ pdf(file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/time2dieA
   denstrip(x = df$m2die[df$gearInj == 6], at = 6, ticks = median(df$m2die[df$gearInj == 6]), twd = 3)
 dev.off()
 
+# summary statistics
+summary(glm(dfsub$m2die ~ factor(dfsub$gearInj)))
+summary(glm(df$m2die ~ factor(df$gearInj)))
