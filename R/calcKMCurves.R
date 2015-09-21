@@ -1,0 +1,1 @@
+save(survdf, file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/data/kmcalcInput.rda')
