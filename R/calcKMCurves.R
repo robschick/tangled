@@ -8,13 +8,14 @@ nt <- 504
 survdf$yearInt <- findInterval(survdf$survTime0, seq(0, nt, by = 12)) # to group the data into yearly summaries
 survdf$censYearInt <- survdf$deathyearInt <- findInterval(survdf$deathMonth0, seq(0, nt, by = 12)) # to group the death data into yearly summaries in order to ask if an animal died on a particular interval. We won't need to do this with month survival
 # survdf$censYearInt <- findInterval(survdf$censMonth, seq(0, nt, by = 12)) 
-# for testing
+# for testing, i.e. just grab a handful of animals: 
 # idx <- sample(unique(survdf$EGNo), 20)
 # dsub <- survdf[survdf$EGNo %in% idx, ]
-
-# All entanglement events
-dsub <- survdf
 # dtimes <- unique(dsub$deathMonth0) # when the animals died or are censored
+
+
+# All entanglement events, regardless of severity
+dsub <- survdf
 
 kmdf <- data.frame(interval = 0, atRiskStart = nrow(dsub), censored = 0,
                    diedOnInterval = 0, atRiskEnd = 0, propSurv = 1)
@@ -48,13 +49,14 @@ csub$psurv <- psvec
 # plot it
 pdf(file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/survivalCurveAllEntEvents.pdf', width = 8, height = 6)
 ggplot(kmdf, aes(interval, psurv)) + 
-  geom_step() + 
+  geom_step(lwd = 1, colour = grey(0.5)) + 
   ylim(0, 1) + 
   geom_segment(data = csub, aes(x = deathMonth0 / 12, y = psurv, xend = deathMonth0 / 12, yend = psurv + 0.015)) + 
   labs(y = 'Probability of Survival', x = 'Years Following End of Entanglement')+
   theme_bw()+
-  theme(panel.grid.major = element_line(size = 1.5), panel.grid.minor = element_line(size = 1))+
-  scale_x_continuous(breaks = seq(0, 30, 5), minor_breaks = seq(0, 30, 1))
+  theme(panel.grid.major = element_line(size = 1.25), panel.grid.minor = element_line(size = 1))+
+  scale_x_continuous(breaks = seq(0, 30, 5), minor_breaks = seq(0, 30, 1), expand = c(0, 0))+
+  scale_y_continuous(expand = c(0, 0.05))
 dev.off()
 
 # Break it out by entanglement severity:
@@ -111,7 +113,7 @@ ggplot(kmdfAll, aes(interval, psurv, group = sev, colour = sev)) +
   theme_bw()+
   theme(panel.grid.major = element_line(size = 1.25), panel.grid.minor = element_line(size = 1))+
   scale_x_continuous(breaks = seq(0, 30, 5), minor_breaks = seq(0, 30, 1), expand = c(0, 0))+
-  scale_y_continuous(expand = c(0, 0))+
+  scale_y_continuous(expand = c(0, 0.05))+
   scale_colour_brewer(palette = 'Set2', name = 'Entanglement\nSeverity',
                       labels = c('Minor', 'Moderate', 'Severe'))
 dev.off()
