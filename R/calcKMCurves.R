@@ -12,9 +12,10 @@ survdf$censYearInt <- survdf$deathyearInt <- findInterval(survdf$deathMonth0, se
 # idx <- sample(unique(survdf$EGNo), 20)
 # dsub <- survdf[survdf$EGNo %in% idx, ]
 dsub <- survdf
-dtimes <- unique(dsub$deathMonth0) # when the animals died or are censored
+# dtimes <- unique(dsub$deathMonth0) # when the animals died or are censored
 
-kmdf <- numeric(0)
+kmdf <- data.frame(interval = 0, atRiskStart = nrow(dsub), censored = 0,
+                   diedOnInterval = 0, atRiskEnd = 0, propSurv = 1)
 for(i in 1:length(unique(dsub$yearInt))){
   dsubi <- dsub[which(dsub$yearInt == i), ]
   interval <- i
@@ -43,11 +44,28 @@ for(i in 1:nrow(csub)){
 csub$psurv <- psvec
 
 # plot it
+pdf(file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/survivalCurveAllEntEvents.pdf', width = 8, height = 6)
 ggplot(kmdf, aes(interval, psurv)) + 
   geom_step() + 
   ylim(0, 1) + 
   geom_segment(data = csub, aes(x = deathMonth0 / 12, y = psurv, xend = deathMonth0 / 12, yend = psurv + 0.015)) + 
-  labs(y = 'Probability of Survival', x = 'Years Following End of Entanglement')
+  labs(y = 'Probability of Survival', x = 'Years Following End of Entanglement')+
+  theme_bw()+
+  theme(panel.grid.major = element_line(size = 1.5), panel.grid.minor = element_line(size = 1))+
+  scale_x_continuous(breaks = seq(0, 30, 5), minor_breaks = seq(0, 30, 1))
+dev.off()
+
+
+pdf(file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/survivalCurveBySeverity.pdf', width = 8, height = 6)
+ggplot(kmdf, aes(interval, psurv)) + 
+  geom_step() + 
+  ylim(0, 1) + 
+  geom_segment(data = csub, aes(x = deathMonth0 / 12, y = psurv, xend = deathMonth0 / 12, yend = psurv + 0.015)) + 
+  labs(y = 'Probability of Survival', x = 'Years Following End of Entanglement')+
+  theme_bw()+
+  theme(panel.grid.major = element_line(size = 1.5), panel.grid.minor = element_line(size = 1))+
+  scale_x_continuous(breaks = seq(0, 30, 5), minor_breaks = seq(0, 30, 1))
+dev.off()
 
 
 
