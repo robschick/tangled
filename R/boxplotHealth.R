@@ -14,13 +14,17 @@ load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
 load(file="data/egAmyEntData.rdata") 
 load(file = 'data/unimpacted.rdata')
 # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
-repro <- FALSE
+repro <- TRUE
 if (repro) {
   tSub <- tangRepro 
 } else {
   tSub <- tangNonRepro
 }  
 
+# Update to put an identifier column and then bind both together
+tangRepro$status <- 'RepFem'
+tangNonRepro$status <- 'NonRepFem'
+tSub <- rbind(tangRepro, tangNonRepro)
 
   
 healthmean <- sumh / g
@@ -152,9 +156,19 @@ summary(glht(ft1, mcp(variable = "Tukey")))
 nvals <- as.vector(table(tSub$gearInj))
 plabel <- c(nvals[6], nvals[4], nvals[5], nvals[2], nvals[3], nvals[1])
 
-
-if (repro) {
-#   name <- '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_ReproFemales.pdf'  
+# Commenting this all out because I'm now going to do both side-by-side
+# if (repro) {
+# #   name <- '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_ReproFemales.pdf'  
+# #   p <- ggplot(dfLong, aes(x = factor(group), y = value)) +
+# #     geom_boxplot(aes(fill = factor(gearnogear), group = paste(factor(variable), group)), outlier.shape=NA, notch = FALSE)+
+# #     annotate('text', x = c(1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18), y = 92.5, 
+# #              label = plabel, cex = 3)+
+# #     labs(y = 'Estimated Health', x = 'Injury Status', fill = 'Gear Status')+
+# #     scale_x_discrete(labels = c('Unimpacted', 'Minor', 'Moderate', 'Severe'))+
+# #     scale_fill_grey(start = 1, end = 0.65,labels = c('No Gear', 'Carrying Gear'))+
+# #     theme_bw()
+# } else {
+#   name <- '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_NonReproAnimals.pdf'
 #   p <- ggplot(dfLong, aes(x = factor(group), y = value)) +
 #     geom_boxplot(aes(fill = factor(gearnogear), group = paste(factor(variable), group)), outlier.shape=NA, notch = FALSE)+
 #     annotate('text', x = c(1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18), y = 92.5, 
@@ -163,22 +177,12 @@ if (repro) {
 #     scale_x_discrete(labels = c('Unimpacted', 'Minor', 'Moderate', 'Severe'))+
 #     scale_fill_grey(start = 1, end = 0.65,labels = c('No Gear', 'Carrying Gear'))+
 #     theme_bw()
-} else {
-  name <- '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_NonReproAnimals.pdf'
-  p <- ggplot(dfLong, aes(x = factor(group), y = value)) +
-    geom_boxplot(aes(fill = factor(gearnogear), group = paste(factor(variable), group)), outlier.shape=NA, notch = FALSE)+
-    annotate('text', x = c(1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18), y = 92.5, 
-             label = plabel, cex = 3)+
-    labs(y = 'Estimated Health', x = 'Injury Status', fill = 'Gear Status')+
-    scale_x_discrete(labels = c('Unimpacted', 'Minor', 'Moderate', 'Severe'))+
-    scale_fill_grey(start = 1, end = 0.65,labels = c('No Gear', 'Carrying Gear'))+
-    theme_bw()
-}
-
-
-pdf(file = name, width = 8, height = 6)
-  print(p)
-dev.off()
+# }
+# 
+# 
+# pdf(file = name, width = 8, height = 6)
+#   print(p)
+# dev.off()
 
 
 
