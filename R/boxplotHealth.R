@@ -11,9 +11,9 @@ library(multcomp)
 library(plyr)
 source('/Users/rob/Documents/code/rss10/rightwhales/makeYearmon.r')
 load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
-load(file="data/egAmyEntData.rdata") 
+load(file="data/egAmyEntData.rdata") # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
 load(file = 'data/unimpacted.rdata') # contains "nonrepvec" and "repvec"  
-# egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
+
 for(z in 1:2){
   ifelse(z == 1, repro <- TRUE, repro <- FALSE)
 
@@ -224,10 +224,10 @@ p <- ggplot(dfLong, aes(x = factor(variable, levels = c('unimpacted', 'Minor...0
   labs(y = 'Estimated Health', x = 'Injury Status', fill = 'Reproductive Status')+
   scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 'Moderate\nNo Gear','Moderate\nGear',   'Severe\nNo Gear', 'Severe\nGear'))+
   scale_fill_grey(start = 1, end = 0.65,labels = c('Non-repro\nFemales', 'Repro Females'))+
-  theme_bw(base_size = 18)
+  theme_bw(base_size = 16)
 p
 
 
-pdf(file = name, width = 8, height = 6)
+pdf(file = name, width = 9, height = 9*.61)
 print(p)
 dev.off()
