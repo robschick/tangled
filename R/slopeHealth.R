@@ -30,7 +30,7 @@ for(i in 1:nrow(tangleOut)){
   tsub <- tangleOut[i, ]
   htest <- healthmean[which(ID == ind),]
   
-  s <- match(tsub[, 'swindmonyr'], myName)  
+  s <- match(tsub[, 'smonyr'], myName)  
   e <- match(tsub[, 'ewindmonyr'], myName)
   r <- match(tsub[, 'rec12monyr'], myName)
   gstat <- tsub[, 'gearInj']
