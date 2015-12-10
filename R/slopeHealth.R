@@ -64,6 +64,7 @@ p <- ggplot(dfplot, aes(x = xval, y = health, group = gearStatusL, colour = gear
   scale_color_brewer(type = 'qual', palette = 'Paired')+
   theme_bw(base_size = 16)+
   labs(colour = 'Injury Status', y = 'Estimated Health', x = '')+
+  ylim(20, 80)+
   scale_x_continuous(breaks = c(1, 2, 3),
                      labels = c('Start of\nEntanglement\nWindow', 'End of\nEntanglement\nWindow','Recovery\nAfter\n12 Months'))+
 annotate('text', x = 3.1, y = c(28.4, 67.1, 53.9, 69.3, 74, 75.75), label = dfn$n)
