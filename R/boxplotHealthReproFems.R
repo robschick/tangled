@@ -47,15 +47,15 @@ for(i in 1:length(unique(tSub$EGNo))){
   # asking for the start and end of the health window during which I'll calculate health
   # also for the date of first severe entanglement & the the 12 month recovery date
   evnum <- nrow(ti)
-  s <- match(tSub[tSub$EGNo == ind, 'swindmonyr'], myName)  
-  e <- match(tSub[tSub$EGNo == ind, 'ewindmonyr'], myName)
-  sev <- match(tSub[tSub$EGNo == ind, 'fsevmonyr'], myName)
+  s <- match(t(tSub[tSub$EGNo == ind, 'swindmonyr']), myName)  
+  e <- match(t(tSub[tSub$EGNo == ind, 'ewindmonyr']), myName)
+  sev <- match(t(tSub[tSub$EGNo == ind, 'fsevmonyr']), myName)
   sev <- sev[is.finite(sev)]
   tfac <- rep(NA, length.out = length(myName))
   
   for(j in 1:evnum){
   
-      tfac[s[j]:e[j]] <- ti[j, 'gearInj'] 
+      tfac[s[j]:e[j]] <- as.numeric(ti[j, 'gearInj'] )
     
   }
   
@@ -76,7 +76,7 @@ for(i in 1:length(unique(tSub$EGNo))){
 #   }
   
   
-  # then extract the health values for these categories
+  # then extract the median health values for these categories
   tSum <- tapply(htest, tfac, median, na.rm = T)  
   dfSum[i, 1] <- ind
   
