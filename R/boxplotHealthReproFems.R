@@ -12,10 +12,10 @@ library(gridExtra)
 library(RColorBrewer)
 library(stringr)
 library(plyr)
-source('/Users/robs/Dropbox/code/rightwhales/makeYearmon.r')
-load(file = '../data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
-load(file="../data/egAmyEntData.rdata") 
-load(file = '../data/unimpacted.rdata')
+source('/Users/rob/Dropbox/code/rightwhales/makeYearmon.r')
+load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
+load(file="data/egAmyEntData.rdata") 
+load(file = 'data/unimpacted.rdata')
 # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
 repro <- TRUE
 if (repro) {
@@ -137,19 +137,20 @@ dfLong[c(mod0idx), 'group'] <- 'moderate'
 dfLong[c(min0idx), 'group'] <- 'minor'
 dfLong[unimpactedidx, 'group'] <- 'unimpacted'
 
-save(dfLong, file = '../data/healthEntanglementWindowDataReproFems.rdata')
+save(dfLong, file = 'data/healthEntanglementWindowDataReproFems.rdata')
 
-summary(glm(dfLong$value ~ factor(dfLong$group)))
+# summary(glm(dfLong$value ~ factor(dfLong$group)))
+# 
+# # run the glm 
+# # first relevel so unimpacted is the reference level.
+# dfglm <- transform(dfLong, group = factor(group))
+# dfglm <- within(dfglm, group <- relevel(group, ref = 'unimpacted'))
+# 
+# ft1 <- glm(value ~ group, data = dfglm)
+# summary(ft1)
+# summary(glht(ft1, mcp(group = "Tukey")))
 
-# run the glm 
-# first relevel so unimpacted is the reference level.
-dfglm <- transform(dfLong, group = factor(group))
-dfglm <- within(dfglm, group <- relevel(group, ref = 'unimpacted'))
-
-ft1 <- glm(value ~ group, data = dfglm)
-summary(ft1)
-summary(glht(ft1, mcp(group = "Tukey")))
-
+load(file = 'data/healthEntanglementWindowDataReproFems.rdata')
 nvals <- as.vector(table(dfLong$group))
 plabel <- c(nvals[2],nvals[3], nvals[4])
 name <- '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_ReproFemales.pdf'  
@@ -160,12 +161,13 @@ p <- ggplot(dfLong, aes(x = factor(group), y = value)) +
              label = plabel, cex = 3)+
     labs(y = 'Estimated Health', x = 'Injury Status')+
     scale_x_discrete(labels = c('Unimpacted', 'Minor', 'Moderate', 'Severe'))+
-    theme_bw()
+    theme_bw()+
+  theme(legend.position = c(0.25, .01))
 p
 
 
 
-pdf(file = name, width = 8, height = 6)
+pdf(file = name, width = 9, height = 9*.61)
   print(p)
 dev.off()
 
