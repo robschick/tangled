@@ -186,25 +186,20 @@ tangleOut$fsevmonyr   <- paste(str_sub(as.character(tangleOut$firstSevere), 6, 7
 tangleOut$rec12monyr   <- paste(str_sub(as.character(tangleOut$recov12months), 6, 7), str_sub(as.character(tangleOut$recov12months), 1, 4), sep = '-')
 
 
-# ws0   <- which(str_locate(str_sub(as.character(tangleOut$StartDate), 6, 7), '0')[, 1] == 1)
-# we0   <- which(str_locate(str_sub(as.character(tangleOut$EndDate), 6, 7), '0')[, 1] == 1)
-# we120 <- which(str_locate(str_sub(as.character(tangleOut$StartDateWindow), 6, 7), '0')[, 1] == 1)
-# we60 <- which(str_locate(str_sub(as.character(tangleOut$EndDateWindow), 6, 7), '0')[, 1] == 1)
-# wep60 <- which(str_locate(str_sub(as.character(tangleOut$firstSevere), 6, 7), '0')[, 1] == 1)
-# weld60 <- which(str_locate(str_sub(as.character(tangleOut$recov12months), 6, 7), '0')[, 1] == 1)
+ws0   <- which(str_locate(tangleOut$smonyr, '0')[, 1] == 1)
+we0   <- which(str_locate(tangleOut$emonyr, '0')[, 1] == 1)
+we120 <- which(str_locate(tangleOut$swindmonyr, '0')[, 1] == 1)
+we60 <- which(str_locate(tangleOut$ewindmonyr, '0')[, 1] == 1)
+wep60 <- which(str_locate(tangleOut$fsevmonyr, '0')[, 1] == 1)
+weld60 <- which(str_locate(tangleOut$rec12monyr, '0')[, 1] == 1)
 
-# tangleOut[ws0, 'smonyr'] <- str_replace(tangleOut[ws0, 'smonyr'], '0', "")
-tangleOut$smonyr <- str_replace(tangleOut$smonyr, '0', "")
-# tangleOut[we0, 'emonyr'] <- str_replace(as.character(tangleOut[we0, 'emonyr']), '0', "")
-tangleOut$emonyr <- str_replace(tangleOut$emonyr, '0', "")
-# tangleOut[we120, 'swindmonyr'] <- str_replace(as.character(tangleOut[we120, 'swindmonyr']), '0', "")
-tangleOut$swindmonyr <- str_replace(tangleOut$swindmonyr, '0', "")
-# tangleOut[we60, 'ewindmonyr'] <- str_replace(as.character(tangleOut[we60, 'ewindmonyr']), '0', "")
-tangleOut$ewindmonyr <- str_replace(tangleOut$ewindmonyr, '0', "")
-# tangleOut[wep60, 'fsevmonyr'] <- str_replace(as.character(tangleOut[wep60, 'fsevmonyr']), '0', "")
-tangleOut$fsevmonyr <- str_replace(tangleOut$fsevmonyr, '0', "")
-# tangleOut[weld60, 'rec12monyr'] <- str_replace(as.character(tangleOut[weld60, 'rec12monyr']), '0', "")
-tangleOut$rec12monyr <- str_replace(tangleOut$rec12monyr, '0', "")
+tangleOut[ws0, 'smonyr'] <- str_replace(t(tangleOut[ws0, 'smonyr']), '0', "")
+tangleOut[we0, 'emonyr'] <- str_replace(t(tangleOut[we0, 'emonyr']), '0', "")
+tangleOut[we120, 'swindmonyr'] <- str_replace(t(tangleOut[we120, 'swindmonyr']), '0', "")
+tangleOut[we60, 'ewindmonyr'] <- str_replace(t(tangleOut[we60, 'ewindmonyr']), '0', "")
+tangleOut[wep60, 'fsevmonyr'] <- str_replace(t(tangleOut[wep60, 'fsevmonyr']), '0', "")
+tangleOut[weld60, 'rec12monyr'] <- str_replace(t(tangleOut[weld60, 'rec12monyr']), '0', "")
+
 
 # I'm splitting this into two data frames in order to make overlays easier
 # the logic is that each entanglement event is tested to see if it's before
