@@ -5,16 +5,16 @@ library(gdata)
 library(plyr)
 # Entanglement Data Prep for Post-Model Window Overlays
 rm(list=ls())
-source(file='/Users/robs/Dropbox/code/rightwhales/makeTangle.r')
-source(file = '/Users/robs/Dropbox/code/rightwhales/cleanMerge.r')
-load(file="../data/egsightings.rdata")
-load(file="../data/calfTable.rdata")
+source(file='R/makeTangle.R')
+source(file = 'R/cleanMerge.R')
+load(file="data/egsightings.rdata")
+load(file="data/calfTable.rdata")
 days <- months(6)
 
 # next chunk is to bring in the entanglement table and pare it down
 tangle    <- makeTangle()
 idx       <- which(!is.na(tangle$StartDate)) # Find animals with a valid start date
-tangle    <- tangle[idx,] # Keep animals with a valid start date
+tangle    <- tangle[idx,] # Keep only those animals with a valid start date
 tangle$ID <- seq_along(1:nrow(tangle)) #
 tangID    <- tangle$ID
 tangle$wingt6mo <- tangle$EndDate - tangle$StartDate > days
@@ -22,7 +22,7 @@ tangle$wingt6mo <- tangle$EndDate - tangle$StartDate > days
 # tangle <- tangle[,-which(colnames(tangle) == 'TimeFrame')]
 
 # Now we want to add the gear carrying information
-etime <- read.csv(file = '../data/TimingEntanglementReformatDate.csv', header = TRUE)
+etime <- read.csv(file = 'data/TimingEntanglementReformatDate.csv', header = TRUE)
 # ID     <- sort(unique(sights[,'SightingEGNo']))
 # n      <- length(ID)
 startYr <- 1970
@@ -134,7 +134,8 @@ tangleOut$firstSevere[idx] <- tangleOut$StartDateWindow[idx]
 
 dupid <- tangleOut$EGNo[idx][duplicated(tangleOut$EGNo[idx])]
 for (id in dupid) {
-  tangleOut[which(tangleOut$Severity == 'severe' & tangleOut$EGNo == id), 'firstSevere'] <- min(tangleOut[which(tangleOut$Severity == 'severe' & tangleOut$EGNo == id), 'StartDateWindow'])
+  drange <- data.frame(tangleOut[which(tangleOut$Severity == 'severe' & tangleOut$EGNo == id), 'StartDateWindow'])
+  tangleOut[which(tangleOut$Severity == 'severe' & tangleOut$EGNo == id), 'firstSevere'] <- dplyr::summarise(drange, mindate = min(StartDateWindow))
 }
 
 # ok with that done, now I need to add in the recovery dates 12 months beyond
@@ -166,38 +167,44 @@ for (egno in unique(tangleOut$EGNo)) {
 
 
 # I'm culling out a handful of animals for viewing in the shiny app:
-tcase <- data.frame(egno = c(1027, 1403, 2212, 1247, 1158, 1102, 1113, 1004, 1602, 1301), 
-                    event =c(3, 2, 3, 2, 4, 1, 2, 1, 4, 1))
-idx <- rep(0, length.out = nrow(tcase))
-for(i in 1:nrow(tcase)){
-  idx[i] <- which(tangleOut$EGNo == tcase[i, 1]& tangleOut$EventNo == tcase[i, 2])
-}
-
-tshiny <- tangleOut[idx, ]
-save(tshiny, file="../inst/shiny-examples/myapp/shinyEntData.rdata")
+# tcase <- data.frame(egno = c(1027, 1403, 2212, 1247, 1158, 1102, 1113, 1004, 1602, 1301), 
+#                     event =c(3, 2, 3, 2, 4, 1, 2, 1, 4, 1))
+# idx <- rep(0, length.out = nrow(tcase))
+# for(i in 1:nrow(tcase)){
+#   idx[i] <- which(tangleOut$EGNo == tcase[i, 1]& tangleOut$EventNo == tcase[i, 2])
+# }
+# 
+# tshiny <- tangleOut[idx, ]
+# save(tshiny, file="../inst/shiny-examples/myapp/shinyEntData.rdata")
 
 # have to get the dates pared down to make sense with our time indexing in the main file.
-tangleOut$smonyr   <- paste(str_sub(tangleOut$StartDate, 6, 7), str_sub(tangleOut$StartDate, 1, 4), sep = '-')
-tangleOut$emonyr   <- paste(str_sub(tangleOut$EndDate, 6, 7), str_sub(tangleOut$EndDate, 1, 4), sep = '-')
-tangleOut$swindmonyr   <- paste(str_sub(tangleOut$StartDateWindow, 6, 7), str_sub(tangleOut$StartDateWindow, 1, 4), sep = '-')
-tangleOut$ewindmonyr   <- paste(str_sub(tangleOut$EndDateWindow, 6, 7), str_sub(tangleOut$EndDateWindow, 1, 4), sep = '-')
-tangleOut$fsevmonyr   <- paste(str_sub(tangleOut$firstSevere, 6, 7), str_sub(tangleOut$firstSevere, 1, 4), sep = '-')
-tangleOut$rec12monyr   <- paste(str_sub(tangleOut$recov12months, 6, 7), str_sub(tangleOut$recov12months, 1, 4), sep = '-')
+tangleOut$smonyr   <- paste(str_sub(as.character(tangleOut$StartDate), 6, 7), str_sub(as.character(tangleOut$StartDate), 1, 4), sep = '-')
+tangleOut$emonyr   <- paste(str_sub(as.character(tangleOut$EndDate), 6, 7), str_sub(as.character(tangleOut$EndDate), 1, 4), sep = '-')
+tangleOut$swindmonyr   <- paste(str_sub(as.character(tangleOut$StartDateWindow), 6, 7), str_sub(as.character(tangleOut$StartDateWindow), 1, 4), sep = '-')
+tangleOut$ewindmonyr   <- paste(str_sub(as.character(tangleOut$EndDateWindow), 6, 7), str_sub(as.character(tangleOut$EndDateWindow), 1, 4), sep = '-')
+tangleOut$fsevmonyr   <- paste(str_sub(as.character(tangleOut$firstSevere), 6, 7), str_sub(as.character(tangleOut$firstSevere), 1, 4), sep = '-')
+tangleOut$rec12monyr   <- paste(str_sub(as.character(tangleOut$recov12months), 6, 7), str_sub(as.character(tangleOut$recov12months), 1, 4), sep = '-')
 
 
-ws0   <- which(str_locate(str_sub(tangleOut$StartDate, 6, 7), '0')[, 1] == 1)
-we0   <- which(str_locate(str_sub(tangleOut$EndDate, 6, 7), '0')[, 1] == 1)
-we120 <- which(str_locate(str_sub(tangleOut$StartDateWindow, 6, 7), '0')[, 1] == 1)
-we60 <- which(str_locate(str_sub(tangleOut$EndDateWindow, 6, 7), '0')[, 1] == 1)
-wep60 <- which(str_locate(str_sub(tangleOut$firstSevere, 6, 7), '0')[, 1] == 1)
-weld60 <- which(str_locate(str_sub(tangleOut$recov12months, 6, 7), '0')[, 1] == 1)
+# ws0   <- which(str_locate(str_sub(as.character(tangleOut$StartDate), 6, 7), '0')[, 1] == 1)
+# we0   <- which(str_locate(str_sub(as.character(tangleOut$EndDate), 6, 7), '0')[, 1] == 1)
+# we120 <- which(str_locate(str_sub(as.character(tangleOut$StartDateWindow), 6, 7), '0')[, 1] == 1)
+# we60 <- which(str_locate(str_sub(as.character(tangleOut$EndDateWindow), 6, 7), '0')[, 1] == 1)
+# wep60 <- which(str_locate(str_sub(as.character(tangleOut$firstSevere), 6, 7), '0')[, 1] == 1)
+# weld60 <- which(str_locate(str_sub(as.character(tangleOut$recov12months), 6, 7), '0')[, 1] == 1)
 
-tangleOut[ws0, 'smonyr'] <- str_replace(tangleOut[ws0, 'smonyr'], '0', "")
-tangleOut[we0, 'emonyr'] <- str_replace(tangleOut[we0, 'emonyr'], '0', "")
-tangleOut[we120, 'swindmonyr'] <- str_replace(tangleOut[we120, 'swindmonyr'], '0', "")
-tangleOut[we60, 'ewindmonyr'] <- str_replace(tangleOut[we60, 'ewindmonyr'], '0', "")
-tangleOut[wep60, 'fsevmonyr'] <- str_replace(tangleOut[wep60, 'fsevmonyr'], '0', "")
-tangleOut[weld60, 'rec12monyr'] <- str_replace(tangleOut[weld60, 'rec12monyr'], '0', "")
+# tangleOut[ws0, 'smonyr'] <- str_replace(tangleOut[ws0, 'smonyr'], '0', "")
+tangleOut$smonyr <- str_replace(tangleOut$smonyr, '0', "")
+# tangleOut[we0, 'emonyr'] <- str_replace(as.character(tangleOut[we0, 'emonyr']), '0', "")
+tangleOut$emonyr <- str_replace(tangleOut$emonyr, '0', "")
+# tangleOut[we120, 'swindmonyr'] <- str_replace(as.character(tangleOut[we120, 'swindmonyr']), '0', "")
+tangleOut$swindmonyr <- str_replace(tangleOut$swindmonyr, '0', "")
+# tangleOut[we60, 'ewindmonyr'] <- str_replace(as.character(tangleOut[we60, 'ewindmonyr']), '0', "")
+tangleOut$ewindmonyr <- str_replace(tangleOut$ewindmonyr, '0', "")
+# tangleOut[wep60, 'fsevmonyr'] <- str_replace(as.character(tangleOut[wep60, 'fsevmonyr']), '0', "")
+tangleOut$fsevmonyr <- str_replace(tangleOut$fsevmonyr, '0', "")
+# tangleOut[weld60, 'rec12monyr'] <- str_replace(as.character(tangleOut[weld60, 'rec12monyr']), '0', "")
+tangleOut$rec12monyr <- str_replace(tangleOut$rec12monyr, '0', "")
 
 # I'm splitting this into two data frames in order to make overlays easier
 # the logic is that each entanglement event is tested to see if it's before
@@ -216,4 +223,4 @@ tangRepro <- tangleOut[which(tangleOut$afterCalf1 == TRUE), ]
 tangNonRepro <- tangleOut[-which(tangleOut$afterCalf1 == TRUE), ]
 
 # Save the data into one rdata file
-save(tangleOut, tangRepro, tangNonRepro, file="../data/egAmyEntData.rdata")
+save(tangleOut, tangRepro, tangNonRepro, file="data/egAmyEntData.rdata")
