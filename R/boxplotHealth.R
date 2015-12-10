@@ -47,15 +47,15 @@ for(i in 1:length(unique(tSub$EGNo))){
   # asking for the start and end of the health window during which I'll calculate health
   # also for the date of first severe entanglement & the the 12 month recovery date
   evnum <- nrow(ti)
-  s <- match(tSub[tSub$EGNo == ind, 'swindmonyr'], myName)  
-  e <- match(tSub[tSub$EGNo == ind, 'ewindmonyr'], myName)
-  sev <- match(tSub[tSub$EGNo == ind, 'fsevmonyr'], myName)
+  s <- match(t(tSub[tSub$EGNo == ind, 'swindmonyr']), myName)  
+  e <- match(t(tSub[tSub$EGNo == ind, 'ewindmonyr']), myName)
+  sev <- match(t(tSub[tSub$EGNo == ind, 'fsevmonyr']), myName)
   sev <- sev[is.finite(sev)]
   tfac <- rep(NA, length.out = length(myName))
   
   for(j in 1:evnum){
   
-      tfac[s[j]:e[j]] <- ti[j, 'gearInj'] 
+      tfac[s[j]:e[j]] <- as.numeric(ti[j, 'gearInj'] )
     
   }
   
@@ -223,7 +223,7 @@ p <- ggplot(dfLong, aes(x = factor(variable, levels = c('unimpacted', 'Minor...0
            label = plabel, cex = 5)+
   labs(y = 'Estimated Health', x = 'Injury Status', fill = 'Reproductive Status')+
   scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 'Moderate\nNo Gear','Moderate\nGear',   'Severe\nNo Gear', 'Severe\nGear'))+
-  scale_fill_grey(start = 1, end = 0.65,labels = c('Non-repro\nFemales', 'Repro Females'))+
+  scale_fill_grey(start = 1, end = 0.65,labels = c('All Other\nDemographic\nCategories\n', 'Reproductive\nFemales\n'))+
   theme_bw(base_size = 16)
 p
 
