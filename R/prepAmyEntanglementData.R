@@ -5,9 +5,10 @@ library(gdata)
 library(plyr)
 # Entanglement Data Prep for Post-Model Window Overlays
 rm(list=ls())
-source(file='/Users/rob/Documents/code/rss10/rightwhales/makeTangle.r')
-source(file = '/Users/rob/Documents/code/rss10/rightwhales/cleanMerge.r')
+source(file='/Users/robs/Dropbox/code/rightwhales/makeTangle.r')
+source(file = '/Users/robs/Dropbox/code/rightwhales/cleanMerge.r')
 load(file="../data/egsightings.rdata")
+load(file="../data/calfTable.rdata")
 days <- months(6)
 
 # next chunk is to bring in the entanglement table and pare it down
@@ -125,7 +126,46 @@ tangleOut$gearInj[id4] <- 2
 tangleOut$gearInj[id5] <- 3
 tangleOut$gearInj[id6] <- 1
 
-# I'm doing this for the shiny app:
+# Adding in the first severe entanglement date so that everything after 
+# this won't be included in any subsequent health tallies:
+tangleOut$firstSevere <- as.Date('2500-01-01', '%Y-%m-%d')
+idx <- which(tangleOut$Severity == 'severe')
+tangleOut$firstSevere[idx] <- tangleOut$StartDateWindow[idx]
+
+dupid <- tangleOut$EGNo[idx][duplicated(tangleOut$EGNo[idx])]
+for (id in dupid) {
+  tangleOut[which(tangleOut$Severity == 'severe' & tangleOut$EGNo == id), 'firstSevere'] <- min(tangleOut[which(tangleOut$Severity == 'severe' & tangleOut$EGNo == id), 'StartDateWindow'])
+}
+
+# ok with that done, now I need to add in the recovery dates 12 months beyond
+# EndDateWindow, from Amy Knowlton (April 14, 2015):
+# for gear animals this is 12 months beyond either LastDatewGear or LineGone
+# for non-gear animals this is 12 months beyond EndDate
+tangleOut$recov12months <- as.Date('2500-01-01', '%Y-%m-%d')
+tangleOut$recov12months <- tangleOut$EndDateWindow %m+% months(12)
+
+# set a date we'll use for when females become reproductively active, i.e. year of first calf
+# remove the reproductively active females from background health
+tangleOut$firstCalf <- as.Date('2500-01-01', '%Y-%m-%d')
+tangleOut$firstCalfidx <- NA
+
+for (egno in unique(tangleOut$EGNo)) {
+  
+  if (length(calfTable[calfTable$EGNo == egno, 'CalvingYear']) > 0) {
+    
+    year1 <- calfTable[calfTable$EGNo == egno, 'CalvingYear'][which.min(calfTable[calfTable$EGNo == egno, 'CalvingYear'])]
+    subdate <- as.Date(paste(year1, '-01-01', sep = ''), '%Y-%m-%d')
+    tangleOut$firstCalf[tangleOut$EGNo == egno] <- subdate
+    tangleOut$firstCalfidx[tangleOut$EGNo == egno] <- match(year1, monYr[, 2])    
+    
+  }
+  
+}
+
+
+
+
+# I'm culling out a handful of animals for viewing in the shiny app:
 tcase <- data.frame(egno = c(1027, 1403, 2212, 1247, 1158, 1102, 1113, 1004, 1602, 1301), 
                     event =c(3, 2, 3, 2, 4, 1, 2, 1, 4, 1))
 idx <- rep(0, length.out = nrow(tcase))
@@ -139,23 +179,41 @@ save(tshiny, file="../inst/shiny-examples/myapp/shinyEntData.rdata")
 # have to get the dates pared down to make sense with our time indexing in the main file.
 tangleOut$smonyr   <- paste(str_sub(tangleOut$StartDate, 6, 7), str_sub(tangleOut$StartDate, 1, 4), sep = '-')
 tangleOut$emonyr   <- paste(str_sub(tangleOut$EndDate, 6, 7), str_sub(tangleOut$EndDate, 1, 4), sep = '-')
-tangleOut$e12monyr <- paste(str_sub(tangleOut$EndDatePlus12, 6, 7), str_sub(tangleOut$EndDatePlus12, 1, 4), sep = '-')
-tangleOut$emin6monyr <- paste(str_sub(tangleOut$EndDateMinus6, 6, 7), str_sub(tangleOut$EndDateMinus6, 1, 4), sep = '-')
-tangleOut$e6monyr <- paste(str_sub(tangleOut$EndDatePlus6, 6, 7), str_sub(tangleOut$EndDatePlus6, 1, 4), sep = '-')
-tangleOut$ldwgmonyr <- paste(str_sub(tangleOut$LastDatewGear, 6, 7), str_sub(tangleOut$LastDatewGear, 1, 4), sep = '-')
+tangleOut$swindmonyr   <- paste(str_sub(tangleOut$StartDateWindow, 6, 7), str_sub(tangleOut$StartDateWindow, 1, 4), sep = '-')
+tangleOut$ewindmonyr   <- paste(str_sub(tangleOut$EndDateWindow, 6, 7), str_sub(tangleOut$EndDateWindow, 1, 4), sep = '-')
+tangleOut$fsevmonyr   <- paste(str_sub(tangleOut$firstSevere, 6, 7), str_sub(tangleOut$firstSevere, 1, 4), sep = '-')
+tangleOut$rec12monyr   <- paste(str_sub(tangleOut$recov12months, 6, 7), str_sub(tangleOut$recov12months, 1, 4), sep = '-')
+
+
 ws0   <- which(str_locate(str_sub(tangleOut$StartDate, 6, 7), '0')[, 1] == 1)
 we0   <- which(str_locate(str_sub(tangleOut$EndDate, 6, 7), '0')[, 1] == 1)
-we120 <- which(str_locate(str_sub(tangleOut$EndDatePlus12, 6, 7), '0')[, 1] == 1)
-we60 <- which(str_locate(str_sub(tangleOut$EndDateMinus6, 6, 7), '0')[, 1] == 1)
-wep60 <- which(str_locate(str_sub(tangleOut$EndDatePlus6, 6, 7), '0')[, 1] == 1)
-weld60 <- which(str_locate(str_sub(tangleOut$LastDatewGear, 6, 7), '0')[, 1] == 1)
+we120 <- which(str_locate(str_sub(tangleOut$StartDateWindow, 6, 7), '0')[, 1] == 1)
+we60 <- which(str_locate(str_sub(tangleOut$EndDateWindow, 6, 7), '0')[, 1] == 1)
+wep60 <- which(str_locate(str_sub(tangleOut$firstSevere, 6, 7), '0')[, 1] == 1)
+weld60 <- which(str_locate(str_sub(tangleOut$recov12months, 6, 7), '0')[, 1] == 1)
+
 tangleOut[ws0, 'smonyr'] <- str_replace(tangleOut[ws0, 'smonyr'], '0', "")
 tangleOut[we0, 'emonyr'] <- str_replace(tangleOut[we0, 'emonyr'], '0', "")
-tangleOut[we120, 'e12monyr'] <- str_replace(tangleOut[we120, 'e12monyr'], '0', "")
-tangleOut[we60, 'emin6monyr'] <- str_replace(tangleOut[we60, 'emin6monyr'], '0', "")
-tangleOut[wep60, 'e6monyr'] <- str_replace(tangleOut[wep60, 'e6monyr'], '0', "")
-tangleOut[weld60, 'ldwgmonyr'] <- str_replace(tangleOut[weld60, 'ldwgmonyr'], '0', "")
+tangleOut[we120, 'swindmonyr'] <- str_replace(tangleOut[we120, 'swindmonyr'], '0', "")
+tangleOut[we60, 'ewindmonyr'] <- str_replace(tangleOut[we60, 'ewindmonyr'], '0', "")
+tangleOut[wep60, 'fsevmonyr'] <- str_replace(tangleOut[wep60, 'fsevmonyr'], '0', "")
+tangleOut[weld60, 'rec12monyr'] <- str_replace(tangleOut[weld60, 'rec12monyr'], '0', "")
 
+# I'm splitting this into two data frames in order to make overlays easier
+# the logic is that each entanglement event is tested to see if it's before
+# or after the date of the first calf. 
+# If the event comes before, then it's a NON-Reproductive event
+# If the event comes after, then it's a Reproductive event
+tangleOut$afterCalf1 <- NA
+
+for (i in 1:nrow(tangleOut)) {
+  if (is.na(tangleOut$firstCalfidx[i])) next()
+  idx <- match(tangleOut$smonyr[i], myName)
+  tangleOut$afterCalf1[i] <- idx > tangleOut$firstCalfidx[i]
+}
+
+tangRepro <- tangleOut[which(tangleOut$afterCalf1 == TRUE), ]
+tangNonRepro <- tangleOut[-which(tangleOut$afterCalf1 == TRUE), ]
 
 # Save the data into one rdata file
-save(tangleOut, file="data/egAmyEntData.rdata")
+save(tangleOut, tangRepro, tangNonRepro, file="../data/egAmyEntData.rdata")
