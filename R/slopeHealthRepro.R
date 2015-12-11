@@ -15,7 +15,7 @@ library(plyr)
 source('/Users/rob/Documents/code/rss10/rightwhales/makeYearmon.r')
 load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
 load(file="data/egAmyEntData.rdata") # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
-
+recover <- TRUE
 
 healthmean <- sumh / g
 for(i in 1:nrow(healthmean)){
@@ -52,12 +52,25 @@ dfn <- dfout %>%
 
 gvec <- c('Severe Gear', 'Moderate Gear', 'Severe No Gear', 'Minor Gear', 'Moderate No Gear', 'Minor No Gear')
 gvec <- factor(gvec, levels = c('Minor No Gear', 'Minor Gear', 'Moderate No Gear', 'Moderate Gear','Severe No Gear','Severe Gear'))
-dfplot <- data.frame(rbind(cbind(dfsum$gearInj, dfsum$shealth, rep(1, length(dfsum$gearInj))),
-                cbind(dfsum$gearInj, dfsum$endhealth, rep(2, length(dfsum$gearInj))),
-                cbind(dfsum$gearInj, dfsum$rechealth, rep(3, length(dfsum$gearInj)))))
-colnames(dfplot) <- c('gearStatus',  'health', 'xval')
-dfplot$gearStatusL <- rep(gvec, times = 3)
 
+if(recover){
+  
+  dfplot <- data.frame(rbind(cbind(dfsum$gearInj, dfsum$shealth, rep(1, length(dfsum$gearInj))),
+                             cbind(dfsum$gearInj, dfsum$endhealth, rep(2, length(dfsum$gearInj))),
+                             cbind(dfsum$gearInj, dfsum$rechealth, rep(3, length(dfsum$gearInj)))))  
+  colnames(dfplot) <- c('gearStatus',  'health', 'xval')
+  dfplot$gearStatusL <- rep(gvec, times = 3)
+  
+} else {
+  
+  dfplot <- data.frame(rbind(cbind(dfsum$gearInj, dfsum$shealth, rep(1, length(dfsum$gearInj))),
+                             cbind(dfsum$gearInj, dfsum$endhealth, rep(2, length(dfsum$gearInj)))))
+  colnames(dfplot) <- c('gearStatus',  'health', 'xval')
+  dfplot$gearStatusL <- rep(gvec, times = 2)
+  
+}
+
+if(recover){
 name <- '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/slopePlotRepro.pdf'
 p <- ggplot(dfplot, aes(x = xval, y = health, group = gearStatusL, colour = gearStatusL))+
   geom_line(size = 1.5)+
@@ -66,11 +79,25 @@ p <- ggplot(dfplot, aes(x = xval, y = health, group = gearStatusL, colour = gear
   labs(colour = 'Injury Status', y = 'Estimated Health', x = '')+
   ylim(20, 80)+
   scale_x_continuous(breaks = c(1, 2, 3),
-                     labels = c('Start of\nEntanglement\nWindow', 'End of\nEntanglement\nWindow','Recovery\nAfter\n12 Months'))+
+                     labels = c("Sighting Prior to\nEntanglement\nDetection", 
+                                "First Sighting with\nScars or Gear",'Recovery\nAfter\n12 Months'))+
 # annotate('text', x = 3.05, y = c(26.85, 66.65, 62.85, 65.5, 69.58, 64.15), label = dfn$n)# right hand label
-annotate('text', x = .95, y = c(59.0, 74.7, 72.5, 68.1, 66.2, 70.25), label = dfn$n)# left hand label
+annotate('text', x = .95, y = c(70.5, 77.5, 74.5, 76, 68, 72.25), label = dfn$n)# left hand label
 p
-cbind(dfsum, dfn)
+} else {
+  name <- '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/slopePlotReproNoRecovery.pdf'
+  p <- ggplot(dfplot, aes(x = xval, y = health, group = gearStatusL, colour = gearStatusL))+
+    geom_line(size = 1.5)+
+    scale_color_brewer(type = 'qual', palette = 'Paired')+
+    theme_bw(base_size = 16)+
+    labs(colour = 'Injury Status', y = 'Estimated Health', x = '')+
+    ylim(20, 80)+
+    scale_x_continuous(breaks = c(1, 2),
+                       labels = c("Sighting Prior to\nEntanglement\nDetection", "First Sighting with\nScars or Gear"))+
+    # annotate('text', x = 3.05, y = c(26.85, 66.65, 62.85, 65.5, 69.58, 64.15), label = dfn$n)# right hand label
+    annotate('text', x = .95, y = c(70.0, 78.25, 74.5, 76.5, 67.5, 72.25), label = dfn$n)# left hand label
+  p
+}
 
 
 pdf(file = name, width = 9, height = 9*.61)
