@@ -8,7 +8,7 @@ library(dplyr)
 source('/Users/rob/Documents/code/rss10/rightwhales/makeYearmon.r')
 setwd('/Users/rob/Rdev/tangled')
 load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
-load(file="data/egAmyEntData.rdata") # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
+load(file="data/egAmyEntData.rdata") # egAmyEntData.rdata contains tangle, tangleOut, tangRepro, tangNonRepro, so use the repro flag
 
 # calcaluating months below 70
 healthmean <- sumh / g
@@ -23,9 +23,10 @@ for(i in 1:nrow(healthurf)){
   healthurf[i, lastSight[i]:nt] <- NA
 }
 
-# for females are in calf table but not in tangleOut I want stretches of health and after or including the first pregnancy year 
-# I'll find the females in calfTable, and not in tangleOut
-idx <- match(calfTable$EGNo, tangleOut$EGNo)
+# for females are in calf table but not in tangle I want stretches of health and after or including the first pregnancy year 
+# I'll find the females in calfTable, and not in tangle. In this case I'm using tangle, because it contains all entangled whales
+# even if they don't have a valid start date
+idx <- match(calfTable$EGNo, tangle$EGNo)
 ctabSub <- calfTable[which(is.na(idx)), ]
 ctabid <- ctabSub %>% 
   group_by(EGNo) %>% 
