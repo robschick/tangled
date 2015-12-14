@@ -12,6 +12,7 @@ load(file="data/calfTable.rdata")
 days <- months(6)
 
 # next chunk is to bring in the entanglement table and pare it down
+tangleAll <- makeTangle()
 tangle    <- makeTangle()
 idx       <- which(!is.na(tangle$StartDate)) # Find animals with a valid start date
 tangle    <- tangle[idx,] # Keep only those animals with a valid start date
@@ -218,4 +219,4 @@ tangRepro <- tangleOut[which(tangleOut$afterCalf1 == TRUE), ]
 tangNonRepro <- tangleOut[-which(tangleOut$afterCalf1 == TRUE), ]
 
 # Save the data into one rdata file
-save(tangleOut, tangRepro, tangNonRepro, file="data/egAmyEntData.rdata")
+save(tangleAll, tangleOut, tangRepro, tangNonRepro, file="data/egAmyEntData.rdata")
