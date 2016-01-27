@@ -13,7 +13,7 @@ library(scales)
 library(multcomp)
 library(plyr)
 source('/Users/rob/Documents/code/rss10/rightwhales/makeYearmon.r')
-load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
+load(file = 'data/eg_201_ng_25000_BIG_25000.rdata')
 load(file="data/egAmyEntData.rdata") # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
 recover <- TRUE
 
@@ -43,11 +43,11 @@ for(i in 1:nrow(tangleOut)){
 }
 library(dplyr)
 dfsum <- dfout %>% 
-  group_by(gearInj) %>% 
+  group_by(gearInjury) %>% 
   summarise(shealth = mean(startHealth, na.rm = TRUE), endhealth = mean(endHealth), rechealth = mean(recHealth))
 
 dfn <- dfout %>% 
-  group_by(gearInj) %>% 
+  group_by(gearInjury) %>% 
   summarise(n = n_distinct(egno))
 
 gvec <- c('Severe Gear', 'Moderate Gear', 'Severe No Gear', 'Minor Gear', 'Moderate No Gear', 'Minor No Gear')
