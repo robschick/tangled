@@ -89,13 +89,30 @@ hdat$rhAnom <- c(rnorm(n = dat$numEvents[1], mean = -15),
 head(hdat)
 ```
 
+Let's summarise that so we can use it to draw a summary line on top of the individual lines.
+
+```{r}
+hsum <- hdat %>% 
+  group_by(gearlab) %>% 
+  summarise(smed = median(shAnom),
+            emed = median(ehAnom),
+            rmed = median(rhAnom))
+hsum
+```
+
+
 ## Slope Graph - Option 1
 This one is similar to the last slope graph, but turns it on its head and displays the data from all the lines in addition to the summary line. By including all of the lines, we get a visual sense of the amount in each category.
 
 ```{r}
 p <- ggplot(data = hdat)+
-  geom_segment(aes(x = shAnom, xend = ehAnom, y = 2, yend = 1)) +
-  geom_segment(aes(x = ehAnom, xend = rhAnom, y = 1, yend = 0))
+  geom_segment(aes(x = shAnom, xend = ehAnom, y = 2, yend = 1), colour = alpha('grey', 0.5)) +
+  geom_segment(aes(x = ehAnom, xend = rhAnom, y = 1, yend = 0), colour = alpha('grey', 0.5))+
+  geom_segment(data = hsum, aes(x = smed, xend = emed, y = 2, yend = 1), lwd = 1.5) + 
+  geom_segment(data = hsum, aes(x = emed, xend = rmed, y = 1, yend = 0), lwd = 1.5) + 
+  facet_grid(~ gearlab)+
+  theme_bw()+
+  labs(x = 'Health Anomaly', y = '')
 p
 ```
 
