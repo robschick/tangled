@@ -110,6 +110,8 @@ p <- ggplot(data = hdat)+
   geom_segment(aes(x = ehAnom, xend = rhAnom, y = 1, yend = 0), colour = alpha('grey', 0.5))+
   geom_segment(data = hsum, aes(x = smed, xend = emed, y = 2, yend = 1), lwd = 1.5) + 
   geom_segment(data = hsum, aes(x = emed, xend = rmed, y = 1, yend = 0), lwd = 1.5) + 
+    scale_y_continuous(breaks = c(0, 1, 2),
+                   labels = c( 'Recovery', 'End', 'Start'))+
   facet_grid(~ gearlab)+
   theme_bw()+
   labs(x = 'Health Anomaly', y = '')
