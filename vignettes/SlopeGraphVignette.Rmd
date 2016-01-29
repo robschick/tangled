@@ -1,0 +1,14 @@
+---
+title: "Revised/Improved Slope Graph"
+author: "Rob Schick"
+date: "29 January 2016"
+output: word_document
+---
+
+The goal of this is to write a short simulation that generates data of health anomaly at three points:
+
+1. The start of an entanglement window
+2. The end of an entanglement window
+3. 12 months after the end of the window
+
+We are doing this in order to look at a different way of displaying the slope plots that show decline in health.
