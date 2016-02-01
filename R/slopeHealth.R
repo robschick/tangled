@@ -22,6 +22,10 @@ for(i in 1:nrow(healthmean)){
   healthmean[i, 1:firstSight[i]] <- NA
 }
 
+# Need to pare down to animals only with a one year window (Amy Knowlton's suggestion 14 January 2014)
+pvec <- tangleOut[, 'EndDate'] - tangleOut[, 'StartDate'] <= 365
+tangleOut <- tangleOut[pvec, ]
+
 dfout <- numeric(0)
 
 for(i in 1:nrow(tangleOut)){
@@ -51,7 +55,9 @@ dfCI <- dfout %>%
   summarise(shealth025 = quantile(startHealth, probs = 0.025, na.rm = TRUE),
             shealth975 = quantile(startHealth, probs = 0.975, na.rm = TRUE),
             ehealth025 = quantile(endHealth, probs = 0.025, na.rm = TRUE),
-            ehealth975 = quantile(endHealth, probs = 0.975, na.rm = TRUE))
+            ehealth975 = quantile(endHealth, probs = 0.975, na.rm = TRUE),
+            rhealth025 = quantile(recHealth, probs = 0.025, na.rm = TRUE),
+            rhealth975 = quantile(recHealth, probs = 0.975, na.rm = TRUE))
 
 dfn <- dfout %>% 
   group_by(gearInj) %>% 
