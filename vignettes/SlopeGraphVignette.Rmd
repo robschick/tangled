@@ -12,6 +12,7 @@ library(ggplot2)
 library(readr)
 library(knitr)
 library(dplyr)
+library(stringr)
 ```
 
 # Data Simulation
@@ -26,13 +27,17 @@ We are doing this in order to look at a different way of displaying the slope pl
 
 ```{r}
 gearInj <- 1:6
-gvec <- c('Severe Gear', 'Moderate Gear', 'Severe No Gear', 'Minor Gear', 'Moderate No Gear', 'Minor No Gear')
-gvec <- factor(gvec, levels = c('Minor No Gear', 'Minor Gear', 'Moderate No Gear', 'Moderate Gear','Severe No Gear','Severe Gear'))
+gvec1 <- c('Gear', 'Gear', 'No Gear', 'Gear', 'No Gear', 'No Gear')
+gvec2 <- c('Severe', 'Moderate', 'Severe', 'Minor', 'Moderate', 'Minor')
+gvec3 <- c('Severe Gear', 'Moderate Gear', 'Severe No Gear', 'Minor Gear', 'Moderate No Gear', 'Minor No Gear')
+gvec3 <- factor(gvec3, levels = c('Minor No Gear', 'Minor Gear', 'Moderate No Gear', 'Moderate Gear','Severe No Gear','Severe Gear'))
 ncat <- length(gearInj)
 num <- c(29, 19, 12, 18, 96, 341)
 
 dat <- data.frame(gearInjury = gearInj,
-                  gearLab = gvec,
+                  gearLab1 = gvec1,
+                  gearLab2 = gvec2,
+                  gearLab3 = gvec3,
                   numEvents = num)
 dat
 ```
@@ -65,7 +70,9 @@ Now we'll build a few things in `R`. First we initialise and partially fill a da
 hdat <- data.frame(EGNo = floor(runif(n = sum(num), min = 1004, max = 3000)),
                    EntID = sample(1:4, size = sum(num), replace = TRUE),
                    gearInjury = rep(dat$gearInjury, times = dat$numEvents),
-                   gearlab = rep(dat$gearLab, times = dat$numEvents),
+                   gearlab1 = rep(dat$gearLab1, times = dat$numEvents),
+                   gearlab2 = rep(dat$gearLab2, times = dat$numEvents),
+                   gearlab3 = rep(dat$gearLab3, times = dat$numEvents),
                    shAnom = rnorm(sum(num), sd = 2))
 head(hdat)
 ```
@@ -93,7 +100,7 @@ Let's summarise that so we can use it to draw a summary line on top of the indiv
 
 ```{r}
 hsum <- hdat %>% 
-  group_by(gearlab) %>% 
+  group_by(gearlab1, gearlab2) %>% 
   summarise(smed = median(shAnom),
             emed = median(ehAnom),
             rmed = median(rhAnom))
@@ -106,15 +113,15 @@ This one is similar to the last slope graph, but turns it on its head and displa
 
 ```{r}
 p <- ggplot(data = hdat)+
-  geom_segment(aes(x = shAnom, xend = ehAnom, y = 2, yend = 1), colour = alpha('grey', 0.5)) +
-  geom_segment(aes(x = ehAnom, xend = rhAnom, y = 1, yend = 0), colour = alpha('grey', 0.5))+
-  geom_segment(data = hsum, aes(x = smed, xend = emed, y = 2, yend = 1), lwd = 1.5) + 
-  geom_segment(data = hsum, aes(x = emed, xend = rmed, y = 1, yend = 0), lwd = 1.5) + 
-    scale_y_continuous(breaks = c(0, 1, 2),
-                   labels = c( 'Recovery', 'End', 'Start'))+
-  facet_grid(~ gearlab)+
+  geom_segment(aes(y = shAnom, yend = ehAnom, x = 0, xend = 1), colour = alpha('grey', 0.5)) +
+  geom_segment(aes(y = ehAnom, yend = rhAnom, x = 1, xend = 2), colour = alpha('grey', 0.5))+
+  geom_segment(data = hsum, aes(y = smed, yend = emed, x = 0, xend = 1), lwd = 1.5) + 
+  geom_segment(data = hsum, aes(y = emed, yend = rmed, x = 1, xend = 2), lwd = 1.5) + 
+    scale_x_continuous(breaks = c(0, 1, 2),
+                   labels = c( 'Start', 'End', 'Recovery'))+
+  facet_grid(gearlab1 ~ gearlab2)+
   theme_bw()+
-  labs(x = 'Health Anomaly', y = '')
+  labs(x = '', y = 'Health Anomaly')
 p
 ```
 
