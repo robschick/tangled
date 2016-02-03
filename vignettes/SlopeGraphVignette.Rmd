@@ -28,6 +28,7 @@ We are doing this in order to look at a different way of displaying the slope pl
 ```{r}
 gearInj <- 1:6
 gvec1 <- c('Gear', 'Gear', 'No Gear', 'Gear', 'No Gear', 'No Gear')
+gvec1 <- factor(gvec1, levels = c('No Gear', 'Gear'))
 gvec2 <- c('Severe', 'Moderate', 'Severe', 'Minor', 'Moderate', 'Minor')
 gvec3 <- c('Severe Gear', 'Moderate Gear', 'Severe No Gear', 'Minor Gear', 'Moderate No Gear', 'Minor No Gear')
 gvec3 <- factor(gvec3, levels = c('Minor No Gear', 'Minor Gear', 'Moderate No Gear', 'Moderate Gear','Severe No Gear','Severe Gear'))
@@ -118,9 +119,10 @@ p <- ggplot(data = hdat)+
   geom_segment(data = hsum, aes(y = smed, yend = emed, x = 0, xend = 1), lwd = 1.5) + 
   geom_segment(data = hsum, aes(y = emed, yend = rmed, x = 1, xend = 2), lwd = 1.5) + 
     scale_x_continuous(breaks = c(0, 1, 2),
-                   labels = c( 'Start', 'End', 'Recovery'))+
+                   labels = c( 'Start', 'End', 'After\n12 Months'))+
   facet_grid(gearlab1 ~ gearlab2)+
   theme_bw()+
+  theme(panel.grid.minor.x = element_blank())+
   labs(x = '', y = 'Health Anomaly')
 p
 ```
