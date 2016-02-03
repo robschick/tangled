@@ -109,8 +109,8 @@ hsum
 ```
 
 
-## Slope Graph - Option 1
-This one is similar to the last slope graph, but turns it on its head and displays the data from all the lines in addition to the summary line. By including all of the lines, we get a visual sense of the amount in each category.
+## Slope Graph
+This one is similar to the last slope graph, but splits out into individual facets and displays the data from all the lines in addition to the summary line. By including all of the lines, we get a visual sense of the amount in each category. But by adding them in, we also would occlude some of the trends at the start. So I've splot them out into facets. 
 
 ```{r}
 p <- ggplot(data = hdat)+
@@ -125,6 +125,46 @@ p <- ggplot(data = hdat)+
   theme(panel.grid.minor.x = element_blank())+
   labs(x = '', y = 'Health Anomaly')
 p
+```
+
+
+## Horizontal Bar Plot
+Ok, with the previous graph, we get a sense of the trends within each entanglement category. However, we also, as a glance, want to see the change by category. So do do that, I'm going to build a horizontal bar plot. First I'll get summary measures from the summary data. These will be the differences between the start and end, and the end and the recovery:
+
+```{r}
+# hsum2 <- 
+#   hsum %>% 
+#   group_by(gearlab1, gearlab2) %>% 
+#   summarise(diff1 = emed - smed,
+#             diff2 = rmed - emed)
+# hsum2
+
+hsum <- hdat %>% 
+  group_by(gearlab1, gearlab2, gearlab3) %>% 
+  mutate(diff1 = ehAnom - shAnom, 
+         diff2 = rhAnom - ehAnom) %>% 
+  summarise(diff1med = median(diff1),
+            diff2med = median(diff2))
+hsum
+
+hsuml <- reshape2::melt(hsum, id.vars = c('gearlab1', 'gearlab2', 'gearlab3'), measure.vars = c('diff1med', 'diff2med'))
+hsuml$pos <- hsuml$value > 0
+```
+
+Ok, now let's make the plot
+
+```{r}
+p2 <- ggplot(hsuml, aes(x = gearlab3, y = value, fill = variable)) +
+  geom_bar(stat = 'identity', position = 'dodge')
+p2
+```
+
+
+## Both Plots together
+With them made, then let's arrange them into one panel.
+
+```{r}
+
 ```
 
 
