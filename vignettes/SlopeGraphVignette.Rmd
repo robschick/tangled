@@ -105,7 +105,9 @@ hsum <- hdat %>%
   dplyr::summarise(smed = median(shAnom),
             emed = median(ehAnom),
             rmed = median(rhAnom))
-hsum
+hsuml <- reshape2::melt(hsum, id.vars = c('gearlab1', 'gearlab2'))
+hsuml$x <- rep(0:2, each = 6)
+head(hsuml)
 ```
 
 
@@ -116,8 +118,7 @@ This one is similar to the last slope graph, but splits out into individual face
 p <- ggplot(data = hdat)+
   geom_segment(aes(y = shAnom, yend = ehAnom, x = 0, xend = 1), colour = alpha('grey', 0.5)) +
   geom_segment(aes(y = ehAnom, yend = rhAnom, x = 1, xend = 2), colour = alpha('grey', 0.5))+
-  geom_segment(data = hsum, aes(y = smed, yend = emed, x = 0, xend = 1), lwd = 1.5) + 
-  geom_segment(data = hsum, aes(y = emed, yend = rmed, x = 1, xend = 2), lwd = 1.5) + 
+  geom_path(data = test, aes(y = value, x = x), lwd = 1.5) + 
     scale_x_continuous(breaks = c(0, 1, 2),
                    labels = c( 'Start', 'End', 'After\n12 Months'))+
   facet_grid(gearlab1 ~ gearlab2)+
@@ -157,7 +158,7 @@ Ok, now let's make the plot
 p2 <- ggplot(hsuml, aes(x = gearlab3, y = value, fill = variable)) +
   geom_bar(stat = 'identity', position = 'identity')+
   coord_flip()+
-  labs(x = '', y = 'Health Deviation', fill = c('Time Period'))+
+  labs(x = '', y = 'Health Deviation Across Time', fill = c('Time Period'))+
   scale_fill_brewer(type = 'qual', palette = 'Dark2', direction = -1, labels = c('Entanglement\nWindow', 'Recovery\nWindow'))+
   theme_bw()
 p2
