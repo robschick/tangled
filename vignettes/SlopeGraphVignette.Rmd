@@ -158,7 +158,7 @@ p2 <- ggplot(hsuml, aes(x = gearlab3, y = value, fill = variable)) +
   geom_bar(stat = 'identity', position = 'identity')+
   coord_flip()+
   labs(x = '', y = 'Health Deviation', fill = c('Time Period'))+
-  scale_fill_discrete(labels = c('Entanglement\nWindow', 'Recovery\nWindow'))+
+  scale_fill_brewer(type = 'qual', palette = 'Dark2', direction = -1, labels = c('Entanglement\nWindow', 'Recovery\nWindow'))+
   theme_bw()
 p2
 ```
