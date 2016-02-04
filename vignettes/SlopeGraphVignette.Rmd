@@ -101,8 +101,8 @@ Let's summarise that so we can use it to draw a summary line on top of the indiv
 
 ```{r}
 hsum <- hdat %>% 
-  group_by(gearlab1, gearlab2) %>% 
-  summarise(smed = median(shAnom),
+  dplyr::group_by(gearlab1, gearlab2) %>% 
+  dplyr::summarise(smed = median(shAnom),
             emed = median(ehAnom),
             rmed = median(rhAnom))
 hsum
@@ -155,7 +155,11 @@ Ok, now let's make the plot
 
 ```{r}
 p2 <- ggplot(hsuml, aes(x = gearlab3, y = value, fill = variable)) +
-  geom_bar(stat = 'identity', position = 'dodge')
+  geom_bar(stat = 'identity', position = 'identity')+
+  coord_flip()+
+  labs(x = '', y = 'Health Deviation', fill = c('Time Period'))+
+  scale_fill_discrete(labels = c('Entanglement\nWindow', 'Recovery\nWindow'))+
+  theme_bw()
 p2
 ```
 
@@ -164,7 +168,8 @@ p2
 With them made, then let's arrange them into one panel.
 
 ```{r}
-
+library(gridExtra)
+grid.arrange(p, p2, ncol=1, heights = c(0.7,  0.3))
 ```
 
 
