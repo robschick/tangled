@@ -29,7 +29,7 @@ returnhealthAnom <- function() {
   newPopCat <- rbind(healthmeanM, healthmeanJ1, healthmeanJ2)
   newPopMedian <- apply(newPopCat, 2, median, na.rm = TRUE)
   
-  popAnom <- healthmean - newPopMedian
+  popAnom <- sweep(healthmean, 2, newPopMedian)
   
   popAnom
 }
