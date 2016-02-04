@@ -118,7 +118,7 @@ This one is similar to the last slope graph, but splits out into individual face
 p <- ggplot(data = hdat)+
   geom_segment(aes(y = shAnom, yend = ehAnom, x = 0, xend = 1), colour = alpha('grey', 0.5)) +
   geom_segment(aes(y = ehAnom, yend = rhAnom, x = 1, xend = 2), colour = alpha('grey', 0.5))+
-  geom_path(data = test, aes(y = value, x = x), lwd = 1.5) + 
+  geom_path(data = hsuml, aes(y = value, x = x), lwd = 1.5) + 
     scale_x_continuous(breaks = c(0, 1, 2),
                    labels = c( 'Start', 'End', 'After\n12 Months'))+
   facet_grid(gearlab1 ~ gearlab2)+
