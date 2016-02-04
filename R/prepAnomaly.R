@@ -1,0 +1,5 @@
+rm(list = ls())
+load(file = 'data/eg_203_ng_50000.rdata')
+source('r/returnhealthAnom.R')
+anom <- returnhealthAnom()
+save(anom, file = 'data/healthAnomaly.rda')
