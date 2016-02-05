@@ -16,13 +16,10 @@ load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
 load(file = 'data/healthAnomaly.rda') # contains 'anom' which is deviation from pop health (Adult males and juveniles) for all animals
 load(file="data/egAmyEntData.rdata") # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
 
-healthmean <- anom
-
-
 # Need to pare down to animals only with a one year window (Amy Knowlton's suggestion 14 January 2016)
 pvec <- tangleOut[, 'EndDate'] - tangleOut[, 'StartDate'] <= 365
 tangleOut <- tangleOut[pvec, ]
-
+healthmean <- sumh / g
 dfout <- numeric(0)
 
 for(i in 1:nrow(tangleOut)){
@@ -30,6 +27,7 @@ for(i in 1:nrow(tangleOut)){
   ind <- tangleOut$EGNo[i]
   tsub <- tangleOut[i, ]
   htest <- healthmean[which(ID == ind),]
+  atest <- anom[which(ID == ind),]
   
   s <- match(tsub[, 'smonyr'], myName)  
   e <- match(tsub[, 'ewindmonyr'], myName)
@@ -38,8 +36,12 @@ for(i in 1:nrow(tangleOut)){
   sVal <- htest[s]
   eVal <- htest[e]
   rVal <- htest[r]
+  asVal <- atest[s]
+  aeVal <- atest[e]
+  arVal <- atest[r]
  
-  dfi <- data.frame(egno = ind, startHealth = sVal, endHealth = eVal, recHealth = rVal, gearInjury = gstat) 
+  dfi <- data.frame(egno = ind, startHealth = sVal, endHealth = eVal, recHealth = rVal, 
+                    startAnom = asVal, endAnom = aeVal, recAnom = arVal, gearInjury = gstat) 
   dfout <- rbind(dfout, dfi)
 }
 
@@ -51,59 +53,72 @@ labels <- data.frame(gearInjury = 1:6,
                      gearLab = c('Gear', 'Gear', 'No Gear', 
                               'Gear', 'No Gear', 'No Gear'))
 
+labels$gearLab <- factor(labels$gearLab, levels = c('No Gear', 'Gear'))
+
 dfout <- tbl_df(merge(dfout, labels, by.x = 'gearInj', by.y = 'gearInjury'))
 dfout
 
-dfsum <- dfout %>% 
+dfHsum <- dfout %>% 
   group_by(gearInj) %>% 
-  summarise(shealth = mean(startHealth, na.rm = TRUE), shealthSD = sd(startHealth, na.rm = TRUE), 
-            endhealth = mean(endHealth), endhealthSD = sd(endHealth), 
-            rechealth = mean(recHealth), rechealthSD = sd(recHealth))
-dfsum
+  summarise(shealth = median(startHealth), shealthSD = sd(startHealth), 
+            endhealth = median(endHealth), endhealthSD = sd(endHealth), 
+            rechealth = median(recHealth), rechealthSD = sd(recHealth),
+            fullLab = unique(fullLab),
+            sevLab = unique(sevLab),
+            gearLab = unique(gearLab))
+dfHsum
 
-# dfCI <- dfout %>% 
-#   group_by(gearInj) %>% 
-#   summarise(shealth025 = quantile(startHealth, probs = 0.025, na.rm = TRUE),
-#             shealth975 = quantile(startHealth, probs = 0.975, na.rm = TRUE),
-#             ehealth025 = quantile(endHealth, probs = 0.025, na.rm = TRUE),
-#             ehealth975 = quantile(endHealth, probs = 0.975, na.rm = TRUE),
-#             rhealth025 = quantile(recHealth, probs = 0.025, na.rm = TRUE),
-#             rhealth975 = quantile(recHealth, probs = 0.975, na.rm = TRUE))
+dfAsum <- dfout %>% 
+  group_by(gearInj) %>% 
+  summarise(sAnom = median(startAnom), 
+            endAnom = median(endAnom), 
+            recAnom = median(recAnom),
+            fullLab = unique(fullLab),
+            sevLab = unique(sevLab),
+            gearLab = unique(gearLab))
+dfAsum
+
+dfAsuml <- reshape2::melt(dfAsum, id.vars = c('gearInj', 'fullLab', 'sevLab', 'gearLab'))
+dfAsuml$x <- rep(0:2, each = 6)
+head(dfAsuml)
+
+
 
 dfn <- dfout %>% 
   group_by(gearInj) %>% 
   summarise(n = n_distinct(egno))
 
-gvec1 <- c('Gear', 'Gear', 'No Gear', 'Gear', 'No Gear', 'No Gear')
-gvec1 <- factor(gvec1, levels = c('No Gear', 'Gear'))
-gvec2 <- c('Severe', 'Moderate', 'Severe', 'Minor', 'Moderate', 'Minor')
-gvec3 <- c('Severe Gear', 'Moderate Gear', 'Severe No Gear', 'Minor Gear', 'Moderate No Gear', 'Minor No Gear')
-gvec3 <- factor(gvec, levels = c('Minor No Gear', 'Minor Gear', 'Moderate No Gear', 'Moderate Gear','Severe No Gear','Severe Gear'))
-
-dfsum$gearLab1 <- gvec1
-dfsum$gearLab2 <- gvec2
-dfsum$gearLab3 <- gvec3
-
-dfplot <- data.frame(rbind(cbind(dfsum$gearInj, dfsum$shealth, rep(1, length(dfsum$gearInj))),
-                           cbind(dfsum$gearInj, dfsum$endhealth, rep(2, length(dfsum$gearInj))),
-                           cbind(dfsum$gearInj, dfsum$rechealth, rep(3, length(dfsum$gearInj)))))  
-colnames(dfplot) <- c('gearStatus',  'health', 'xval')
-dfplot$gearStatusL <- rep(gvec, times = 3)
-  
-
-p <- ggplot(dfplot, aes(x = xval, y = health, group = gearStatusL, colour = gearStatusL))+
-    geom_line(size = 1.5)+
-    scale_color_brewer(type = 'qual', palette = 'Paired')+
-    theme_bw(base_size = 16)+
-    labs(colour = 'Injury Status', y = 'Estimated Health', x = '')+
-    ylim(20, 80)+
-    scale_x_continuous(breaks = c(1, 2, 3),
-                       labels = c("Sighting Prior to\nEntanglement\nDetection", 
-                                  "First Sighting with\nScars or Gear",'Recovery\nAfter\n12 Months'))+
-    annotate('text', x = 3.1, y = c(28.4, 67.1, 53.9, 69.3, 74, 75.75), label = dfn$n)
+p <- ggplot(data = dfout)+
+  geom_segment(aes(y = startAnom, yend = endAnom, x = 0, xend = 1), colour = alpha('grey', 0.5)) +
+  geom_segment(aes(y = endAnom, yend = recAnom, x = 1, xend = 2), colour = alpha('grey', 0.5))+
+  geom_path(data = dfAsuml, aes(y = value, x = x), lwd = 1.5) + 
+  scale_x_continuous(breaks = c(0, 1, 2),
+                     labels = c( 'Start', 'End', 'After\n12 Months'))+
+  facet_grid(gearLab ~ sevLab)+
+  theme_bw()+
+  theme(panel.grid.minor.x = element_blank())+
+  labs(x = '', y = 'Health Anomaly')
 p
 
+# Prepping data for horizontal Bar plot
+dfAsuml <- dfAsum %>% 
+  group_by(fullLab, sevLab, gearLab) %>% 
+  summarise(diff1 = endAnom - sAnom,
+            diff2 = recAnom - endAnom) %>% 
+reshape2::melt(id.vars = c('fullLab', 'sevLab', 'gearLab'))
+
+p2 <- ggplot(dfAsuml, aes(x = fullLab, y = value, fill = variable)) +
+geom_bar(stat = 'identity', position = 'dodge')+
+coord_flip()+
+labs(x = '', y = 'Deviation From Population Health', fill = c('Time Period'))+
+scale_fill_brewer(type = 'qual', palette = 'Dark2', direction = -1, labels = c('Entanglement\nWindow', 'Recovery\nWindow'))+
+theme_bw()
+p2
+
+
+######################### Final Plot ###########################
 name <- paste('/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/slopePlot_', Sys.Date() , '.pdf', sep = '')
 pdf(file = name, width = 9, height = 9*.61)
-print(p)
+library(gridExtra)
+grid.arrange(p, p2, ncol=1, heights = c(0.7,  0.3))
 dev.off()
