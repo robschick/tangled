@@ -17,14 +17,27 @@ library(denstrip)
 load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
 load(file="data/egAmyEntData.rdata") 
 # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
-  
-healthmean <- sumh / g
-for(i in 1:nrow(healthmean)){
-  healthmean[i, 1:firstSight[i]] <- NA
-  if (death[i] < nt) {
-    healthmean[i, death[i]:nt] <- NA  
+load(file = 'data/healthAnomaly.rda') # contains 'anom' which is deviation from pop health (Adult males and juveniles) for all animals
+useAnom <- TRUE
+
+if (useAnom){
+  healthmean <- anom
+  for(i in 1:nrow(healthmean)){
+    healthmean[i, 1:(firstSight[i] - 1)] <- NA
+    if (death[i] < nt) {
+      healthmean[i, (death[i] + 1):nt] <- NA  
+    }
+  }
+} else {
+  healthmean <- sumh / g
+  for(i in 1:nrow(healthmean)){
+    healthmean[i, 1:(firstSight[i] - 1)] <- NA
+    if (death[i] < nt) {
+      healthmean[i, (death[i] + 1):nt] <- NA  
+    }
   }
 }
+
 
 # get the reproductively active females set up - use tangRepro
 # first use calfTable to parse out healthmean into a subset of reproductively active females

@@ -9,10 +9,13 @@ library(reshape2)
 library(scales)
 library(multcomp)
 library(plyr)
+library(dplyr)
 source('/Users/rob/Documents/code/rss10/rightwhales/makeYearmon.r')
 load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
+load(file = 'data/healthAnomaly.rda') # contains 'anom' which is deviation from pop health (Adult males and juveniles) for all animals
 load(file="data/egAmyEntData.rdata") # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
 load(file = 'data/unimpacted.rdata') # contains "nonrepvec" and "repvec"  
+useAnom <- TRUE
 
 for(z in 1:2){
   ifelse(z == 1, repro <- TRUE, repro <- FALSE)
@@ -25,11 +28,15 @@ if (repro) {
   tSub <- tangNonRepro
 }  
 
-
-healthmean <- sumh / g
-for(i in 1:nrow(healthmean)){
-  healthmean[i, 1:firstSight[i]] <- NA
+if (useAnom){
+  healthmean <- anom
+} else {
+  healthmean <- sumh / g
+  for(i in 1:nrow(healthmean)){
+    healthmean[i, 1:(firstSight[i] - 1)] <- NA
+  }  
 }
+
 
 dfSum <- matrix(NA, nrow = length(unique(tSub$EGNo)), ncol = 10)
 colnames(dfSum) <- c('ID', 'Severe - 1', 'Severe - 0', 'Moderate - 1', 
@@ -165,14 +172,14 @@ if (repro) {
 
 
 
-# run the glm 
-# first relevel so unimpacted is the reference level.
-dfglm <- transform(dfLong, variable = factor(variable))
-dfglm <- within(dfLong, variable <- relevel(variable, ref = 'unimpacted'))
-
-ft1 <- glm(value ~ variable, data = dfglm)
-summary(ft1)
-summary(glht(ft1, mcp(variable = "Tukey")))
+# # run the glm 
+# # first relevel so unimpacted is the reference level.
+# dfglm <- transform(dfLong, variable = factor(variable))
+# dfglm <- within(dfLong, variable <- relevel(variable, ref = 'unimpacted'))
+# 
+# ft1 <- glm(value ~ variable, data = dfglm)
+# summary(ft1)
+# summary(glht(ft1, mcp(variable = "Tukey")))
 
 } # end loop over the 'repro' variable
 save(dfLongRepro, dfLongNonRepro, file = 'data/healthEntanglementWindowDataBoth.rdata') # Both means it's containing repro and non-repro fems
@@ -213,15 +220,15 @@ nvals <- as.vector(table(dfLong$status, dfLong$variable))
 plabel <- c(nvals[11], nvals[12], nvals[9], nvals[10], nvals[7], nvals[8],
             nvals[5], nvals[6], nvals[3], nvals[4], nvals[1], nvals[2])
 
-name <- '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_NonReproAndReproAnimals.pdf'
+name <- paste('/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_NonReproAndReproAnimals_', Sys.Date(), '.pdf', sep = '')
 # This updated plot is per Amy's request to include both categories side by side. Instead of breaking down the gear/no-gear for shading
 # the shading will be repro vs non-repro
-p <- ggplot(dfLong, aes(x = factor(variable, levels = c('unimpacted', 'Minor...0', 'Minor...1', 'Moderate...0', 'Moderate...1', 'Severe...0', 'Severe...1')),y = value)) +
+p <- ggplot(dfLong, aes(x = factor(variable, levels = c('unimpacted', 'Minor...0', 'Minor...1', 'Moderate...0', 'Moderate...1', 'Severe...0', 'Severe...1')), y = value)) +
   geom_boxplot(aes(fill = factor(status), group = paste(factor(variable), status)), outlier.shape=NA, notch = FALSE)+
   annotate('text', x = c(1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18,
-                         1 + 3.82, 1 + 4.18, 1 + 4.82, 1 + 5.18, 1 + 5.82, 1 + 6.18), y = 92.5, 
+                         1 + 3.82, 1 + 4.18, 1 + 4.82, 1 + 5.18, 1 + 5.82, 1 + 6.18), y = 25, 
            label = plabel, cex = 5)+
-  labs(y = 'Estimated Health', x = 'Injury Status', fill = 'Reproductive Status')+
+  labs(y = 'Deviation From Population Health', x = 'Injury Status', fill = 'Reproductive Status')+
   scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 'Moderate\nNo Gear','Moderate\nGear',   'Severe\nNo Gear', 'Severe\nGear'))+
   scale_fill_grey(start = 1, end = 0.65,labels = c('All Other\nDemographic\nCategories\n', 'Reproductive\nFemales\n'))+
   theme_bw(base_size = 16)
