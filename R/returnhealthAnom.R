@@ -19,10 +19,10 @@ returnhealthAnom <- function() {
 
   for(i in 1:nrow(healthmean)){
     
-    healthmean[i, 1:firstSight[i]] <- NA
-    healthmeanM[i, 1:firstSight[i]] <- NA
-    healthmeanJ1[i, 1:firstSight[i]] <- NA
-    healthmeanJ2[i, 1:firstSight[i]] <- NA
+    healthmean[i, 1:(firstSight[i] - 1)] <- NA
+    healthmeanM[i, 1:(firstSight[i] - 1)] <- NA
+    healthmeanJ1[i, 1:(firstSight[i] - 1)] <- NA
+    healthmeanJ2[i, 1:(firstSight[i] - 1)] <- NA
 
   }
   
