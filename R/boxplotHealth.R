@@ -8,7 +8,7 @@ library(lubridate)
 library(reshape2)
 library(scales)
 library(multcomp)
-# library(plyr)
+library(plyr)
 library(dplyr)
 source('/Users/rob/Documents/code/rss10/rightwhales/makeYearmon.r')
 load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
@@ -38,14 +38,20 @@ if (useAnom){
 }
 
 
-dfSum <- matrix(NA, nrow = length(unique(tSub$EGNo)), ncol = 10)
-colnames(dfSum) <- c('ID', 'Severe - 1', 'Severe - 0', 'Moderate - 1', 
-                     'Moderate - 0', 'Minor - 1', 'Minor - 0', 'None', 'Post-Reprod', 'repStatus')
+dfSum <- data.frame(egno = rep(NA, times = nrow(tSub)), 
+                    eventNo = rep(NA, times = nrow(tSub)),
+                    nMonths = rep(NA, times = nrow(tSub)),
+                    hAnom = rep(NA, times = nrow(tSub)),
+                    gearInj = rep(NA, times = nrow(tSub)))
+# colnames(dfSum) <- c('ID', 'Severe - 1', 'Severe - 0', 'Moderate - 1', 
+#                      'Moderate - 0', 'Minor - 1', 'Minor - 0', 'None', 'Post-Reprod', 'repStatus')
 idFac <- factor(unique(tSub$EGNo))
 
-for(i in 1:length(unique(tSub$EGNo))){
-  # i <- 32 #, EGNo == 1130 is a good test animal; i <- 390 is another (EGNo = 1102)
-  ind <- unique(tSub$EGNo)[i]
+for(i in 1:length(tSub$EGNo)){
+  # i <- 32 #, EGNo == 1130 is a good test animal; i <- 390 is another (EGNo = 1102) (Both for Non-Repro)
+  # i = 3 # EGNo == 1014 for Repro
+  ind <- tSub$EGNo[i]
+  eventNo <- tSub$EventNo[i]
   if(!ind %in% ID){next()}
   htest <- healthmean[which(ID == ind),]
   ti <- tSub[tSub$EGNo == ind,]
@@ -54,67 +60,21 @@ for(i in 1:length(unique(tSub$EGNo))){
   # asking for the start and end of the health window during which I'll calculate health
   # also for the date of first severe entanglement & the the 12 month recovery date
   evnum <- nrow(ti)
-  s <- match(t(tSub[tSub$EGNo == ind, 'swindmonyr']), myName)  
-  e <- match(t(tSub[tSub$EGNo == ind, 'ewindmonyr']), myName)
-  sev <- match(t(tSub[tSub$EGNo == ind, 'fsevmonyr']), myName)
+  s <- match(t(tSub[i, 'swindmonyr']), myName)  
+  e <- match(t(tSub[i, 'ewindmonyr']), myName)
+  sev <- match(t(tSub[i, 'fsevmonyr']), myName)
   sev <- sev[is.finite(sev)]
-  tfac <- rep(NA, length.out = length(myName))
+  gstat <- tSub[i, 'gearInj']
+  hind <- htest[s:e]
   
-  for(j in 1:evnum){
-  
-      tfac[s[j]:e[j]] <- as.numeric(ti[j, 'gearInj'] )
-    
-  }
-  
-#   # Find the times before a severe entanglement or death that are NA and populate them with a state
-#   if (length(which(tfac == 1 | tfac == 3)) == 0) {    
-#     if (death[which(ID == ind)] < nt) {
-#       idx <- which(is.na(tfac[1:death[which(ID == ind)]]))  
-#     }
-#   } else {
-#     idx <- which(is.na(tfac[1:sev]))  
-#   }
-#   
-#   tfac[idx] <- 7 # unentangled state(s) before a severe entanglement, i.e. UNIMPACTED
-  
-#   if (ti$EGNo %in% dfmyears$id) {
-#     idx <- dfmyears[dfmyears$id == ti$EGNo, 'tidx']
-#     tfac[idx:nt] <- 9 # post-first reproduction
-#   }
+  dfSum[i, 'egno'] <- ind
+  dfSum[i, 'eventNo'] <- eventNo
+  dfSum[i, 'hAnom'] <- median(hind, na.rm = TRUE)
+  dfSum[i, 'gearInj'] <- gstat
+  dfSum[i, 'nMonths'] <- length(s:e)
   
   
-  # then extract the health values for these categories
-  tSum <- tapply(htest, tfac, median, na.rm = T)  
-  dfSum[i, 1] <- ind
-  # dfSum[i, 'repStatus'] <- ind
   
-  if ('1' %in% names(tSum) ) {# severe with gear
-    dfSum[i, 2] <- tSum[which(names(tSum) == '1')]  
-  }
-  
-  if ('3' %in% names(tSum)) {# severe without gear
-    dfSum[i, 3] <- tSum[which(names(tSum) == '3')]  
-  }
-  
-  if ('2' %in% names(tSum)) {# moderate with gear
-    dfSum[i, 4] <- tSum[which(names(tSum) == '2')]  
-  }
-
-  if ('5' %in% names(tSum)) {# moderate without gear
-    dfSum[i, 5] <- tSum[which(names(tSum) == '5')]  
-  }
-  
-    if ('4' %in% names(tSum)) {# minor with gear
-    dfSum[i, 6] <- tSum[which(names(tSum) == '4')]  
-  }
-  
-  if ('6' %in% names(tSum)) {# minor without gear
-    dfSum[i, 7] <- tSum[which(names(tSum) == '6')]  
-  }
-  
-#   if ('7' %in% names(tSum)) {# no entanglement - before severe
-#     dfSum[i, 8] <- tSum[which(names(tSum) == '7')]  
-#   }
   
 }
 
