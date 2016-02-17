@@ -223,13 +223,17 @@ plabel <- c(nvals[11], nvals[12], nvals[9], nvals[10], nvals[7], nvals[8],
 name <- paste('/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_NonReproAndReproAnimals_', Sys.Date(), '.pdf', sep = '')
 # This updated plot is per Amy's request to include both categories side by side. Instead of breaking down the gear/no-gear for shading
 # the shading will be repro vs non-repro
-p <- ggplot(dfLong, aes(x = factor(variable, levels = c('unimpacted', 'Minor...0', 'Minor...1', 'Moderate...0', 'Moderate...1', 'Severe...0', 'Severe...1')), y = value)) +
+p <- ggplot(dfLong, aes(x = factor(variable, 
+                                   levels = c('unimpacted', 'Minor...0', 'Minor...1', 
+                                              'Moderate...0', 'Moderate...1', 'Severe...0', 'Severe...1')), 
+                        y = value)) +
   geom_boxplot(aes(fill = factor(status), group = paste(factor(variable), status)), outlier.shape=NA, notch = FALSE)+
   annotate('text', x = c(1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18,
                          1 + 3.82, 1 + 4.18, 1 + 4.82, 1 + 5.18, 1 + 5.82, 1 + 6.18), y = 25, 
            label = plabel, cex = 5)+
   labs(y = 'Deviation From Population Health', x = 'Injury Status', fill = 'Reproductive Status')+
-  scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 'Moderate\nNo Gear','Moderate\nGear',   'Severe\nNo Gear', 'Severe\nGear'))+
+  scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 
+                              'Moderate\nNo Gear','Moderate\nGear',   'Severe\nNo Gear', 'Severe\nGear'))+
   scale_fill_grey(start = 1, end = 0.65,labels = c('All Other\nDemographic\nCategories\n', 'Reproductive\nFemales\n'))+
   theme_bw(base_size = 16)
 p
