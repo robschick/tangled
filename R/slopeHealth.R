@@ -110,6 +110,7 @@ reshape2::melt(id.vars = c('fullLab', 'sevLab', 'gearLab'))
 p2 <- ggplot(dfAsuml, aes(x = fullLab, y = value, fill = variable)) +
 geom_bar(stat = 'identity', position = 'dodge')+
 coord_flip()+
+  scale_x_discrete(limits = rev(c("Minor No Gear", "Minor Gear", "Moderate No Gear", "Moderate Gear", "Severe No Gear",  "Severe Gear")))+
 labs(x = '', y = 'Deviation From Population Health', fill = c('Time Period'))+
 scale_fill_brewer(type = 'qual', palette = 'Dark2', direction = -1, labels = c('Entanglement\nWindow', 'Recovery\nWindow'))+
 theme_bw()
