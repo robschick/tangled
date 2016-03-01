@@ -51,7 +51,9 @@ for(i in 1:nrow(ctabid)){
 nmon <- length(which(is.finite(healthnew)))
 nmon70 <- length(which(healthnew < 70))
 p70nmon <- (nmon70 / nmon) * 100
-  
+nmon67 <- length(which(healthnew < 67))
+p67nmon <- (nmon67 / nmon) * 100
+
 dfout <- numeric(0)
 
 for(i in 1:nrow(tangleOut)){
@@ -69,8 +71,11 @@ for(i in 1:nrow(tangleOut)){
   lh <- length(hVal)
   l70 <- length(which(hVal < 70))
   p70 <- (l70 / lh ) * 100
+  l67 <- length(which(hVal < 67))
+  p67 <- (l67 / lh ) * 100
   
-  dfi <- data.frame(egno = ind, nmonths = lh, mon70 = l70, pctmon70 = p70, gearInjury = gstat) 
+  dfi <- data.frame(egno = ind, nmonths = lh, mon67 = l67, pctmon67 = p67, 
+                    mon70 = l70, pctmon70 = p70, gearInjury = gstat) 
   dfout <- rbind(dfout, dfi)
 }
 
@@ -82,6 +87,15 @@ m70 <- dfout %>%
             sumBel70Months = sum(mon70),
             meanp70 = mean(pctmon70))
 m70
+
+m67 <- dfout %>% 
+  group_by(gearInj) %>% 
+  summarise(n = n(),
+            totNumMonths = sum(nmonths),
+            maxDurMonths = max(nmonths),
+            sumBel67Months = sum(mon67),
+            meanp67 = mean(pctmon67))
+m67
 
 
 ##################################################
@@ -103,8 +117,11 @@ for(i in 1:nrow(tangRepro)){
   lh <- length(hVal)
   l70 <- length(which(hVal < 70))
   p70 <- (l70 / lh ) * 100
+  l67 <- length(which(hVal < 67))
+  p67 <- (l67 / lh ) * 100
   
-  dfi <- data.frame(egno = ind, nmonths = lh, mon70 = l70, pctmon70 = p70, gearInjury = gstat) 
+  dfi <- data.frame(egno = ind, nmonths = lh, mon67 = l67, pctmon67 = p67, 
+                    mon70 = l70, pctmon70 = p70, gearInjury = gstat) 
   dfout <- rbind(dfout, dfi)
 }
 
@@ -117,6 +134,14 @@ rfm70 <- dfout %>%
             meanp70 = mean(pctmon70))
 rfm70
 
+rfm67 <- dfout %>% 
+  group_by(gearInj) %>% 
+  summarise(n = n(),
+            totNumMonths = sum(nmonths),
+            maxDurMonths = max(nmonths),
+            sumBel70Months = sum(mon67),
+            meanp67 = mean(pctmon67))
+rfm67
 
 
 ##################################################
@@ -154,29 +179,59 @@ rfm70
 # # Non repro females
 ##################################################
 
-
+# with a health threshold of 70
 gname <- c('Severe - gear', 'Moderate - gear', 'Severe - no gear', 
            'Minor - gear', 'Moderate - no gear', 'Minor - no gear')
 dfb <- data.frame(gearInj = c(rfm70$gearInj, 0),
                   gearName = c(gname, 'Unimpacted'),
                   pct70 = c(rfm70$meanp70, p70nmon),
-                  nmon = c(rfm70$sumBel70Months, nmon70),
+                  pct67 = c(rfm67$meanp67, p67nmon),
+                  nmon70 = c(rfm70$totNumMonths, nmon),
+                  nmonB70 = c(rfm70$sumBel70Months, nmon70), 
+                  nmon67 = c(rfm67$totNumMonths, nmon),
+                  nmonB67 = c(rfm67$sumBel67Months, nmon67),
                   status = c(rep('Repro Fem', times = nrow(rfm70)), 'Unimpacted Repro Fem'))
 
 
 name <- '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/pct70.pdf'
 p <- ggplot(dfb, aes(x = gearName, y = pct70, fill = status))+
   geom_bar(stat = 'identity')+
-  geom_text(aes(y = pct70, label = dfb$nmon), vjust = -0.3)+
+  # geom_text(aes(y = 0, label = dfb$nmon70), vjust = -0.3)+
   theme_bw(base_size = 18)+
   labs(y = '% of Months w Health < 70', x = 'Severity Category')+
-  scale_x_discrete(breaks = c('Minor - no gear', 'Minor - gear', 'Moderate - no gear',
-                              'Moderate - gear', 'Severe - no gear', 'Severe - gear', 'Unimpacted'),
-                   labels = c('Minor\nNo Gear', 'Minor\nGear',
+  scale_x_discrete(limits = c('Unimpacted', 'Minor - no gear', 'Minor - gear', 'Moderate - no gear',
+                              'Moderate - gear', 'Severe - no gear', 'Severe - gear'),
+                   labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear',
                               'Moderate\nNo Gear', 'Moderate\nGear',
-                              'Severe\nNo Gear', 'Severe\nGear', 'Unimpacted'))+
+                              'Severe\nNo Gear', 'Severe\nGear'))+
+  scale_y_continuous(breaks = c(0, 25, 50, 75), labels = c('0%', '25%', '50%', '75%'))+
   labs(fill = 'Reproductive\nStatus')+
-  theme(legend.position = c(0.175, 0.875))
+  scale_fill_brewer(type = 'qual', palette = 'Dark2', direction = -1)+
+  theme(legend.position = c(0.125, 0.875))
+p
+
+
+
+pdf(file = name, width = 9, height = 9*.61)
+print(p)
+dev.off()
+
+########################### Below 67 #######################################
+name <- '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/pct67.pdf'
+p <- ggplot(dfb, aes(x = gearName, y = pct67, fill = status))+
+  geom_bar(stat = 'identity')+
+  # geom_text(aes(y = 0, label = dfb$nmon70), vjust = -0.3)+
+  theme_bw(base_size = 18)+
+  labs(y = '% of Months w Health < 67', x = 'Severity Category')+
+  scale_x_discrete(limits = c('Unimpacted', 'Minor - no gear', 'Minor - gear', 'Moderate - no gear',
+                              'Moderate - gear', 'Severe - no gear', 'Severe - gear'),
+                   labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear',
+                              'Moderate\nNo Gear', 'Moderate\nGear',
+                              'Severe\nNo Gear', 'Severe\nGear'))+
+  scale_y_continuous(breaks = c(0, 25, 50, 75), labels = c('0%', '25%', '50%', '75%'))+
+  labs(fill = 'Reproductive\nStatus')+
+  scale_fill_brewer(type = 'qual', palette = 'Dark2', direction = -1)+
+  theme(legend.position = c(0.125, 0.875))
 p
 
 
