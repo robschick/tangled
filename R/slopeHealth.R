@@ -89,16 +89,27 @@ dfn <- dfout %>%
   summarise(n = n_distinct(egno))
 
 p <- ggplot(data = dfout)+
-  geom_segment(aes(y = startAnom, yend = endAnom, x = 0, xend = 1), colour = alpha('grey', 0.5)) +
-  geom_segment(aes(y = endAnom, yend = recAnom, x = 1, xend = 2), colour = alpha('grey', 0.5))+
-  geom_path(data = dfAsuml, aes(y = value, x = x), lwd = 1.5) + 
-  scale_x_continuous(breaks = c(0, 1, 2),
+  geom_segment(aes(y = startAnom, yend = endAnom, x = 0, xend = 1), colour = alpha('grey', 0.75)) +
+  geom_segment(aes(y = endAnom, yend = recAnom, x = 1, xend = 2), colour = alpha('grey', 0.75))+
+  geom_path(data = dfAsuml, aes(y = value, x = x), lwd = 1) +
+  # plotting order for annotation label: minor NO (6), moderate NO (5), severe NO (3), 
+  # minor gear (4), moderate Gear (2), severe Gear (1)
+  annotate('text', x = 0.2, y = -75, size = 5,
+           label = c(paste('n = ', dfn[which(dfn$gearInj == 6), 'n'], sep = ''), 
+                     paste('n = ', dfn[which(dfn$gearInj == 5), 'n'], sep = ''), 
+                     paste('n = ', dfn[which(dfn$gearInj == 3), 'n'], sep = ''), 
+                     paste('n = ', dfn[which(dfn$gearInj == 4), 'n'], sep = ''), 
+                     paste('n = ', dfn[which(dfn$gearInj == 2), 'n'], sep = ''), 
+                     paste('n = ', dfn[which(dfn$gearInj == 1), 'n'], sep = '')))+
+    scale_x_continuous(breaks = c(0, 1, 2),
                      labels = c( 'Start', 'End', 'After\n12 Months'))+
   facet_grid(gearLab ~ sevLab)+
   theme_bw()+
   theme(panel.grid.minor.x = element_blank())+
   labs(x = '', y = 'Health Anomaly')
 p
+
+
 
 # Prepping data for horizontal Bar plot
 dfAsuml <- dfAsum %>% 
