@@ -38,14 +38,20 @@ if (useAnom){
 }
 
 
-dfSum <- matrix(NA, nrow = length(unique(tSub$EGNo)), ncol = 10)
-colnames(dfSum) <- c('ID', 'Severe - 1', 'Severe - 0', 'Moderate - 1', 
-                     'Moderate - 0', 'Minor - 1', 'Minor - 0', 'None', 'Post-Reprod', 'repStatus')
+dfSum <- data.frame(egno = rep(NA, times = nrow(tSub)), 
+                    eventNo = rep(NA, times = nrow(tSub)),
+                    nMonths = rep(NA, times = nrow(tSub)),
+                    hAnom = rep(NA, times = nrow(tSub)),
+                    gearInj = rep(NA, times = nrow(tSub)))
+# colnames(dfSum) <- c('ID', 'Severe - 1', 'Severe - 0', 'Moderate - 1', 
+#                      'Moderate - 0', 'Minor - 1', 'Minor - 0', 'None', 'Post-Reprod', 'repStatus')
 idFac <- factor(unique(tSub$EGNo))
 
-for(i in 1:length(unique(tSub$EGNo))){
-  # i <- 32 #, EGNo == 1130 is a good test animal; i <- 390 is another (EGNo = 1102)
-  ind <- unique(tSub$EGNo)[i]
+for(i in 1:length(tSub$EGNo)){
+  # i <- 32 #, EGNo == 1130 is a good test animal; i <- 390 is another (EGNo = 1102) (Both for Non-Repro)
+  # i = 3 # EGNo == 1014 for Repro
+  ind <- tSub$EGNo[i]
+  eventNo <- tSub$EventNo[i]
   if(!ind %in% ID){next()}
   htest <- healthmean[which(ID == ind),]
   ti <- tSub[tSub$EGNo == ind,]
@@ -54,104 +60,64 @@ for(i in 1:length(unique(tSub$EGNo))){
   # asking for the start and end of the health window during which I'll calculate health
   # also for the date of first severe entanglement & the the 12 month recovery date
   evnum <- nrow(ti)
-  s <- match(t(tSub[tSub$EGNo == ind, 'swindmonyr']), myName)  
-  e <- match(t(tSub[tSub$EGNo == ind, 'ewindmonyr']), myName)
-  sev <- match(t(tSub[tSub$EGNo == ind, 'fsevmonyr']), myName)
+  s <- match(t(tSub[i, 'swindmonyr']), myName)  
+  e <- match(t(tSub[i, 'ewindmonyr']), myName)
+  sev <- match(t(tSub[i, 'fsevmonyr']), myName)
   sev <- sev[is.finite(sev)]
-  tfac <- rep(NA, length.out = length(myName))
+  gstat <- tSub[i, 'gearInj']
+  hind <- htest[s:e]
   
-  for(j in 1:evnum){
-  
-      tfac[s[j]:e[j]] <- as.numeric(ti[j, 'gearInj'] )
-    
-  }
-  
-#   # Find the times before a severe entanglement or death that are NA and populate them with a state
-#   if (length(which(tfac == 1 | tfac == 3)) == 0) {    
-#     if (death[which(ID == ind)] < nt) {
-#       idx <- which(is.na(tfac[1:death[which(ID == ind)]]))  
-#     }
-#   } else {
-#     idx <- which(is.na(tfac[1:sev]))  
-#   }
-#   
-#   tfac[idx] <- 7 # unentangled state(s) before a severe entanglement, i.e. UNIMPACTED
-  
-#   if (ti$EGNo %in% dfmyears$id) {
-#     idx <- dfmyears[dfmyears$id == ti$EGNo, 'tidx']
-#     tfac[idx:nt] <- 9 # post-first reproduction
-#   }
+  dfSum[i, 'egno'] <- ind
+  dfSum[i, 'eventNo'] <- eventNo
+  dfSum[i, 'hAnom'] <- median(hind, na.rm = TRUE)
+  dfSum[i, 'gearInj'] <- gstat
+  dfSum[i, 'nMonths'] <- length(s:e)
   
   
-  # then extract the health values for these categories
-  tSum <- tapply(htest, tfac, median, na.rm = T)  
-  dfSum[i, 1] <- ind
-  # dfSum[i, 'repStatus'] <- ind
   
-  if ('1' %in% names(tSum) ) {# severe with gear
-    dfSum[i, 2] <- tSum[which(names(tSum) == '1')]  
-  }
-  
-  if ('3' %in% names(tSum)) {# severe without gear
-    dfSum[i, 3] <- tSum[which(names(tSum) == '3')]  
-  }
-  
-  if ('2' %in% names(tSum)) {# moderate with gear
-    dfSum[i, 4] <- tSum[which(names(tSum) == '2')]  
-  }
-
-  if ('5' %in% names(tSum)) {# moderate without gear
-    dfSum[i, 5] <- tSum[which(names(tSum) == '5')]  
-  }
-  
-    if ('4' %in% names(tSum)) {# minor with gear
-    dfSum[i, 6] <- tSum[which(names(tSum) == '4')]  
-  }
-  
-  if ('6' %in% names(tSum)) {# minor without gear
-    dfSum[i, 7] <- tSum[which(names(tSum) == '6')]  
-  }
-  
-#   if ('7' %in% names(tSum)) {# no entanglement - before severe
-#     dfSum[i, 8] <- tSum[which(names(tSum) == '7')]  
-#   }
   
 }
 
-dfDat <- data.frame(ID = idFac, dfSum[,2:8])
-dfLong <- melt(dfDat, na.rm = TRUE)
 
-dfLong$gearnogear <- 0
-sev1idx <- which(dfLong$variable == 'Severe...1')
-mod1idx <- which(dfLong$variable == 'Moderate...1')
-min1idx <- which(dfLong$variable == 'Minor...1')
-dfLong[sev1idx, 'gearnogear'] <- 1
-dfLong[mod1idx, 'gearnogear'] <- 1
-dfLong[min1idx, 'gearnogear'] <- 1
+dfSum$gearnogear <- 0
+sev1idx <- which(dfSum$gearInj == 1)
+mod1idx <- which(dfSum$gearInj == 2)
+min1idx <- which(dfSum$gearInj == 4)
+dfSum[sev1idx, 'gearnogear'] <- 1
+dfSum[mod1idx, 'gearnogear'] <- 1
+dfSum[min1idx, 'gearnogear'] <- 1
+
+dfSum$variable <- 'impacted'
 
 # add in the unimpacted animals - using data coming from the splitpopHealth.R function
 # ONly adding them in once to avoid the double data, i.e. adding the same unimpacted data for both
 # the rep and the non-rep, when we really only want them once.
 if (repro) {
   uvec <- repvec
-  dfuvec <- data.frame(ID = 9999,
-                       variable = 'unimpacted',
-                       value = uvec,
-                       gearnogear = 0)
-  dfLong <- rbind(dfLong, dfuvec)
+  dfuvec <- data.frame(egno = 9999,
+                       eventNo = 0,
+                       nMonths = 0,
+                       hAnom = uvec,
+                       gearInj = 0, 
+                       gearnogear = 0,
+                       variable = 'unimpacted')
+  dfLong <- rbind(dfSum, dfuvec)
 }  else {
   uvec <- nonrepvec
-  dfurvec <- data.frame(ID = 9999,
-                       variable = 'unimpacted',
-                       value = uvec,
-                       gearnogear = 0)
-  dfLong <- rbind(dfLong, dfurvec)
+  dfurvec <- data.frame(egno = 9999,
+                        eventNo = 0,
+                        nMonths = 0,
+                        hAnom = uvec,
+                        gearInj = 0, 
+                        gearnogear = 0,
+                        variable = 'unimpacted')
+  dfLong <- rbind(dfSum, dfurvec)
 }
 
 
 dfLong$group <- 1
-mod0idx <- which(dfLong$variable == 'Moderate...0')
-min0idx <- which(dfLong$variable == 'Minor...0')
+mod0idx <- which(dfLong$gearInj == 5)
+min0idx <- which(dfLong$gearInj == 6)
 unimpactedidx <- which(dfLong$variable == 'unimpacted')
 dfLong[c(mod1idx, mod0idx), 'group'] <- 2
 dfLong[c(min1idx, min0idx), 'group'] <- 3
@@ -186,54 +152,39 @@ save(dfLongRepro, dfLongNonRepro, file = 'data/healthEntanglementWindowDataBoth.
 
 
 
-# Commenting this all out because I'm now going to do both side-by-side
-# if (repro) {
-# #   name <- '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_ReproFemales.pdf'  
-# #   p <- ggplot(dfLong, aes(x = factor(group), y = value)) +
-# #     geom_boxplot(aes(fill = factor(gearnogear), group = paste(factor(variable), group)), outlier.shape=NA, notch = FALSE)+
-# #     annotate('text', x = c(1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18), y = 92.5, 
-# #              label = plabel, cex = 3)+
-# #     labs(y = 'Estimated Health', x = 'Injury Status', fill = 'Gear Status')+
-# #     scale_x_discrete(labels = c('Unimpacted', 'Minor', 'Moderate', 'Severe'))+
-# #     scale_fill_grey(start = 1, end = 0.65,labels = c('No Gear', 'Carrying Gear'))+
-# #     theme_bw()
-# } else {
-#   name <- '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_NonReproAnimals.pdf'
-#   p <- ggplot(dfLong, aes(x = factor(group), y = value)) +
-#     geom_boxplot(aes(fill = factor(gearnogear), group = paste(factor(variable), group)), outlier.shape=NA, notch = FALSE)+
-#     annotate('text', x = c(1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18), y = 92.5, 
-#              label = plabel, cex = 3)+
-#     labs(y = 'Estimated Health', x = 'Injury Status', fill = 'Gear Status')+
-#     scale_x_discrete(labels = c('Unimpacted', 'Minor', 'Moderate', 'Severe'))+
-#     scale_fill_grey(start = 1, end = 0.65,labels = c('No Gear', 'Carrying Gear'))+
-#     theme_bw()
-# }
-# 
-# 
-# pdf(file = name, width = 8, height = 6)
-#   print(p)
-# dev.off()
-
 # set up for labeling the box plots
 dfLong <- rbind(dfLongRepro, dfLongNonRepro)
-nvals <- as.vector(table(dfLong$status, dfLong$variable))
-plabel <- c(nvals[11], nvals[12], nvals[9], nvals[10], nvals[7], nvals[8],
-            nvals[5], nvals[6], nvals[3], nvals[4], nvals[1], nvals[2])
+namevec = c('Unimpacted'=0, 'Minor No Gear'=6, 'Minor Gear'=4, 'Moderate No Gear'=5,
+            'Moderate Gear'=2, 'Severe No Gear'=3, 'Severe Gear'=1)
+
+nvals <- as.data.frame(table(dfLong$status, dfLong$gearInj))
+
+nvals$label <- namevec[nvals$Var2]
+
+plabel <- c(nvals$Freq[nvals$Var1 == 'NonRepFem' & nvals$Var2 == 6], 
+            nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 6], 
+            nvals$Freq[nvals$Var1 == 'NonRepFem' & nvals$Var2 == 4], 
+            nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 4], 
+            nvals$Freq[nvals$Var1 == 'NonRepFem' & nvals$Var2 == 5], 
+            nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 5], 
+            nvals$Freq[nvals$Var1 == 'NonRepFem' & nvals$Var2 == 2], 
+            nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 2], 
+            nvals$Freq[nvals$Var1 == 'NonRepFem' & nvals$Var2 == 3], 
+            nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 2], 
+            nvals$Freq[nvals$Var1 == 'NonRepFem' & nvals$Var2 == 1], 
+            nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 1])
 
 name <- paste('/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/BoxPlotHealthByEntglClass_NonReproAndReproAnimals_', Sys.Date(), '.pdf', sep = '')
 # This updated plot is per Amy's request to include both categories side by side. Instead of breaking down the gear/no-gear for shading
 # the shading will be repro vs non-repro
-p <- ggplot(dfLong, aes(x = factor(variable, 
-                                   levels = c('unimpacted', 'Minor...0', 'Minor...1', 
-                                              'Moderate...0', 'Moderate...1', 'Severe...0', 'Severe...1')), 
-                        y = value)) +
-  geom_boxplot(aes(fill = factor(status), group = paste(factor(variable), status)), outlier.shape=NA, notch = FALSE)+
+p <- ggplot(dfLong, aes(x = factor(gearInj, levels = c(0, 6, 4, 5, 2, 3, 1)), y = hAnom)) +
+  geom_hline(aes(yintercept = 0), colour = 'grey50')+
+  geom_boxplot(aes(fill = factor(status), group = paste(factor(gearInj), status)), outlier.shape=NA, notch = FALSE)+
   annotate('text', x = c(1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18,
                          1 + 3.82, 1 + 4.18, 1 + 4.82, 1 + 5.18, 1 + 5.82, 1 + 6.18), y = 25, 
            label = plabel, cex = 5)+
   labs(y = 'Deviation From Population Health', x = 'Injury Status', fill = 'Reproductive Status')+
-  scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 
-                              'Moderate\nNo Gear','Moderate\nGear',   'Severe\nNo Gear', 'Severe\nGear'))+
+  scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 'Moderate\nNo Gear','Moderate\nGear',   'Severe\nNo Gear', 'Severe\nGear'))+
   scale_fill_grey(start = 1, end = 0.65,labels = c('All Other\nDemographic\nCategories\n', 'Reproductive\nFemales\n'))+
   theme_bw(base_size = 16)
 p
