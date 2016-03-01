@@ -140,10 +140,10 @@ if (repro) {
 
 # # run the glm 
 # # first relevel so unimpacted is the reference level.
-# dfglm <- transform(dfLong, variable = factor(variable))
-# dfglm <- within(dfLong, variable <- relevel(variable, ref = 'unimpacted'))
+# dfglm <- transform(dfLong, variable = as.factor(variable))
+# dfglm <- within(dfglm, variable <- relevel(variable, ref = 'unimpacted'))
 # 
-# ft1 <- glm(value ~ variable, data = dfglm)
+# ft1 <- glm(hAnom ~ variable, data = dfglm)
 # summary(ft1)
 # summary(glht(ft1, mcp(variable = "Tukey")))
 
