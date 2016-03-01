@@ -140,12 +140,12 @@ if (repro) {
 
 # # run the glm 
 # # first relevel so unimpacted is the reference level.
-# dfglm <- transform(dfLong, variable = as.factor(variable))
-# dfglm <- within(dfglm, variable <- relevel(variable, ref = 'unimpacted'))
+dfglm <- transform(dfLong, gfac = as.factor(gearInj))
+# dfglm <- within(dfglm, variable <- relevel(gfac, ref = 'unimpacted'))
 # 
-# ft1 <- glm(hAnom ~ variable, data = dfglm)
-# summary(ft1)
-# summary(glht(ft1, mcp(variable = "Tukey")))
+ft1 <- glm(hAnom ~ gfac, data = dfglm)
+summary(ft1)
+summary(glht(ft1, mcp(gfac = "Tukey")))
 
 } # end loop over the 'repro' variable
 save(dfLongRepro, dfLongNonRepro, file = 'data/healthEntanglementWindowDataBoth.rdata') # Both means it's containing repro and non-repro fems
