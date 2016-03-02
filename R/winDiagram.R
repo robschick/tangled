@@ -37,7 +37,7 @@ p <- ggplot(df, aes(x = dateTime, y = health, fill = pos)) +
   annotate('rect', xmin = dateTime[tidx[2, 1]], xmax = dateTime[tidx[2, 2]], ymin = 0, ymax = 14, alpha = 0.4, fill = 'blue')+
   annotate('segment', x = dateTime[tidx[2, 1]], xend = dateTime[tidx[2, 2]], y = 15, yend = 15, 
            arrow=arrow(ends = 'both', angle = 90, length= unit(0.2, 'cm')))+
-  annotate('text', x = dateTime[tidx[2, 1]] + 45, y = -5, label = 'Median Anomaly\nDuring Window\n(12.98)')+
+  annotate('text', x = dateTime[tidx[2, 1]] + 45, y = -5.5, label = 'Median Anomaly\nDuring Window\n(12.98)')+
   annotate('segment', x = dateTime[tidx[2, 1]] + 45, xend = dateTime[tidx[2, 1]] + 45, 
            y = -3.75, yend = -0.25, arrow = arrow())+
   annotate('segment', x = dateTime[tidx[3, 1]], xend = dateTime[tidx[3, 2]], y = 15, yend = 15, 
