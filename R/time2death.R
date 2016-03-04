@@ -77,7 +77,9 @@ for(i in 1:nrow(events)){
                                      deathMonth0 = max(svec0), severity = events[i, 'Severity'], sevNumClass = events[i ,'gearInj'],
                                      knownDeath = kd)
 }
-surcvf <- do.call('rbind', survl)
+# surdvf <- do.call('rbind', survl)
+survdf <- as.data.frame(data.table::rbindlist(survl))
+
 survdf$censMonth[survdf$censMonth < nt] <- NA
 save(survdf, ID, gender, file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/data/kmcalcInput.rda')
 
