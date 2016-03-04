@@ -57,7 +57,8 @@ events <- mutate(events,
                  ldwgmonyrID = match(ldwgmonyr, myName))
 # table(events$knownD)
 
-survdf <- numeric(0)
+survl <- vector(mode = 'list', nrow(events))
+
 for(i in 1:nrow(events)){
   id <- events[i, 'EGNo']
   dmonth <- as.numeric(events[i, 'dtime'])
@@ -72,11 +73,11 @@ for(i in 1:nrow(events)){
   dmonth2 <- dmonth 
   svec <- seq(emonth, dmonth2)
   svec0 <- svec - min(svec)
-  survdf <- rbind(survdf, data.frame(EGNo = id, deathMonth = dmonth, censored = censor, censMonth = cmonth, survTime0 = svec0, 
+  survl[[i]] <- data.frame(EGNo = id, deathMonth = dmonth, censored = censor, censMonth = cmonth, survTime0 = svec0, 
                                      deathMonth0 = max(svec0), severity = events[i, 'Severity'], sevNumClass = events[i ,'gearInj'],
-                                     knownDeath = kd))
+                                     knownDeath = kd)
 }
-
+surcvf <- do.call('rbind', survl)
 survdf$censMonth[survdf$censMonth < nt] <- NA
 save(survdf, ID, gender, file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/data/kmcalcInput.rda')
 
