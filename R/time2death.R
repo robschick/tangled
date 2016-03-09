@@ -15,9 +15,10 @@ library(stringr)
 library(plyr)
 library(dplyr)
 source('/Users/rob/Documents/code/rss10/rightwhales/makeYearmon.r')
-wd <- '/Users/rob/Documents/research/projects/PCAD/rightwhales/'
+wd <- '/Users/rob/Rdev/tangled/'
 setwd(wd)
-load(file = paste(wd, 'gibbsoutput/eg_2015_newData_JUVTRUE__50000_wkspc.rdata', sep = '') )
+# load(file = paste(wd, 'gibbsoutput/eg_2015_newData_JUVTRUE__50000_wkspc.rdata', sep = '') )
+load(file = 'data/eg_203_ng_50000_BIG_25000.rdata')
 load(file="data/egAmyEntData.rdata")
 tSub <- tangleOut
 
