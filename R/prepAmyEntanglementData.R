@@ -69,22 +69,39 @@ m2 <- m2[,c(1,3,2,4:20)]
 tangleOut <- rbind(m1, m2) # Finally we bind these two data frames together
 
 
+# ===================================================================================
+# In this next block of code I define the date for the end of the entanglement window
+# This will be used in three ways: 
+# 1. health assessments during the window
+# 2. before/after assessments for the slope plots
+# 3. to set up the survival data for looking at the Kaplan-Meier curves
+# 
+# Defining the end is complicated by whether or not the animal has carried gear.
+# First we format the existing columns into a proper date format:
 tangleOut$LastDatewGear <- as.Date(tangleOut$Last.date.w.gear, '%d-%b-%y')
 tangleOut$LineGone <- as.Date(tangleOut$line.gone, '%d-%b-%y')
-# if > 3 months btw LDGW & Line gone, add 3 months to LDWG to construct the end window
+
+# Then we want to add 3 months to the last date with gear in order to construct the end window
+# However, we only do this if > 6 months exist btw LDGW & Line gone.
+# We use the days variable which is set above to 6 months
 tangleOut$postDec6moTF <- ifelse((tangleOut$LineGone - tangleOut$LastDatewGear) > days & is.finite(tangleOut$LineGone), TRUE, FALSE)
 tangleOut$EndDateWindow <- as.Date('1600-01-01', '%Y-%m-%d')
 idx <- which(tangleOut$postDec6moTF == TRUE)
-tangleOut$EndDateWindow[idx] <-  tangleOut$LastDatewGear[idx] %m+% months(3)
+tangleOut$EndDateWindow[idx] <- tangleOut$LastDatewGear[idx] %m+% months(3)
 
 # Cases where there is no LDWG: add 3 months from the EndDate in these cases
 idx <- which(!is.finite(tangleOut$LastDatewGear))
 tangleOut$EndDateWindow[idx] <-  tangleOut$EndDate[idx] %m+% months(3)
 
+# For cases where there is a line gone value and it's < 6 months after LDWG
+# then we'll simply use the LineGone date:
 idx <- which(is.finite(tangleOut$LineGone) & tangleOut$postDec6moTF == FALSE)
 tangleOut$EndDateWindow[idx] <- tangleOut$LineGone[idx]
+
+# For cases where there is NO Line gone value, we'll add 3 months to the LDWG
 idx <- which(!is.finite(tangleOut$LineGone) & tangleOut$postDec6moTF == FALSE)
 tangleOut$EndDateWindow[idx] <- tangleOut$LastDatewGear[idx] %m+% months(3)
+# ===================================================================================
 
 ###################################
 # Set up the pre-detection window(s) for gear animals
