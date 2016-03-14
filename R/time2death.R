@@ -18,6 +18,7 @@ source('/Users/rob/Documents/code/rss10/rightwhales/makeYearmon.r')
 wd <- '/Users/rob/Rdev/tangled/'
 setwd(wd)
 # load(file = paste(wd, 'gibbsoutput/eg_2015_newData_JUVTRUE__50000_wkspc.rdata', sep = '') )
+# load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
 load(file = 'data/eg_203_ng_50000_BIG_25000.rdata')
 load(file="data/egAmyEntData.rdata")
 tSub <- tangleOut
@@ -46,12 +47,17 @@ idx <- events$EGNo %in% ID
 events <- events[idx, ]
 events$dtime <- NA
 events$knownD <- FALSE
-for(i in 1:length(unique(events$EGNo))){
+events$presD <- FALSE
+
+for (i in 1:length(unique(events$EGNo))) {
   id <- which(ID == unique(events$EGNo)[i])
   dsub <- deathyr[id, ]
   events$dtime[i] <- which.max(dsub)
-  if(any(dsub == 50000) & events$dtime[i] < nt){
+  if (any(dsub == ng) & events$dtime[i] < nt) {
     events$knownD[i] <- TRUE
+  }
+  if (any(dsub != ng) & events$dtime[i] < nt) {
+    events$presD[i] <- TRUE
   }
 }
 events <- mutate(events, 
