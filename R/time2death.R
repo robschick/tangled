@@ -23,15 +23,7 @@ load(file = 'data/eg_203_ng_50000_BIG_25000.rdata')
 load(file="data/egAmyEntData.rdata")
 tSub <- tangleOut
 
-# events <- numeric(0)
-# for(egno in unique(tSub$EGNo)){
-#   dsub <- subset(tSub, EGNo == egno)
-#   dsub <- dsub[which.max(dsub$EventNo),]
-#   events <- rbind(events, dsub)
-# }
-# events <- events[order(events$EGNo),]
-
-# for seom reason, two of these contain duplicated info: 1249 & 1980, so I'm going to remove one of them
+# for some reason, two of these contain duplicated info: 1249 & 1980, so I'm going to remove one of them
 idx <- which(tSub$EGNo == 1249 & tSub$EventNo == 2)
 tSub <- tSub[-idx[2],]
 idx <- which(tSub$EGNo == 1980 & tSub$EventNo == 2)
@@ -39,7 +31,6 @@ tSub <- tSub[-idx[2],]
 
 # find the last Entanglement event
 events <- tSub %>% group_by(EGNo) %>% top_n(n=1, EventNo) %>% arrange(EGNo)
-
 
 # need to find the max estimate for death from deathyr
 # this will produce 'dtime' which is that month of imputed death
@@ -61,21 +52,18 @@ for (i in 1:length(unique(events$EGNo))) {
   }
 }
 events <- mutate(events, 
-                 emonyrID = match(emonyr, myName),
-                 ldwgmonyrID = match(ldwgmonyr, myName))
-# table(events$knownD)
+                 ewindmonyrID = match(ewindmonyr, myName))
 
-survl <- vector(mode = 'list', nrow(events))
 
-for(i in 1:nrow(events)){
+# These are only for presumed dead animals in the next loop
+survl <- vector(mode = 'list', nrow(esub))
+esub <- subset(events, presD)
+kd <- FALSE 
+for(i in 1:nrow(esub)){
   id <- events[i, 'EGNo']
   dmonth <- as.numeric(events[i, 'dtime'])
-  if(is.na(events[i, 'ldwgmonyrID'])) {emonth <- as.numeric(events[i, 'emonyrID'])
-  } else {
-    emonth <- as.numeric(events[i, 'ldwgmonyrID'])  
-  }
+  emonth <- as.numeric(events[i, 'ewindmonyrID'])
   
-  kd <- data.frame(events[i, 'knownD'])
   censor <- ifelse(dmonth > nt, TRUE, FALSE)
   cmonth <- dmonth
   dmonth2 <- dmonth 
@@ -85,7 +73,8 @@ for(i in 1:nrow(events)){
                                      deathMonth0 = max(svec0), severity = events[i, 'Severity'], sevNumClass = events[i ,'gearInj'],
                                      knownDeath = kd)
 }
-# surdvf <- do.call('rbind', survl)
+# survl[[knownD]] <- # populate with one data frame of the known dead animals
+# survl[[presAlive]] <- # populate with one data from of the presumed Alive animals
 survdf <- as.data.frame(data.table::rbindlist(survl))
 
 survdf$censMonth[survdf$censMonth < nt] <- NA
