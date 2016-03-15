@@ -39,45 +39,81 @@ events <- events[idx, ]
 events$dtime <- NA
 events$knownD <- FALSE
 events$presD <- FALSE
+events$presA <- FALSE
+
+# We need to choose a cutoff date for censoring;
+# per email from Philip Hamilton, VHA health is matched
+# through 2012:
+dcut <- which(myName == '12-2012') 
 
 for (i in 1:length(unique(events$EGNo))) {
+  
   id <- which(ID == unique(events$EGNo)[i])
   dsub <- deathyr[id, ]
   events$dtime[i] <- which.max(dsub)
-  if (any(dsub == ng) & events$dtime[i] < nt) {
+  
+  if (any(dsub == ng) & events$dtime[i] < dcut) {
     events$knownD[i] <- TRUE
   }
-  if (any(dsub != ng) & events$dtime[i] < nt) {
+  
+  if (any(dsub != ng) & events$dtime[i] < dcut) {
     events$presD[i] <- TRUE
   }
-}
-events <- mutate(events, 
-                 ewindmonyrID = match(ewindmonyr, myName))
-
-
-# These are only for presumed dead animals in the next loop
-survl <- vector(mode = 'list', nrow(esub))
-esub <- subset(events, presD)
-kd <- FALSE 
-for(i in 1:nrow(esub)){
-  id <- events[i, 'EGNo']
-  dmonth <- as.numeric(events[i, 'dtime'])
-  emonth <- as.numeric(events[i, 'ewindmonyrID'])
   
-  censor <- ifelse(dmonth > nt, TRUE, FALSE)
+  if (any(dsub == ng) & events$dtime[i] > dcut) {
+    events$presA[i] <- TRUE
+  }
+  
+}
+events <- mutate(events, ewindmonyrID = match(ewindmonyr, myName))
+
+# ===================================================
+# Loop over the presumed Alive and known dead animals
+# This is done just once
+kdpasub <- subset(events, !presD)
+kdpasurvl <- vector(mode = 'list', nrow(kdpasub))
+
+for(i in 1:nrow(kdpasub)){
+  id <- kdpasub[i, 'EGNo']
+  dmonth <- as.numeric(kdpasub[i, 'dtime'])
+  emonth <- as.numeric(kdpasub[i, 'ewindmonyrID'])
+  censor <- ifelse(dmonth > dcut, TRUE, FALSE)
+  kd <- kdpasub[i, 'knownD']
+  cmonth <- dmonth
+  dmonth2 <- dmonth 
+  svec <- seq(emonth, dmonth2)
+  svec0 <- svec - min(svec)
+  kdpasurvl[[i]] <- data.frame(EGNo = id, deathMonth = dmonth, censored = censor, censMonth = cmonth, survTime0 = svec0, 
+                           deathMonth0 = max(svec0), severity = kdpasub[i, 'Severity'], sevNumClass = kdpasub[i ,'gearInj'],
+                           knownDeath = kd)
+}
+kdpasurvldf <- as.data.frame(data.table::rbindlist(kdpasurvl))
+
+# =========================================================
+# These are only for presumed dead animals in the next loop
+# This is done nboot times
+esub <- subset(events, presD)
+survl <- vector(mode = 'list', nrow(esub))
+kd <- FALSE 
+
+for(i in 1:nrow(esub)){
+  id <- esub[i, 'EGNo']
+  dmonth <- as.numeric(esub[i, 'dtime'])
+  emonth <- as.numeric(esub[i, 'ewindmonyrID'])
+  censor <- ifelse(dmonth > dcut, TRUE, FALSE)
   cmonth <- dmonth
   dmonth2 <- dmonth 
   svec <- seq(emonth, dmonth2)
   svec0 <- svec - min(svec)
   survl[[i]] <- data.frame(EGNo = id, deathMonth = dmonth, censored = censor, censMonth = cmonth, survTime0 = svec0, 
-                                     deathMonth0 = max(svec0), severity = events[i, 'Severity'], sevNumClass = events[i ,'gearInj'],
+                                     deathMonth0 = max(svec0), severity = esub[i, 'Severity'], sevNumClass = esub[i ,'gearInj'],
                                      knownDeath = kd)
 }
-# survl[[knownD]] <- # populate with one data frame of the known dead animals
-# survl[[presAlive]] <- # populate with one data from of the presumed Alive animals
+
+survl[['kdpa']] <- kdpasurvldf# populate with one data frame of the known dead animals and the presumed Alive animals
 survdf <- as.data.frame(data.table::rbindlist(survl))
 
-survdf$censMonth[survdf$censMonth < nt] <- NA
+survdf$censMonth[survdf$censMonth < dcut] <- NA
 save(survdf, ID, gender, file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/data/kmcalcInput.rda')
 
 # df <- events # as compared to dfsub, this includes all animals 
