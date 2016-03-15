@@ -19,9 +19,7 @@
 getDeaths <- function(deathyr) {
   
   psamp <- deathyr / rowSums(deathyr, na.rm = TRUE)
-  deaths <- matrix(NA, nrow = nboot, ncol = nrow(psamp))
-  colnames(deaths) <- rownames(deathyr)
-  
   deaths <- apply(psamp, 1, function(x) which(rmultinom(1, 1, prob = x) == 1))  
+  names(deaths) <- rownames(deathyr)
   deaths
 }
