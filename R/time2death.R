@@ -78,7 +78,7 @@ for(i in 1:nrow(kdpasub)){
   dmonth <- as.numeric(kdpasub[i, 'dtime'])
   emonth <- as.numeric(kdpasub[i, 'ewindmonyrID'])
   censor <- ifelse(dmonth > dcut, TRUE, FALSE)
-  kd <- kdpasub[i, 'knownD']
+  kd <- as.character(kdpasub[i, 'knownD'])
   cmonth <- dcut
   dmonth2 <- dmonth 
   svec <- seq(emonth, dmonth2)

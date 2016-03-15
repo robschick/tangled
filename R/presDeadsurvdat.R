@@ -31,7 +31,7 @@ presDeadsurvdat <- function(events, dcut, newDeadtimes) {
   
   for(i in 1:nrow(esub)){
     id <- esub[i, 'EGNo']
-    dmonth <- as.numeric(esub[i, 'dtime'])
+    dmonth <- as.numeric(esub[i, 'dtimenew'])
     emonth <- as.numeric(esub[i, 'ewindmonyrID'])
     censor <- ifelse(dmonth > dcut, TRUE, FALSE)
     cmonth <- dcut
