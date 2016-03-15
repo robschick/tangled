@@ -66,3 +66,4 @@ for (i in 1:length(unique(events$EGNo))) {
   
 }
 events <- mutate(events, ewindmonyrID = match(ewindmonyr, myName))
+save(events, file = 'data/events.rda')
