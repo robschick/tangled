@@ -83,9 +83,11 @@ for(i in 1:nrow(kdpasub)){
   dmonth2 <- dmonth 
   svec <- seq(emonth, dmonth2)
   svec0 <- svec - min(svec)
+  csvec <- seq(emonth, cmonth)
+  csvec0 <- csvec - min(csvec)
   kdpasurvl[[i]] <- data.frame(EGNo = id, deathMonth = dmonth, censored = censor, censMonth = cmonth, survTime0 = svec0, 
-                           deathMonth0 = max(svec0), severity = kdpasub[i, 'Severity'], sevNumClass = kdpasub[i ,'gearInj'],
-                           knownDeath = kd)
+                           deathMonth0 = max(svec0), censMonth0 = max(csvec0), severity = kdpasub[i, 'Severity'], 
+                           sevNumClass = kdpasub[i ,'gearInj'], knownDeath = kd)
 }
 kdpasurvldf <- as.data.frame(data.table::rbindlist(kdpasurvl))
 
@@ -105,9 +107,11 @@ for(i in 1:nrow(esub)){
   dmonth2 <- dmonth 
   svec <- seq(emonth, dmonth2)
   svec0 <- svec - min(svec)
+  csvec <- seq(emonth, cmonth)
+  csvec0 <- csvec - min(csvec)
   survl[[i]] <- data.frame(EGNo = id, deathMonth = dmonth, censored = censor, censMonth = cmonth, survTime0 = svec0, 
-                                     deathMonth0 = max(svec0), severity = esub[i, 'Severity'], sevNumClass = esub[i ,'gearInj'],
-                                     knownDeath = kd)
+                                     deathMonth0 = max(svec0), censMonth0 = max(csvec0), severity = esub[i, 'Severity'], 
+                                     sevNumClass = esub[i ,'gearInj'], knownDeath = kd)
 }
 
 survl[['kdpa']] <- kdpasurvldf# populate with one data frame of the known dead animals and the presumed Alive animals

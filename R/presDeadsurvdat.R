@@ -23,7 +23,9 @@
 presDeadsurvdat <- function(events, dcut, newDeadtimes) {
   
   esub <- subset(events, presD)
-  esub[match(esub$EGNo, names(newDeadtimes)), 'dtime'] <- newDeadtimes[match(esub$EGNo, names(newDeadtimes))]
+  esub[, 'dtimenew'] <- NA
+  dtimenew <- as.vector(newDeadtimes[match(esub$EGNo, names(newDeadtimes))])
+  esub[, 'dtimenew'] <- dtimenew
   survl <- vector(mode = 'list', nrow(esub))
   kd <- FALSE 
   
@@ -36,9 +38,11 @@ presDeadsurvdat <- function(events, dcut, newDeadtimes) {
     dmonth2 <- dmonth 
     svec <- seq(emonth, dmonth2)
     svec0 <- svec - min(svec)
+    csvec <- seq(emonth, cmonth)
+    csvec0 <- csvec - min(csvec)
     survl[[i]] <- data.frame(EGNo = id, deathMonth = dmonth, censored = censor, censMonth = cmonth, survTime0 = svec0, 
-                             deathMonth0 = max(svec0), severity = esub[i, 'Severity'], sevNumClass = esub[i ,'gearInj'],
-                             knownDeath = kd)
+                             deathMonth0 = max(svec0), censMonth0 = max(csvec0), severity = esub[i, 'Severity'], 
+                             sevNumClass = esub[i ,'gearInj'], knownDeath = kd)
   }
   
   
