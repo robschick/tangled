@@ -1,18 +1,14 @@
-library(dplyr)
 rm(list = ls())
-load(file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/data/kmcalcInput.rda') # contains survdf
-# so known death animals get censored and shown with a tick mark
+library(dplyr)
+load(file = 'data/kmcalcInput.rda') # contains survdf, ID, gender, dcut, myName
 
-# Let's start with just 5 animals to work out the maths
-nt <- 504
+# We need to choose a cutoff date for censoring;
+# per email from Philip Hamilton, VHA health is matched
+# through 2012:
+dcut <- which(myName == '12-2012') 
+nt <- dcut
 survdf$yearInt <- findInterval(survdf$survTime0, seq(0, nt, by = 12)) # to group the data into yearly summaries
-survdf$censYearInt <- survdf$deathyearInt <- findInterval(survdf$deathMonth0, seq(0, nt, by = 12)) # to group the death data into yearly summaries in order to ask if an animal died on a particular interval. We won't need to do this with month survival
-# survdf$censYearInt <- findInterval(survdf$censMonth, seq(0, nt, by = 12)) 
-# for testing, i.e. just grab a handful of animals: 
-# idx <- sample(unique(survdf$EGNo), 20)
-# dsub <- survdf[survdf$EGNo %in% idx, ]
-# dtimes <- unique(dsub$deathMonth0) # when the animals died or are censored
-
+survdf$censYearInt <- survdf$deathyearInt <- findInterval(survdf$deathMonth0, seq(0, nt, by = 12)) # to group the death data into yearly 
 
 # All entanglement events, regardless of severity
 dsub <- survdf
@@ -131,7 +127,7 @@ survdf$gender <- gender[match(survdf$EGNo, ID)]
 kmdfAll <- numeric(0)
 csubAll <- numeric(0)
 for(j in 1:3){
-  g <- 'F'
+  g <- 'M'
   svvec <- c("moderate", "minor", "severe" )
   dsub <- survdf[survdf$Severity == svvec[j] & survdf$gender == g, ]
   kmdf <- data.frame(interval = 0, atRiskStart = nrow(dsub), censored = 0,
@@ -194,8 +190,8 @@ ggplot(kmdfAll, aes(interval, psurv, group = sev, colour = sev)) +
   scale_colour_brewer(palette = 'Set2', name = 'Entanglement\nSeverity',
                       labels = c('Minor', 'Moderate', 'Severe'))+
   theme(legend.position = c(.15, .2))+
-  coord_cartesian(xlim = c(0, 7.5))
-# facet_grid(. ~ gender)
+  coord_cartesian(xlim = c(0, 17.5))+
+facet_grid(. ~ gender)
 dev.off()
 
 oddsAll <- c(oddsF, oddsM)
