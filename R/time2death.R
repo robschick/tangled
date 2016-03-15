@@ -43,8 +43,8 @@ events$presA <- FALSE
 
 # We need to choose a cutoff date for censoring;
 # per email from Philip Hamilton, VHA health is matched
-# through 2012:
-dcut <- which(myName == '12-2012') 
+# through 2012; sightings matched through 2013
+dcut <- which(myName == '12-2013') 
 
 for (i in 1:length(unique(events$EGNo))) {
   
@@ -79,7 +79,7 @@ for(i in 1:nrow(kdpasub)){
   emonth <- as.numeric(kdpasub[i, 'ewindmonyrID'])
   censor <- ifelse(dmonth > dcut, TRUE, FALSE)
   kd <- kdpasub[i, 'knownD']
-  cmonth <- dmonth
+  cmonth <- dcut
   dmonth2 <- dmonth 
   svec <- seq(emonth, dmonth2)
   svec0 <- svec - min(svec)
@@ -101,7 +101,7 @@ for(i in 1:nrow(esub)){
   dmonth <- as.numeric(esub[i, 'dtime'])
   emonth <- as.numeric(esub[i, 'ewindmonyrID'])
   censor <- ifelse(dmonth > dcut, TRUE, FALSE)
-  cmonth <- dmonth
+  cmonth <- dcut
   dmonth2 <- dmonth 
   svec <- seq(emonth, dmonth2)
   svec0 <- svec - min(svec)
