@@ -114,5 +114,5 @@ survl[['kdpa']] <- kdpasurvldf# populate with one data frame of the known dead a
 survdf <- as.data.frame(data.table::rbindlist(survl))
 
 survdf$censMonth[survdf$censMonth < dcut] <- NA
-save(survdf, ID, gender, dcut, myName, file = 'data/kmcalcInput.rda')
+save(survdf, kdpasurvldf, ID, gender, dcut, myName, file = 'data/kmcalcInput.rda')
 
