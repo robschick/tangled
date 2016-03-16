@@ -9,7 +9,7 @@ load(file="data/events.rda") # use this to call the data presDeadtime.R
 load(file = 'data/deathyr.rda') # contains deathyr
 nt <- dcut
 
-nboot <- 10
+nboot <- 100
 kmlines <- vector(mode = 'list', (nboot + 1)) # idea of the dimension is to put the median value in the first list slot
 censTicks <- vector(mode = 'list', (nboot + 1))
 
@@ -45,6 +45,7 @@ for(nb in 1:(nboot + 1)) {
                                    diedOnInterval = died, atRiskEnd = atRiskEnd, propSurv = proportionSurviving))
   }
   kmdf$psurv <- cumprod(kmdf$propSurv)
+  kmdf$group <- paste('iter', nb, sep = '')
   kmlines[[nb]] <- kmdf
   
   # I want a censored month in here as well for plotting purposes, i.e. to make the ticks
@@ -58,6 +59,7 @@ for(nb in 1:(nboot + 1)) {
   }
   
   csub$psurv <- psvec
+  csub$group <- paste('iter', nb, sep = '')
   censTicks[[nb]] <- csub
 } # end bootstrap interval
 
