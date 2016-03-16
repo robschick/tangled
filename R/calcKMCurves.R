@@ -71,13 +71,27 @@ for(nb in 1:(nboot + 1)) {
 
 # Break it out by entanglement severity & Gender:
 # Get the gender in using ID and Gender
-survdf <- canonsurvdf
+t1 <- Sys.time()
+nboot <- 1000
+kmlines <- vector(mode = 'list', (nboot + 1)) # idea of the dimension is to put the median value in the first list slot
+censTicks <- vector(mode = 'list', (nboot + 1))
+
+for(nb in 1:(nboot + 1)) {
+  
+  if (nb == 1) {
+    survdf <- canonsurvdf
+  } else {
+    deathSamp <- getDeaths(deathyr)
+    enew <- presDeadsurvdat(events, dcut, deathSamp)
+    survdf <- rbind(enew, kdpasurvldf)  
+  }
+  
 survdf$gender <- gender[match(survdf$EGNo, ID)]
 survdf$yearInt <- findInterval(survdf$survTime0, seq(0, nt, by = 12)) # to group the data into yearly summaries
 survdf$censYearInt <- findInterval(survdf$censMonth0, seq(0, nt, by = 12)) # to group the death data into yearly 
 survdf$deathyearInt <- findInterval(survdf$deathMonth0, seq(0, nt, by = 12)) # to group the death data into yearly 
 svvec <- c("moderate", "minor", "severe" )
-kmdfAll <- numeric(0)
+kmdfAll <- numeric(0) # is this the right place for this?
 csubAll <- numeric(0)
 
 for(g in c("M", "F")) {
@@ -106,6 +120,7 @@ for(g in c("M", "F")) {
     kmdf$psurv <- cumprod(kmdf$propSurv)
     kmdf$sev <- svvec[j]
     kmdfAll <- rbind(kmdfAll, kmdf)
+    kmlines[[nb]] <- data.frame(kmdfAll, group = paste('iter', nb, sep = ''))
     
     # I want a censored month in here as well for plotting purposes
     csub <- subset(dsub, censored == TRUE)
@@ -121,14 +136,13 @@ for(g in c("M", "F")) {
     csub$sev <- svvec[j]
     
     csubAll <- rbind(csubAll, csub)
+    csubAll$gender <- gender[match(csubAll$EGNo, ID)]
+    censTicks[[nb]] <- data.frame(csubAll, group = paste('iter', nb, sep = ''))
     
   } # end loop over severity
-  # kmdfAll$gender <- g
-} # gender loop
 
+  } # gender loop
 
-# Get the gender in using ID and Gender
-csubAll$gender <- gender[match(csubAll$EGNo, ID)]
+} # end loop over nboot
 
-
-
+Sys.time() - t1
