@@ -37,7 +37,7 @@ plotSurvGenderSeverity <- function(kmlines, censticks, yearEnd) {
   cplotdf <- as.data.frame(data.table::rbindlist(censTicks))
   cplotdf$newgroup <- paste(cplotdf$group, cplotdf$sev, sep = '.')
   
-  ggplot(data = plotdf, aes(interval, psurv, group = newgroup, colour = sev)) + 
+  p <- ggplot(data = plotdf, aes(interval, psurv, group = newgroup, colour = sev)) + 
     # geom_step(aes(y = jitter(psurv, 5), group = newgroup), alpha = 0.15, colour = 'grey50') + 
     geom_step(data = subset(plotdf, group == 'iter1')) +
     ylim(0, 1) + 

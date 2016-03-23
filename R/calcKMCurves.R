@@ -1,4 +1,4 @@
-rm(list = ls())
+# rm(list = ls())
 library(dplyr)
 
 
@@ -6,10 +6,12 @@ load(file = 'data/kmcalcInput.rda') # canonical data for making the median curve
 # contains: survdf, kdpasurvldf, ID, gender, dcut, myName
 canonsurvdf <- survdf
 load(file="data/events.rda") # use this to call the data presDeadtime.R
-load(file = 'data/deathyr.rda') # contains deathyr
+# load(file = 'data/deathyr.rda') # contains deathyr
+library(reportCard)
+deathyr <- deathyr203
 nt <- dcut
 
-nboot <- 100
+nboot <- 1
 kmlines <- vector(mode = 'list', (nboot + 1)) # idea of the dimension is to put the median value in the first list slot
 censTicks <- vector(mode = 'list', (nboot + 1))
 
@@ -72,7 +74,7 @@ for(nb in 1:(nboot + 1)) {
 # Break it out by entanglement severity & Gender:
 # Get the gender in using ID and Gender
 t1 <- Sys.time()
-nboot <- 1000
+nboot <- 1
 kmlines <- vector(mode = 'list', (nboot + 1)) # idea of the dimension is to put the median value in the first list slot
 censTicks <- vector(mode = 'list', (nboot + 1))
 
