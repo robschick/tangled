@@ -6,15 +6,15 @@ load(file = 'data/kmcalcInput.rda') # canonical data for making the median curve
 # contains: survdf, kdpasurvldf, ID, gender, dcut, myName
 canonsurvdf <- survdf
 load(file="data/events.rda") # use this to call the data presDeadtime.R
-# load(file = 'data/deathyr.rda') # contains deathyr
-library(reportCard)
-deathyr <- deathyr203
+load(file = 'data/deathyr.rda') # contains deathyr
+# library(reportCard)
+# deathyr <- deathyr203
 nt <- dcut
 
 nboot <- 1
 kmlines <- vector(mode = 'list', (nboot + 1)) # idea of the dimension is to put the median value in the first list slot
 censTicks <- vector(mode = 'list', (nboot + 1))
-
+increment <- 12 # these are the number of months to increment over; 12 == 1 year - duh.
 for(nb in 1:(nboot + 1)) {
   
   if (nb == 1) {
@@ -25,9 +25,9 @@ for(nb in 1:(nboot + 1)) {
     survdf <- rbind(enew, kdpasurvldf)  
   }
   
-  survdf$yearInt <- findInterval(survdf$survTime0, seq(0, nt, by = 12)) # to group the data into yearly summaries
-  survdf$censYearInt <- findInterval(survdf$censMonth0, seq(0, nt, by = 12)) # to group the death data into yearly 
-  survdf$deathyearInt <- findInterval(survdf$deathMonth0, seq(0, nt, by = 12)) # to group the death data into yearly 
+  survdf$yearInt <- findInterval(survdf$survTime0, seq(0, nt, by = increment)) # to group the data into yearly summaries
+  survdf$censYearInt <- findInterval(survdf$censMonth0, seq(0, nt, by = increment)) # to group the death data into yearly 
+  survdf$deathyearInt <- findInterval(survdf$deathMonth0, seq(0, nt, by = increment)) # to group the death data into yearly 
   dsub <- survdf
   
   kmdf <- data.frame(interval = 0, atRiskStart = nrow(dsub), censored = 0,
@@ -75,6 +75,7 @@ for(nb in 1:(nboot + 1)) {
 # Get the gender in using ID and Gender
 t1 <- Sys.time()
 nboot <- 1
+increment <- 12 # these are the number of months to increment over; 12 == 1 year - duh.
 kmlines <- vector(mode = 'list', (nboot + 1)) # idea of the dimension is to put the median value in the first list slot
 censTicks <- vector(mode = 'list', (nboot + 1))
 
@@ -89,9 +90,9 @@ for(nb in 1:(nboot + 1)) {
   }
   
 survdf$gender <- gender[match(survdf$EGNo, ID)]
-survdf$yearInt <- findInterval(survdf$survTime0, seq(0, nt, by = 12)) # to group the data into yearly summaries
-survdf$censYearInt <- findInterval(survdf$censMonth0, seq(0, nt, by = 12)) # to group the death data into yearly 
-survdf$deathyearInt <- findInterval(survdf$deathMonth0, seq(0, nt, by = 12)) # to group the death data into yearly 
+survdf$yearInt <- findInterval(survdf$survTime0, seq(0, nt, by = increment)) # to group the data into yearly summaries
+survdf$censYearInt <- findInterval(survdf$censMonth0, seq(0, nt, by = increment)) # to group the death data into yearly 
+survdf$deathyearInt <- findInterval(survdf$deathMonth0, seq(0, nt, by = increment)) # to group the death data into yearly 
 svvec <- c("moderate", "minor", "severe" )
 kmdfAll <- numeric(0) # is this the right place for this?
 csubAll <- numeric(0)
