@@ -32,16 +32,14 @@
 #' plotSurvGenderSeverity(kmlines, censTicks, 7)
 plotSurvGenderSeverity <- function(kmlines, censticks, yearEnd) {
   
-  plotdf <- calcKMUncertainty(kmlines)
-  plotdf$newgroup <- paste(plotdf$gender, plotdf$sev, sep = '.')
-  plotdf$interval2 <- plotdf$interval + 1
-  
+  plotdf <- as.data.frame(data.table::rbindlist(kmlines))
+  plotdf$newgroup <- paste(plotdf$group, plotdf$sev, sep = '.')
   cplotdf <- as.data.frame(data.table::rbindlist(censTicks))
   cplotdf$newgroup <- paste(cplotdf$group, cplotdf$sev, sep = '.')
   
-  p <- ggplot(data = plotdf, aes(interval, med, group = newgroup, colour = sev)) + 
-    geom_rect(aes(xmin = interval, xmax = interval2, ymin = low, ymax = high), fill = 'grey70', colour = 'grey70')+
-    geom_step() +
+  p <- ggplot(data = plotdf, aes(interval, psurv, group = newgroup, colour = sev)) + 
+    # geom_step(aes(y = jitter(psurv, 5), group = newgroup), alpha = 0.15, colour = 'grey50') + 
+    geom_step(data = subset(plotdf, group == 'iter1')) +
     ylim(0, 1) + 
     geom_segment(data = subset(cplotdf, group == 'iter1'), 
                  aes(x = censMonth0 / 12, y = psurv, xend = censMonth0 / 12, yend = psurv + 0.015)) + 
