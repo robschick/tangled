@@ -1,2 +1,2 @@
 etime <- read_csv(file = '../inst/extdata/TimingEntanglementReformatDate.csv')
-devtools::use_data(etime)
+devtools::use_data(etime, overwrite = TRUE)
