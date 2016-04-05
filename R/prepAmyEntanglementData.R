@@ -3,29 +3,36 @@ library(lubridate)
 library(stringr)
 library(gdata)
 library(plyr)
+library(readr)
 # Entanglement Data Prep for Post-Model Window Overlays
 rm(list=ls())
 source(file='R/makeTangle.R')
 source(file = 'R/cleanMerge.R')
-load(file="data/egsightings.rdata")
+library(egSightsData)
 load(file="data/calfTable.rdata")
 days <- months(6)
 
 # next chunk is to bring in the entanglement table and pare it down
 tangleAll <- makeTangle()
 tangle    <- makeTangle()
-idx       <- which(!is.na(tangle$StartDate)) # Find animals with a valid start date
-tangle    <- tangle[idx,] # Keep only those animals with a valid start date
+estStart  <- read_csv(file = 'data-raw/EntglEstimatedStartDates.csv')
+estStart$StartDate <- as.Date(estStart$StartDate, format = '%d/%m/%Y')
+estStart$EndDate <- as.Date(estStart$EndDate, format = '%d/%m/%Y')
+
+idx <- which(is.na(tangle$StartDate)) # Find animals without a valid start date
+for (id in seq_along(idx)) {
+  tangle[id, 'StartDate'] <- estStart[which(estStart$EntanglementId == as.numeric(tangle[id, 'EntanglementId'])), 'StartDate']
+}
+idx <- which(!is.na(tangle$StartDate)) # Keep animals with a valid start date
+tangle <- tangle[idx, ]
+
 tangle$ID <- seq_along(1:nrow(tangle)) #
 tangID    <- tangle$ID
 tangle$wingt6mo <- tangle$EndDate - tangle$StartDate > days
-# tangle <- tangle[,-which(colnames(tangle) == 'EntanglementComment')]
-# tangle <- tangle[,-which(colnames(tangle) == 'TimeFrame')]
 
 # Now we want to add the gear carrying information
-etime <- read.csv(file = 'data/TimingEntanglementReformatDate.csv', header = TRUE)
-# ID     <- sort(unique(sights[,'SightingEGNo']))
-# n      <- length(ID)
+etime <- read_csv(file = 'data-raw/TimingEntanglementReformatDate.csv')
+
 startYr <- 1970
 stopYr  <- max(sights[,'SightingYear'],na.rm=T)
 yrvec  <- startYr:stopYr
@@ -60,6 +67,7 @@ tndat$StartDateWindow[idx6] <- tndat$EndDate[idx6] %m-% months(2)
 # The merge call will bring in the gear carrying times from etime.
 # Note that I'm doing two merges because some animals in etime have NA for EventNo, which causes them to be lost in a merge based on both EGNo and EventNo
 m1 <- merge(tdat, etime,  by = c('EGNo', 'EventNo'))
+m1 <- dplyr::select(m1, -AmyEdits)
 idx <- which(is.na(etime$EventNo))
 etimeNA <- etime[idx,]
 m2 <- merge(tdat, etimeNA,  by = c('EGNo'))
@@ -235,5 +243,10 @@ for (i in 1:nrow(tangleOut)) {
 tangRepro <- tangleOut[which(tangleOut$afterCalf1 == TRUE), ]
 tangNonRepro <- tangleOut[-which(tangleOut$afterCalf1 == TRUE), ]
 
-# Save the data into one rdata file
-save(tangleAll, tangleOut, tangRepro, tangNonRepro, file="data/egAmyEntData.rdata")
+# Save the data into rdata files
+# save(tangleAll, tangleOut, tangRepro, tangNonRepro, file="data/egAmyEntData.rdata")
+devtools::use_data(tangleAll, overwrite = TRUE)
+devtools::use_data(tangleOut, overwrite = TRUE)
+devtools::use_data(tangRepro, overwrite = TRUE)
+devtools::use_data(tangNonRepro, overwrite = TRUE)
+
