@@ -173,3 +173,15 @@
 #' \item{afterCalf1}{Logical of whether or not the entanglement event is after the first calving event (\code{firstCalf})}
 #' }
 'tangNonRepro'
+
+#' Health anomaly between individual health and population median health
+#' 
+#' This is a matrix that of differences between individual health 
+#' and population level health. I calculate this anomaly by first 
+#' calculating the median health of the target groups (Adult males,
+#' and young and old juveniles), and then subtracting that value
+#' from the median health of each individual.
+#' 
+#' @format A matrix of dimensions 696 by 564; each row contains the estimates
+#' of health for an individual. Each column is a month.
+'anom'
