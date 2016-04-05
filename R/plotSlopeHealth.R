@@ -12,9 +12,9 @@ rm(list=ls())
 library(ggplot2)
 library(dplyr)
 
-load(file = 'data/eg_2015_newData_JUVTRUE__50000_wkspc.rdata')
-load(file = 'data/healthAnomaly.rda') # contains 'anom' which is deviation from pop health (Adult males and juveniles) for all animals
-load(file="data/egAmyEntData.rdata") # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
+load(file = 'data/eg_205_ng_50000_BIG_25000_BIG_25000.rdata')
+load(file = 'data/anom.rda') # contains 'anom' which is deviation from pop health (Adult males and juveniles) for all animals
+load(file="data/tangleOut.rda") # egAmyEntData.rdata contains tangleOut, tangRepro, tangNonRepro, so use the repro flag
 
 # Need to pare down to animals only with a one year window (Amy Knowlton's suggestion 14 January 2016)
 pvec <- tangleOut[, 'EndDate'] - tangleOut[, 'StartDate'] <= 365
@@ -70,7 +70,7 @@ dfHsum
 
 dfAsum <- dfout %>% 
   group_by(gearInj) %>% 
-  summarise(sAnom = median(startAnom), 
+  summarise(sAnom = median(startAnom, na.rm = TRUE), 
             endAnom = median(endAnom), 
             recAnom = median(recAnom),
             fullLab = unique(fullLab),
