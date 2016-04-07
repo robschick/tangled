@@ -5,13 +5,13 @@
 #' @param dfAsuml An 12 by 5 data frame that has the information need to make the bar plot of change during each of the two windows: entanglement and recovery
 #' 
 #' @return A \code{gridExtra} element that plots the two plots
-#' @example plotSlopeHealth(dfout, dfn, dfAsuml)
-plotSlopeHealth <- function(dfout, dfn, dfAsuml){
+#' @example plotSlopeHealth(dfout, dfn, dfMed, dfAsuml)
+plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml){
 
   p <- ggplot(data = dfout)+
     geom_segment(aes(y = startAnom, yend = endAnom, x = 0, xend = 1), colour = alpha('grey', 0.75)) +
     geom_segment(aes(y = endAnom, yend = recAnom, x = 1, xend = 2), colour = alpha('grey', 0.75))+
-    geom_path(data = dfAsuml, aes(y = value, x = x), lwd = 1) +
+    geom_path(data = dfMed, aes(y = value, x = x), lwd = 1) +
     annotate('text', x = 0.2, y = -75, size = 5,
            label = c(paste('n = ', dfn[which(dfn$gearInj == 6), 'n'], sep = ''),   # minor NO gear
                      paste('n = ', dfn[which(dfn$gearInj == 5), 'n'], sep = ''),   # moderate NO gear
