@@ -100,19 +100,5 @@ repvec <- as.vector(repHealth)[!is.na(as.vector(repHealth))]
 nonrepvec <- as.vector(nonrepHealth)[!is.na(as.vector(nonrepHealth))]
 save(nonrepvec, repvec, file = 'data/unimpacted.rdata')
 
-# test quick plotting to see what they look like
-boxplot(repvec)
-plot(x = seq(100), xlim = c(0, 100), ylim = c(0, 1), type = 'n')
-denstrip(repvec, at = 0.5, width = 1)
-
-
-boxplot(nonrepvec)
-plot(x = seq(100), xlim = c(0, 100), ylim = c(0, 1), type = 'n')
-denstrip(nonrepvec, at = 0.5, width = 1)
-
-# both side by side
-plot(x = seq(100), xlim = c(0, 100), ylim = c(0, 2), type = 'n')
-denstrip(repvec, at = 1.5, width = 1)
-denstrip(nonrepvec, at = 0.5, width = 1)
 
 
