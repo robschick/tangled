@@ -16,7 +16,23 @@
 returnUnimpactedHealth <- function(){
 
   useAnom <- TRUE
-  if (useAnom) {healthmean <- anom} 
+  if (useAnom){
+    healthmean <- anom
+    for(i in 1:nrow(healthmean)){
+      healthmean[i, 1:(firstSight[i] - 1)] <- NA
+      if (death[i] < nt) {
+        healthmean[i, (death[i] + 1):nt] <- NA  
+      }
+    }
+  } else {
+    healthmean <- sumh / g
+    for(i in 1:nrow(healthmean)){
+      healthmean[i, 1:(firstSight[i] - 1)] <- NA
+      if (death[i] < nt) {
+        healthmean[i, (death[i] + 1):nt] <- NA
+      }
+    }
+  }
 
   # get the reproductively active females set up - use tangRepro
   # first use calfTable to parse out healthmean into a subset of reproductively active females
