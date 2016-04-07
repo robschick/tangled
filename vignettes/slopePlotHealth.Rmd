@@ -1,0 +1,113 @@
+---
+title: "Slope Graph to Depict Changes in Health Over the Course of an Entanglement"
+author: "Rob Schick, PhD"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Slope Graph to Depict Changes in Health Over the Course of an Entanglement}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+As part of the first exploration into the impacts of entanglements on health in individual right whales, we wanted to document the change in health from the start of an entanglement window to the end of the entanglement window. We wanted to make sure we examined the effects of different severity of entanglement as well as whether or not the animal was carrying gear during the window. This left us with 6 classes to examine and compare:
+
+1. Minor - No Gear
+2. Minor - Gear
+3. Moderate - No Gear
+4. Moderate - Gear
+5. Severe - No Gear
+6. Severe - Gear
+
+The way we chose to look at these was with slope and bar graphs. Specifically, we determined the health of the animal at three points in time: 
+
+1. the start date of the entanglement
+2. the end date of the entanglement
+3. 12 months after the end date
+
+_A priori_ we would expect the health of the whale to decline during the time period from point 1 to point 2, and then to recover from point 2 to point 3. We would also expect the health of the animal to decline more as the severity of the entanglement increased. That is the decline from point 1 to 2 for a minor - no gear entanglement injury would be less than for a severe - with gear injury. This might look something like this:
+
+```{r, fig.cap="Fig 1. Simulated change in health over two periods: 1) during the entanglement window; and 2) from the end of the window to 12 months out", fig.width=6, fig.height=4, echo=FALSE}
+library(RColorBrewer)
+mypal <- brewer.pal(3, 'Dark2')
+plot(c(0, 1, 2), c(75, 60, 74), type = 'n', ylim = c(50, 90), axes = FALSE, ann = FALSE)
+lines(c(0, 1, 2), c(75, 68, 74))
+lines(c(0, 1, 2), c(75, 55, 72), lty = 2)
+axis(1, at = c(0, 1, 2), labels = c('Start', 'End', '12 Months'))
+axis(2, at = seq(50, 90, 10), las = 1)
+mtext('Estimated Health', side = 2, line = 3)
+text(1.65, 60, 'Severe - Gear', cex = 0.8)
+text(0.5, 76, 'Minor - No Gear', cex = 0.8)
+lines(c(0, .995), c(80, 80), col = "#D95F02", lwd = 3)
+lines(c(1.005, 2), c(80, 80), col = "#1B9E77", lwd = 3)
+text(0.5, 82, 'Entanglement Window')
+text(1.5, 82, 'Recovery Window')
+```
+ 
+It's also possible (indeed likeley) that the whale with the severe entanglement would not recover as much as the animal with the Minor entanglement. There are two additions we can make to this figure. First, while the slope plot effectively shows the trend, it would be nice to have to magnitude of the change depicted on a side by side bar plot, as shown below:
+
+```{r, fig.cap="Fig 2. Simulated change in health over the same two periods noted in Figure 1. This time a barplot is used to provide a common visual frame of reference.", fig.width=6, fig.height=4, echo=FALSE}
+df <- data.frame(time = rep(0:1, 2), 
+                 health = c(75 - 68, abs(68 - 74), 75 - 55, abs(55 - 72)), 
+                 status = rep(c('Minor - No Gear', 'Severe - Gear'), 2))
+
+barplot(df$health, beside = TRUE, space = c(0, 0, 0.2, 0), names = c('MN_During', 'MN_Recov', 'SG_During', 'SG_Recov'),
+        col = c("#D95F02", "#1B9E77"), ylab = 'Health Anomaly', border = NA)
+```
+
+That simply provides a different way to view the data, and to facilitate comparison of health decline and recovery between the windows, as well as the amount of change in the different entanglement types.
+
+Second, because the entanglements occur at different times and the health of the overall population of right whales varies considerably over the past 30 years (cf Rolland et al. 2016), it makes sense to show the difference in individual health compared to the population average, i.e. to show the health anomaly. What this means is that the natural variation in population health over time is accounted for.
+
+With these two refinements, we can now make the figure.
+
+## Slope Plot of Change in Health Anomaly
+Before we can make the plot, we need to prepare the data. The data come from four different sources:
+
+1. The raw sightings data, which includes the entanglement information
+2. The reformatted entanglement start/stop data that includes information for gear-carrying animals
+3. There were ~100 animals that had no start date to the entanglement, which Amy used their birth year to put in an approximate start date
+4. Model output that provides the estimates of health and health anomaly for individual whales
+
+These data are arranged and stored in two different places. First, the raw data are in an R package called `egSightsData.` Second, the data for the start/stop/Last date with gear/Line gone information for gear carrying whales is in `TimingEntanglementReformatDate.csv.` Third, the data for the estimated start dates is in `data-raw` and the script that incorporates both 2 and 3 is `prepAmyEntanglementData.R.` And fourth, the model output is stored in raw form in the `data` folder as `eg_205_ng_50000_BIG_25000_BIG_25000.rdata.` There is a script in `data-raw/prepAnomaly.R` to convert these to `.rda` files in the `tangled` package.
+
+### Data Prep
+With these data in place in the package, we can call a series of functions to make the dataset needed for plotting:
+
+```{r, eval=FALSE}
+prepSlopeHealthData()
+prepSlopeHealthDataMedian()
+prepSlopeHealthDataAnnotation()
+prepSlopeHealthDataBarplot()
+```
+
+The first three make the individual lines of change in health anomaly for each of the 6 classes, and the data look like this:
+
+```{r}
+dfout <- prepSlopeHealthData()
+dim(dfout)
+head(dfout)
+```
+
+In that `dfout` data frame, each line represents one entanglement event for one animal, and has the changes in absolute health at each of the three time periods, as well as the change in health anomaly. It also includes the information about the entanglement type. To this we need to add the median line that summarises health change over the three periods for each injury type. We also want a tally of the different number of events in each category to be used in annotating the plot. Both are accomplished in the next code block.
+
+```{r}
+dfMed <- prepSlopeHealthDataMedian(dfout)
+dfn <- prepSlopeHealthDataAnnotation(dfout)
+```
+
+That will allow us to make the slope plots, but we also want to include the bar plots. Those data are prepared with another function:
+
+```{r}
+dfAsuml <- prepSlopeHealthDataBarplot(dfout)
+```
+
+Ok that gives us the 4 elements we need to construct the plot.
+
+### Data Plotting
+So let's make it. This is accomplished with one call:
+
+```{r}
+library(gridExtra)
+plotSlopeHealth(dfout, dfn, dfMed, dfAsuml)
+```
+
