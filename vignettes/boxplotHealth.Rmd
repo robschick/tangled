@@ -58,21 +58,34 @@ dfLong %>%
 Ok, so then let's make the plot:
 
 ```{r, echo=FALSE, fig.width = 8}
-plotBoxplotHealth(dfLong, bsize = 12)
+pOut <- plotBoxplotHealth(dfLong, bsize = 12)
+ggsave(plot = pOut, filename = 'boxplotHealth.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf')
+ggsave(plot = pOut, filename = 'boxplotHealth.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
 ```
 
 
 ## Statistical Analysis of the Differences
-Simple glm to look at the differences in the different entanglement classes, and including a random effect term for unimpacted.
+With the data prepared and plotted, we want to determine quantitatively if there are differences between the entanglement classes and in between the reproductive status. To test this we can run a `glm()` and/or a `glmm()` on the dataset using health anomaly as the dependent variable. 
+
 ```{r}
-# # run the glm 
-# # first relevel so unimpacted is the reference level.
+library(multcomp)
 dfglm <- transform(dfLong, gfac = as.factor(gearInj))
-# dfglm <- within(dfglm, variable <- relevel(gfac, ref = 'unimpacted'))
-# 
 ft1 <- glm(hAnom ~ gfac, data = dfglm)
 summary(ft1)
 summary(glht(ft1, mcp(gfac = "Tukey")))
-
 ```
+
+That shows some clear and significant patterns in the data. However, it doesn't show the comparison of the effects of reproductive status in the analysis. To do that, we'll explore two models: 1) a linear model with both injury and status as fixed effects; and 2) a mixed model with a fixed effect for injury, and then a random effect for reproductive status.
+
+```{r}
+library(lme4)
+library(sjPlot)
+ft2 <- glm(hAnom ~ gfac + status, data = dfglm)
+summary(ft2)
+ft3 <- lmer(hAnom ~ gfac + (1 | status), data = dfglm)
+summary(ft3)
+sjp.lmer(ft3, type = 'fe')
+sjp.lmer(ft3)
+```
+
 
