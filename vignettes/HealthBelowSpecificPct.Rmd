@@ -1,0 +1,20 @@
+---
+title: "Calculating and Plotting the # of Months Reproductively Active Females Spend Below Certain Health Thresholds"
+author: "Rob Schick, PhD"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculating and Plotting the # of Months Reproductively Active Females Spend Below Certain Health Thresholds}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Prepare the data to Examine Unimpacted Females
+We decided that in order to compare the health of impacted reproductively active females we'd want to have a reference category of unimpacted but reproductively active females. So that means females that have had a calf, but who have never been entangled. Turns out this isn't a large #(!) but it gives us a useful reference class. To get that data assembled, we run this function and return its output as list elements. These will be used when we assemble the data for plotting.
+
+```{r}
+thold <- 67
+tmp <- prepThreshDataUnImp(healthmean, firstSight, lastSight, thold)
+```
+
+
