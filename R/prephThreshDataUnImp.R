@@ -12,13 +12,15 @@
 #'     each animal was seen
 #' @param \code{lastSight} A length 696 vector of the last month
 #'     each animal was seen
+#' @param \code{thold} A scalar value of the health threshold to be
+#'     examined.     
 #' @return \code{healthnew} a 23 by 564 matrix of health estimates for 
 #'     unimpacted females calving females before they've had their first
 #'     calf, that is we don't want to examine health after the animals
 #'     have had a calf and are subject to natural fluctuations related
 #'     to the calving and nursing cycle.
-#' @example prepThreshDataUnImp(healthmean, firstSight, lastSight)
-prepThreshDataUnImp <- function(healthmean, firstSight, lastSight){
+#' @example prepThreshDataUnImp(healthmean, firstSight, lastSight, thold)
+prepThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
 
   # this will be for the unimpacted calving females:
   healthurf <- healthmean
@@ -30,7 +32,7 @@ prepThreshDataUnImp <- function(healthmean, firstSight, lastSight){
   # for females are in calf table but not in tangle I want stretches of health and after or including the first pregnancy year 
   # I'll find the females in calfTable, and not in tangle. In this case I'm using tangle, because it contains all entangled whales
   # even if they don't have a valid start date
-  idx <- match(calfTable$EGNo, tangle$EGNo)
+  idx <- match(calfTable$EGNo, tangleAll$EGNo)
   ctabSub <- calfTable[which(is.na(idx)), ]
   ctabid <- ctabSub %>% 
     group_by(EGNo) %>% 
@@ -39,17 +41,24 @@ prepThreshDataUnImp <- function(healthmean, firstSight, lastSight){
 
   ctabid$monyr <- paste('12-', ctabid$pregyear, sep = '')# this gets the December before the pregnancy year
 
-  # pare down the heatlh data for these criteria
   # essentially all animals that are not in this category are set to NA
-  # And then for the animals that are in the category, any times before their first pregnancy year are set to NA
   idx <- match(ID, ctabid$EGNo)
   healthnew <- healthurf[which(is.finite(idx)),]
   cID <- ID[which(is.finite(idx))]
 
+  # And then for the animals that are in the category, any times before their first pregnancy year are set to NA
   for(i in 1:nrow(ctabid)){
    iint <- match(ctabid$monyr[i], myName)
    healthnew[cID == ctabid$EGNo[i], 1:iint] <- NA  
   }
-  healthnew
+  
+  nmon <- length(which(is.finite(healthnew)))
+  nmonThold <- length(which(healthnew < thold))
+  pThold <- (nmonThold / nmon) * 100
+  
+  list(healthnew = healthnew, nmon = nmon, 
+       nmonThold = nmonThold, pThold = pThold)
+       
+       
 }
 

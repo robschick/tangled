@@ -1,12 +1,26 @@
-# with a health threshold of 70
-gname <- c('Severe - gear', 'Moderate - gear', 'Severe - no gear', 
-           'Minor - gear', 'Moderate - no gear', 'Minor - no gear')
-dfb <- data.frame(gearInj = c(rfm70$gearInj, 0),
-                  gearName = c(gname, 'Unimpacted'),
-                  pct70 = c(rfm70$meanp70, p70nmon),
-                  pct67 = c(rfm67$meanp67, p67nmon),
-                  nmon70 = c(rfm70$totNumMonths, nmon),
-                  nmonB70 = c(rfm70$sumBel70Months, nmon70), 
-                  nmon67 = c(rfm67$totNumMonths, nmon),
-                  nmonB67 = c(rfm67$sumBel67Months, nmon67),
-                  status = c(rep('Repro Fem', times = nrow(rfm70)), 'Unimpacted Repro Fem'))
+#' Assemble the data for plotting the barplot of % below x-health
+#' 
+#' Goal of this is to take outputs from two different functions: 
+#' 1) \code{prephThresDataUnImp.R} and 2) \code{prephThreshDataRepro.R}
+#' and assemble a data frame to be used for plotting with the
+#' \code{plotHealthThreshold.R} function
+#' @param \code{tmp} A list containing the health information from
+#'     the unimpacted females. This includes: \code{healthnew}
+#'     \code{nmon}, \code{nmonThold}, and \code{pThold}
+#' @return \code{rfmthold} A 6 by 6 data frame summarising the 
+#'     information about the number of months entangled
+#'     whales are spending below certain health thresholds
+#' @example prepHealthThresholdPlotData(tmp, rfmthold)     
+prepHealthThresholdPlotData <- function(tmp, rfmthold){
+  
+  gname <- c('Severe - gear', 'Moderate - gear', 'Severe - no gear', 
+             'Minor - gear', 'Moderate - no gear', 'Minor - no gear')
+  
+  dfb <- data.frame(gearInj = c(rfmthold$gearInj, 0),
+                    gearName = c(gname, 'Unimpacted'),
+                    pctthold = c(rfmthold$meanpthold, tmp$pThold),
+                    nmonthold = c(rfmthold$totNumMonths, tmp$nmon),
+                    nmonBthold = c(rfmthold$sumBeltholdMonths, tmp$nmonThold), 
+                    status = c(rep('Repro Fem', times = nrow(rfmthold)), 'Unimpacted Repro Fem'))
+  dfb
+}
