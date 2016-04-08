@@ -43,3 +43,19 @@
 #' 
 #' @format A vector of length 696
 'myName'
+
+#' Vector denoting the first month (in integer form) of animal sighting
+#' 
+#' Unlike \code{myName} this takes an integer form, e.g. 110, where 
+#' \code{myName[firstSight[6]] == "2-1979"}. This is used throughout
+#' the code to help extract values from the health and other matrices
+#' @format A vector of length 696
+'firstSight'
+
+#' Vector denoting the last month (in integer form) of animal sighting
+#' 
+#' Unlike \code{myName} this takes an integer form, e.g. 110, where 
+#' \code{myName[lastSight[6]] == "10-1986"}. This is used throughout
+#' the code to help extract values from the health and other matrices
+#' @format A vector of length 696
+'lastSight'

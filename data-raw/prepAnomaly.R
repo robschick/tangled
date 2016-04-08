@@ -16,3 +16,8 @@ devtools::use_data(ID, overwrite = TRUE)
 devtools::use_data(nt, overwrite = TRUE)
 
 devtools::use_data(myName, overwrite = TRUE)
+
+devtools::use_data(firstSight, overwrite = TRUE)
+
+devtools::use_data(lastSight, overwrite = TRUE)
+rm(list = ls())
