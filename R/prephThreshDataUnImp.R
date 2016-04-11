@@ -19,8 +19,8 @@
 #'     calf, that is we don't want to examine health after the animals
 #'     have had a calf and are subject to natural fluctuations related
 #'     to the calving and nursing cycle.
-#' @example prepThreshDataUnImp(healthmean, firstSight, lastSight, thold)
-prepThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
+#' @example prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
+prephThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
 
   # this will be for the unimpacted calving females:
   healthurf <- healthmean
@@ -37,7 +37,7 @@ prepThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
   ctabid <- ctabSub %>% 
     group_by(EGNo) %>% 
     summarise(pregyear = min(CalvingYear) - 2)
-  ctabid <- ctabid[-which(ctabid$EGNo == 1045),]
+  # ctabid <- ctabid[-which(ctabid$EGNo == 1045),]
 
   ctabid$monyr <- paste('12-', ctabid$pregyear, sep = '')# this gets the December before the pregnancy year
 
