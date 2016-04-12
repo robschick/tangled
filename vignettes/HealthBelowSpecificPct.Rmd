@@ -9,12 +9,48 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Prepare the data to Examine Unimpacted Females
-We decided that in order to compare the health of impacted reproductively active females we'd want to have a reference category of unimpacted but reproductively active females. So that means females that have had a calf, but who have never been entangled. Turns out this isn't a large #(!) but it gives us a useful reference class. To get that data assembled, we run this function and return its output as list elements. These will be used when we assemble the data for plotting.
+## Prepare the Data to Examine Unimpacted Females
+We decided that in order to compare the health of impacted reproductively active females we'd want to have a reference category of unimpacted but reproductively active females. So that means females that have had a calf, but who have never been entangled. Turns out this isn't a large #(!) but it gives us a useful reference class. To get that data assembled, we run this function and return its output as 4 different list elements:
+
+1. `healthnew` - this is a data frame containing finite values of health for animals that comprise the unimpacted criteria
+2. `nmon` - the number of months with finite health values in `healthnew`
+3. `nmomThold` - the number of months in `healthnew` with health values below the specified health threshold
+4. `pThold` - the percentage of months below the specified health threshold, i.e. `(nmomThold / nmon) * 100`
+
+These elementes will be used when we assemble the data for plotting.
 
 ```{r}
 thold <- 67
-tmp <- prepThreshDataUnImp(healthmean, firstSight, lastSight, thold)
+tmp <- prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
+```
+
+## Prepare the Data for the Impacted Females
+With the unimpacted data prepared, we need to assemble the data that determines the amount of time (in months) individual entangled whales are spending below specific health thresholds. We do this with the `prephThreshDataRepro.R` function. This function returns a 6 by 6 data frame summarising the months below the health threshold:
+
+```{r}
+rfmthold <- prephThreshDataRepro(healthmean, thold)
+rfmthold
+```
+
+## Assemble and Plot the Data
+Ok, we can now put these two data sources together and make the plot. 
+
+```{r}
+dfb <- prepHealthThresholdPlotData(tmp, rfmthold)
+dfb
+```
+
+Let's make this a table for the manuscript as well:
+
+```{r}
+kable(dfb)
 ```
 
 
+```{r}
+p <- plotHealthThreshold(dfb, bsize = 12)
+p
+ggsave(plot = p, filename = 'healthThold.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'pdf')
+pweb <- plotHealthThreshold(dfb, bsize = 16)
+ggsave(plot = pweb, filename = 'healthThold.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
+```

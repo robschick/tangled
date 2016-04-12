@@ -19,6 +19,7 @@
 #'     calf, that is we don't want to examine health after the animals
 #'     have had a calf and are subject to natural fluctuations related
 #'     to the calving and nursing cycle.
+#' @return \code{nAnimal} the number of unimpacted females     
 #' @example prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
 prephThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
 
@@ -55,9 +56,11 @@ prephThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
   nmon <- length(which(is.finite(healthnew)))
   nmonThold <- length(which(healthnew < thold))
   pThold <- (nmonThold / nmon) * 100
+  numAn <- nrow(healthnew)
   
   list(healthnew = healthnew, nmon = nmon, 
-       nmonThold = nmonThold, pThold = pThold)
+       nmonThold = nmonThold, pThold = pThold,
+       nAnimal = numAn)
        
        
 }

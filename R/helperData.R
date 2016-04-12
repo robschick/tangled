@@ -28,6 +28,15 @@
 #' @format A vector of length 696
 'ID'
 
+#' Scalar noting when the sightings data are complete through
+#' 
+#' Right now this is set based on advice from Philip Hamilton (NEAq)
+#' and sets the cutoff date for when the modelling 'ends.' The modelling
+#' doesn't really end here, but this is the threshold we use for censoring
+#' 
+#' @format A vector of length 1
+'dcut'
+
 #' Length of the modelling
 #' 
 #' This is simply calculated with \code{length(myName)} and shows the 

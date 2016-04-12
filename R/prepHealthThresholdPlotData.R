@@ -7,7 +7,7 @@
 #' @param \code{tmp} A list containing the health information from
 #'     the unimpacted females. This includes: \code{healthnew}
 #'     \code{nmon}, \code{nmonThold}, and \code{pThold}
-#' @return \code{rfmthold} A 6 by 6 data frame summarising the 
+#' @return \code{rfmthold} A 6 by 7 data frame summarising the 
 #'     information about the number of months entangled
 #'     whales are spending below certain health thresholds
 #' @example prepHealthThresholdPlotData(tmp, rfmthold)     
@@ -18,6 +18,7 @@ prepHealthThresholdPlotData <- function(tmp, rfmthold){
   
   dfb <- data.frame(gearInj = c(rfmthold$gearInj, 0),
                     gearName = c(gname, 'Unimpacted'),
+                    numAnimals = c(rfmthold$n, tmp$nAnimal),
                     pctthold = c(rfmthold$meanpthold, tmp$pThold),
                     nmonthold = c(rfmthold$totNumMonths, tmp$nmon),
                     nmonBthold = c(rfmthold$sumBeltholdMonths, tmp$nmonThold), 
