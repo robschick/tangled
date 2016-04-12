@@ -10,16 +10,14 @@
 #' 
 #' @return A data frame of right whale population level health anomaly, e.g. observed health (matrix) - pop health (vector)
 #' @example returnhealthAnom()
-returnhealthAnom <- function() {
+returnhealthAnom <- function(healthmean) {
   
-  healthmean <- sumh / g
   healthmeanM <- newhgibbsMales / g
   healthmeanJ1 <- newhgibbsJuvs1 / g
   healthmeanJ2 <- newhgibbsJuvs3 / g
 
   for(i in 1:nrow(healthmean)){
     
-    healthmean[i, 1:(firstSight[i] - 1)] <- NA
     healthmeanM[i, 1:(firstSight[i] - 1)] <- NA
     healthmeanJ1[i, 1:(firstSight[i] - 1)] <- NA
     healthmeanJ2[i, 1:(firstSight[i] - 1)] <- NA
