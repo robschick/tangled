@@ -12,14 +12,22 @@
 #' @param deathyr A matrix where each row contains the estimated death times
 #'   for each animal. Times are in the columns from 1:bnt, which allows for
 #'   the animal to be alive at the time modelling end.
+#' @param \code{medProb} logical indicating whether you want to sample
+#'   from the deaths using a multinomial, or just extract the median
+#'   death month (default)
 #' @return The output will be a vector of sampled death times. Each column
 #'   will represent an individual animal's sampled times. 
 #' @example 
-#' getDeaths(deathyr)
-getDeaths <- function(deathyr) {
+#' getDeaths(deathyr, medProb = TRUE)
+getDeaths <- function(deathyr, medProb = TRUE) {
   
-  psamp <- deathyr / rowSums(deathyr, na.rm = TRUE)
-  deaths <- apply(psamp, 1, function(x) which(rmultinom(1, 1, prob = x) == 1))  
+  if(medProb) {
+    deaths <- apply(deathyr, 1, function(x) which.max(x))  
+  } else {
+    psamp <- deathyr / rowSums(deathyr, na.rm = TRUE)
+    deaths <- apply(psamp, 1, function(x) which(rmultinom(1, 1, prob = x) == 1))    
+  }
+  
   names(deaths) <- rownames(deathyr)
   deaths
 }
