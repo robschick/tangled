@@ -1,58 +1,68 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "Calculate and Plot Survivorship for Entangled Right Whales"
+author: "Rob Schick, PhD"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Calculate and Plot Survivorship for Entangled Right Whales}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+The goal of this vignette is to describe how we calculated and plotted survivorship for whales that had experienced entanglement events. I'll first describe a bit of how the baseline data are organised and used to create the actual survivorship. Then I'll detail the two plots that we've made - one of which is likely to be a plot for the manuscript.
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+## Background Data
+### Entanglement Event Data
+There are a few different data sources that we need to bring together to conduct the analysis, which in this case is to create and plot survivorship using Kaplan-Meier survival curves. In the analysis, we'll document survival for entangled whales, following their last entanglement, and then we'll break that down further to show what survivorship looks like for both sexes, and for each of three entanglement injury classes:
 
-## Vignette Info
+1. Minor
+2. Moderate
+3. Severe
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+Definitions of these three are given in Knowlton et al. (XXXX). 
 
-## Styles
+We need the entanglement data themselves, which are stored in the `tangled` package. This is a data frame containing the pertinent information on individual entanglement events, e.g. the individual identifier, the temporal extent, the severity, etc. Here's a data snippet for one animal who's experienced multiple entanglements. (Note that for the purposes of this analysis, we'll mostly be focusing on the _last_ entanglement.) 
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r}
+library(tangled)
+subset(tangleAll, EGNo == 1032)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+To get and store just that last event, we call a function called `makeEvents()`, which will prepare a data frame of the last entanglement event of each animal and add some identifying information about its death status (see next section for details).
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r}
+events <- makeEvents()
+dplyr::select(events, dtime:presA)
 ```
 
-Also a quote using `>`:
+So that shows a snippet of the data, including the 4 main columns that we calculate inside the `makeEvents()` function. For example, the first line shows that for EGNo 1004, it was a known dead animal, and the month it died was ```r myName[410]```. This can be checked against the input data about known deaths in `deadTable`:
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+```{r}
+subset(deadTable, SightingEGNo == 1004)
+```
+
+
+
+### Death Data
+We also need information about the timing of deaths for each individual whale. Deaths can be in three categories:
+
+1. Known dead, i.e. the carcass of the animal was seen and identified
+2. Presumed dead, i.e. model estimates indicate the animal is likely to have died 
+3. Presumed alive, i.e. model estimates indicate the animal is likely still alive
+
+For #'s 2 and 3, we use a date threshold to signify the cutoff date. At present (April, 2016), we are using December, 2013 as the cutoff in the modelling. While the temporal domain of the model extends beyond 12/2013, this is the date when the sightings data from the photo-Identification efforts are assumed to be complete. We presume and label an animal as dead, if their death that is estimated prior to 12/2013. Similarly, we presume and label an animal as alive, if the model estimates they are alive after 12/2013.
+
+All of these data come from the `deathyr` matrix, which is an `n` by `nt` matrix with estimates of when the animal died. For a known dead animal, the death is fixed. For a presumed dead animal, there is typically a range of possible death months. We can use this uncertainty to calculate survivorship.
+
+For reference, here's what that looks like for one animal - EGNo 1001 paired with some date information:
+
+```{r}
+data.frame(deathyr[1, 270:290], myName[270:290])
+```
+
+Note that I've snipped out most of the entries because they are all 0. What this data chunk says is that it's probable that the animal died sometime between September 1992 and December 1993, and that the most probable month of death is __December, 1992.__
+
+There are some other helper data that we need, but it's not worth specifying them at present. Armed with these two bits of information we can start calculating survivorship.
+
+
+

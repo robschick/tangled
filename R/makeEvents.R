@@ -53,7 +53,7 @@ makeEvents <- function(){
     dsub <- deathyr[id, ]
     events$dtime[i] <- which.max(dsub)
   
-    if (any(dsub == ng) & events$dtime[i] < dcut) {
+    if (unique(events$EGNo)[i] %in% deadTable$SightingEGNo) {
       events$knownD[i] <- TRUE
     }
   

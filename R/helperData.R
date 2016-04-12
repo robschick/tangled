@@ -19,6 +19,33 @@
 #' of health for an individual. Each column is a month.
 'healthmean'
 
+#' Estimated death months of individual animals
+#' 
+#' This is a matrix that of individual death months estimated by the model
+#' in Schick et al. 2013 PLoS-ONE.
+#' 
+#' @format A matrix of dimensions 696 by 564; each row contains the estimates
+#' of possible or known death times for an individual. Each column is a month.
+'deathyr'
+
+#' Data frame of known deaths of individual right whales
+#' 
+#' This comes from the New England Aquarium and is used to set the death time
+#' and places for whales that are known to have died.
+#' 
+#' @format A 42 by 8 data frame containing this columns:
+#' \describe{
+#'    \item{SightingEGNo}{Integer of the unique identifier of the individual whale}
+#'    \item{SightingYear}{integer Year of death}
+#'    \item{SightingMonth}{Integer Month of death}
+#'    \item{SightingDay}{Integer Day of death}
+#'    \item{Latitude}{Double Latitude position of observed death}
+#'    \item{Longitude}{Double Longitude position of observed death}
+#'    \item{AreaCode}{Character noting the macro-scale geographic location of the death}
+#'    \item{RegionCode}{Character noting the micro-scale geographic location of the death}
+#' }
+'deadTable'
+
 #' ID vector of EGNo's for all individual right whales in the data base
 #' 
 #' This vector is generated and curated by the New England Aquarium. 
@@ -44,6 +71,16 @@
 #' 
 #' @format A vector of length 1
 'nt'
+
+#' Number of Gibbs steps used in the input rda file
+#' 
+#' This simply shows how long we ran the Gibbs model
+#' for, and since we often store moments, this \code{ng}
+#' object is useful to get values that make sense for 
+#' subsequent analysis.
+#' 
+#' @format A vector of length 1
+'ng'
 
 #' Month-year vector used to mark time in the model
 #' 
