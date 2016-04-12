@@ -1,6 +1,7 @@
 rm(list = ls())
 load(file = 'data/eg_203_ng_50000_BIG_25000.rdata')
 
+source(file = 'R/getDeaths.R')
 healthmean <- sumh / g
 deathMed <- getDeaths(deathyr, medProb = TRUE)
 for(i in 1:nrow(healthmean)){
@@ -10,8 +11,11 @@ for(i in 1:nrow(healthmean)){
   }
 }
 devtools::use_data(healthmean, overwrite = TRUE)
+devtools::use_data(deathyr, overwrite = TRUE)
+devtools::use_data(ng, overwrite = TRUE)
+devtools::use_data(deadTable, overwrite = TRUE)
 
-source('r/returnhealthAnom.R')
+source('R/returnhealthAnom.R')
 anom <- returnhealthAnom(healthmean)
 devtools::use_data(anom, overwrite = TRUE)
 
