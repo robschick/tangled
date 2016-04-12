@@ -3,14 +3,17 @@
 #' Goal of this function is to take data that are stored in the package
 #' including the entanglement information, and the estimated median death 
 #' times, and prepare a data frame that only has the \emph{last}
-#' entanglement event for each animal in the database.
+#' entanglement event for each animal in the database. This is because 
+#' we want to look at survival following these events, and compare the 
+#' impact of different types of entanglement on the survivorship.
 #' 
 #' @return \code{events} a 464 by 26 data frame where each row
 #' has the information on the entanglement event. I'm starting
 #' with \code{tangleOut} and to that am adding 5 columns:
 #' \describe{
 #' \item{dtime}{Integer denoting the maximum value in \code{deathyr} which is
-#'     a matrix of estimated or fixed deaths for all animals in the population}
+#'     a matrix of estimated or fixed deaths for all animals in the population.
+#'     This is a key variable because it allows us to calculate survivorship}
 #' \item{knownD}{logical: If there is no uncertainty in death \code{and} the 
 #'     death is less than \code{dcut}, then this animal is known to be dead. 
 #'     n.b. this can be tested against the input data from NEAq}
