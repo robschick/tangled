@@ -1,6 +1,10 @@
 #' Prepare the data needed to calculate survivorship for presumed alive and known dead animals
 #' 
-#' Goal of this is to ingest the \code{events} data frame
+#' Goal of this is to ingest the \code{events} data frame and make a survivorship
+#' data frame for the known dead, and presumed alive animals. These are easy,
+#' because there is no uncertainty around their deaths. The output from this
+#' will feed into \code{calcpresdSurvdat()} to make one data frame that has
+#' survivorship for all three death categories
 #' 
 #' @usage \code{calckdpaSurvdat(events)}
 #' @param \code{events} a data frame of the \emph{last} entanglement event
@@ -27,7 +31,7 @@
 #'            known to have died}
 #'     }
 #' @example calckdpaSurvdat(events)
-calckdpaSurvdat() <- function(events){
+calckdpaSurvdat <- function(events){
   
   kdpasub <- subset(events, !presD)
   kdpasurvl <- vector(mode = 'list', nrow(kdpasub))

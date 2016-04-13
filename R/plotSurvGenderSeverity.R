@@ -27,10 +27,14 @@
 #' @param yearEnd A matrix where each row contains the estimated death times
 #'   for each animal. Times are in the columns from 1:bnt, which allows for
 #'   the animal to be alive at the time modelling end.
+#' @param increment Scalar representing the temporal unit at which we're 
+#'   showing survival.
+#' @param increment Scalar representing the temporal unit at which we're 
+#'   showing survival.
 #' @return A ggplot2 object that can be used to create the output plot
 #' @example 
 #' plotSurvGenderSeverity(kmlines, censTicks, 7)
-plotSurvGenderSeverity <- function(kmlines, censticks, yearEnd) {
+plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment) {
   
   plotdf <- as.data.frame(data.table::rbindlist(kmlines))
   plotdf$newgroup <- paste(plotdf$group, plotdf$sev, sep = '.')
@@ -42,9 +46,10 @@ plotSurvGenderSeverity <- function(kmlines, censticks, yearEnd) {
     geom_step(data = subset(plotdf, group == 'iter1')) +
     ylim(0, 1) + 
     geom_segment(data = subset(cplotdf, group == 'iter1'), 
-                 aes(x = censMonth0 / 12, y = psurv, xend = censMonth0 / 12, yend = psurv + 0.015)) + 
-    labs(y = 'Survivorship', x = 'Years Following End of Entanglement')+
-    theme_bw(base_size = 18)+
+                 aes(x = censMonth0 / increment, y = psurv, 
+                     xend = censMonth0 / increment, yend = psurv + 0.015)) + 
+    labs(y = 'Survivorship', x = 'Time Following End of Entanglement')+
+    theme_bw()+
     theme(panel.grid.major = element_line(size = 1.25), panel.grid.minor = element_line(size = 1))+
     scale_y_continuous(expand = c(0, 0.05))+
     scale_colour_brewer(palette = 'Dark2', name = 'Entanglement\nSeverity',

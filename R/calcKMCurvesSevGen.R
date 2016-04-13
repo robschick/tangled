@@ -21,13 +21,16 @@
 #'     data are considered complete through
 #' @param \code{increment} the unit of time overwhich we calculate survivorship
 #'     Default value is to calculate it over a yearly interval
-#' @example calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12)
+#' @param \code{medProb} this indicates whether or not we'll sample from deaths
+#'     or just return the median estimate of death (default)
+#' @example calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, 
+#'     increment = 12, medProb = TRUE)
 #' @return A list with two elements: 1) \code{kmlines} and 2) \code{censTicks}.
 #'     The first element is a data frame of the survivorship for the different
 #'     time frames. The second element is a data frame of censor times - simply
 #'     used to make tick marks of when the animal was removed from the study
 #'     via censoring.
-calcKMCurvesSevGen <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12){
+calcKMCurvesSevGen <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE){
   
   medsurvdf <- kdpasurvldf
   nt <- dcut
@@ -45,7 +48,7 @@ calcKMCurvesSevGen <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment =
     # sampled data along with the median survival data frame
     # which is input to the function:
     if (nb > 1) {
-      deathSamp <- getDeaths(deathyr)
+      deathSamp <- getDeaths(deathyr, medProb = TRUE)
       enew <- presDeadsurvdat(events, dcut, deathSamp)
       survdf <- rbind(enew, medsurvdf)  
     }

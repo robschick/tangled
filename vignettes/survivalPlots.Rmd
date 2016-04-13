@@ -41,28 +41,106 @@ So that shows a snippet of the data, including the 4 main columns that we calcul
 subset(deadTable, SightingEGNo == 1004)
 ```
 
-
+That gives us the information we need to start examining the death data in order to estimate survivorship.
 
 ### Death Data
-We also need information about the timing of deaths for each individual whale. Deaths can be in three categories:
+To estimate survivorship, we need information about the timing of deaths for each individual whale. As seen in the `events` data frame, there are three categories for death status:
 
 1. Known dead, i.e. the carcass of the animal was seen and identified
 2. Presumed dead, i.e. model estimates indicate the animal is likely to have died 
 3. Presumed alive, i.e. model estimates indicate the animal is likely still alive
 
-For #'s 2 and 3, we use a date threshold to signify the cutoff date. At present (April, 2016), we are using December, 2013 as the cutoff in the modelling. While the temporal domain of the model extends beyond 12/2013, this is the date when the sightings data from the photo-Identification efforts are assumed to be complete. We presume and label an animal as dead, if their death that is estimated prior to 12/2013. Similarly, we presume and label an animal as alive, if the model estimates they are alive after 12/2013.
+For categories 2 and 3, we use a date threshold to signify the cutoff date. As of this writing (April, 2016), we are using December, 2013 as the cutoff in the modelling. While the temporal domain of the model extends beyond 12/2013, this is the date when the sightings data from the photo-Identification efforts are assumed to be complete. We presume an animal is dead if their death that is estimated prior to 12/2013. Similarly, we presume an animal ss alive if the model estimates they are alive after 12/2013.
 
-All of these data come from the `deathyr` matrix, which is an `n` by `nt` matrix with estimates of when the animal died. For a known dead animal, the death is fixed. For a presumed dead animal, there is typically a range of possible death months. We can use this uncertainty to calculate survivorship.
+All of these data come from the `deathyr` matrix, which is an `n` by `nt` matrix with estimates of when the animal died. (For a known dead animal, the death is fixed at the date in `deadTable`.) For a presumed dead animal, there is typically a range of possible death months. We can use this uncertainty to calculate survivorship.
 
-For reference, here's what that looks like for one animal - EGNo 1001 paired with some date information:
+For reference, here's what the data in `deathyr` look like for one animal - EGNo 1001, which I've paired with some date information:
 
 ```{r}
 data.frame(deathyr[1, 270:290], myName[270:290])
 ```
 
-Note that I've snipped out most of the entries because they are all 0. What this data chunk says is that it's probable that the animal died sometime between September 1992 and December 1993, and that the most probable month of death is __December, 1992.__
+Note that I've snipped out most of the entries because they are all 0. What this data chunk says is that it's _probable_ that the animal died sometime between September 1992 and December 1993, and that the _most_ probable month of death is __December, 1992.__
 
 There are some other helper data that we need, but it's not worth specifying them at present. Armed with these two bits of information we can start calculating survivorship.
 
+## Censoring and Death Data - All Entangled Animals
+Before we calculate survivorship, we need to determine when the animals died and when there were censored. We start by using the data from `events` and feeding it to `calckdpaSurvdat()`. The output from this will be a data frame containing information for animals that are in the known dead or presumed alive category. These categories are calculated first, because there is no uncertainty around their deaths, i.e. we either know when they died from `deadTable` or they are alive. We'll come on to the presumed dead animals shortly.
 
+```{r}
+kdpasurvldf <- calckdpaSurvdat(events)
+head(kdpasurvldf)
+```
 
+These data are what we'll need to calculate survivorship. The help files for the `calckdpaSurvdat()` function describe the individual variables, but essentially what the function does is to take the end of the _last_ entanglement event, and determine the length of time between that event and either 1) its death date if known dead, or 2) its censoring date if presumed alive. 
+
+We then have to do the same thing for the presumed dead animals. The code is very similar with the only major difference that we pass it the output from the previous function, and append it to the presumed dead animals. The output from that is one big data frame that has the data for all three classes of death types.
+
+```{r}
+survdf <- calcpresdSurvdat(events, kdpasurvldf)
+```
+
+## Survivorship - All Entangled Animals
+With the data assembled we can calculate survivorship. This is a simple call to `calcKMCurves()`
+
+```{r}
+tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE)
+```
+
+This function call bears some explaining. Why would we pass both `kdpasurvldf` and `survdf` given that `calcpresdSurvdat()` assembles both? The reason is that we want to allow for flexibility in plotting should we want to include uncertainty around the survivorship. Because the possible deaths of the presumed dead animals have a range, we can sample from that posterior (`deathyr`) to include that uncertainty.
+
+To do that, then, we specify a boot strap, and sample from `deathyr` to get different estimates of death month from the posterior. In that case, we want to update the above data within `calcKMCurves()` within a bootstrap loop. By passing the `kdpasurvldf` we can store the values from the known dead and presumed alive animals, which will not change within a bootstrap.
+
+The outputs from the `calcKMCurves()` function are two fold, and will be used to plot the curve. In the `tmp` list, we have the KM curve and the ticks when animals get censored. These can then be passed to the plotting code:
+
+```{r}
+plotSurv(tmp$kmlines, tmp$censTicks, 7)
+```
+
+If we wanted to see that with uncertainty, we'd have to recalculate some of the data:
+
+```{r}
+tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 100, dcut, increment = 12, medProb = FALSE)
+p <- plotSurv(tmp$kmlines, tmp$censTicks, 7)
+```
+
+Doesn't look that different! If we zoom in a bit, it's easier to see
+
+```{r}
+p + lims(x = c(2, 4), y = c(0.75, 1))
+```
+
+The takeaway, though, is that at the yearly scale, there's relatively little uncertainty. We can try again calculating survivorship at the monthly scale:
+
+```{r}
+incVal <- 1
+tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 100, dcut, increment = incVal, medProb = FALSE)
+pmon <- plotSurv(tmp$kmlines, tmp$censTicks, 7, increment = incVal)
+pmon + lims(x = c(1, 36), y = c(0.75, 1))
+```
+
+I prefer at the yearly level for now and without uncertainty, so will stick with that.
+
+```{r}
+incVal <- 12
+yearsOut <- 6
+tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
+p <- plotSurv(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal)
+ggsave(plot = p, filename = 'survivalAll.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf')
+ggsave(plot = p, filename = 'survivalAll.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+```
+
+## Survival of Entangled Whales be Sex and Severity
+Ok, the processing logic is identical to that above, but the functions differ in the sense that they split out the data by gender and severity. This will likely be the figure we use for the manuscript. I'm going to plot it without uncertainty here, and I'll stop the plotting at 6 years following entanglement.
+
+```{r}
+incVal <- 12
+yearsOut <- 6
+tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
+p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal)
+p
+ggsave(plot = p, filename = 'survivalGenderSeverity.pdf', 
+       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf')
+ggsave(plot = p, filename = 'survivalGenderSeverity.png', 
+       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+```

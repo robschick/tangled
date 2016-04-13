@@ -23,17 +23,19 @@
 #' @param yearEnd A matrix where each row contains the estimated death times
 #'   for each animal. Times are in the columns from 1:bnt, which allows for
 #'   the animal to be alive at the time modelling end.
+#' @param increment Scalar representing the temporal unit at which we're 
+#'   showing survival.
 #' @return A ggplot2 object that can be used to create the output plot
 #' @example 
 #' plotSurv(kmlines, censTicks, 7)
-plotSurv <- function(kmlines, censticks, yearEnd) {
+plotSurv <- function(kmlines, censTicks, yearEnd, increment) {
   plotdf <- as.data.frame(data.table::rbindlist(kmlines))
 
   p <- ggplot(data = subset(plotdf, group == 'iter1'), aes(interval, psurv, group = group)) + 
     geom_step(data = subset(plotdf, group != 'iter1'), aes(y = jitter(psurv, 5), group = group), alpha = 0.05) + 
     geom_step() + 
-    geom_segment(data = censTicks[[1]], aes(x = censMonth0 / 12, y = psurv, xend = censMonth0 / 12, yend = psurv + 0.015)) + 
-    labs(y = 'Probability of Survival', x = 'Years Following End of Entanglement')+
+    geom_segment(data = censTicks[[1]], aes(x = censMonth0 / increment, y = psurv, xend = censMonth0 / increment, yend = psurv + 0.015)) + 
+    labs(y = 'Survivorship', x = 'Time Following End of Entanglement')+
     theme_bw()+
     theme(panel.grid.major = element_line(size = 1.25), panel.grid.minor = element_line(size = 1))+
     scale_y_continuous(expand = c(0, 0.05))+
