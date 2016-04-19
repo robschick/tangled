@@ -43,7 +43,7 @@ dfb
 Let's make this a table for the manuscript as well:
 
 ```{r}
-kable(dfb)
+knitr::kable(dfb)
 ```
 
 
