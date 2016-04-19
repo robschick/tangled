@@ -94,7 +94,7 @@ To do that, then, we specify a boot strap, and sample from `deathyr` to get diff
 The outputs from the `calcKMCurves()` function are two fold, and will be used to plot the curve. In the `tmp` list, we have the KM curve and the ticks when animals get censored. These can then be passed to the plotting code:
 
 ```{r}
-plotSurv(tmp$kmlines, tmp$censTicks, 7)
+plotSurv(tmp$kmlines, tmp$censTicks, 7, increment = 12)
 ```
 
 If we wanted to see that with uncertainty, we'd have to recalculate some of the data:
@@ -144,3 +144,25 @@ ggsave(plot = p, filename = 'survivalGenderSeverity.pdf',
 ggsave(plot = p, filename = 'survivalGenderSeverity.png', 
        path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
+
+## Statistical Tests
+```{r}
+# time <-  c(6,6,6,7,10,13,16,22,23,6,9,10,11,17,19,20,25,32,32,34,35,1,1,2,2,3,4,4,5,5,8,8,8,8,11,11,12,12,15,17,22,23)
+# status <- c(1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
+# treatment <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2)
+# tdat <- data.frame(time = time, status = status, treatment = treatment)
+# head(tdat)
+# subset(tdat, treatment == 1)
+# table(tdat$treatment, tdat$status)
+# fit <- survdiff(Surv(time, status) ~ treatment, data = tdat)
+# fit
+# formula <- Surv(time, status) ~ treatment
+# Terms <- if (missing(data)) 
+#   terms(formula, "strata")
+# else terms(formula, "strata", data = data)
+# 
+# Terms <- terms(Surv(time, status) ~ treatment, data = tdat)
+# offset <- attr(Terms, "offset")
+# expected <- sum(-log(offset))
+```
+

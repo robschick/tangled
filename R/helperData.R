@@ -28,6 +28,11 @@
 #' of possible or known death times for an individual. Each column is a month.
 'deathyr'
 
+#' Gender of each individual right whale
+#' 
+#' @format A vector of length 696 comprised of 'M' for males and 'F' for females
+'gender'
+
 #' Data frame of known deaths of individual right whales
 #' 
 #' This comes from the New England Aquarium and is used to set the death time
