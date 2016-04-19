@@ -21,8 +21,8 @@ prepSlopeHealthData <- function(){
     
     ind <- tangleOut$EGNo[i]
     tsub <- tangleOut[i, ]
-    htest <- healthmean[which(ID == ind),]
-    atest <- anom[which(ID == ind),]
+    htest <- healthmeanSP[which(ID == ind),]
+    atest <- anomSP[which(ID == ind),]
     
     s <- match(tsub[, 'smonyr'], myName)  
     e <- match(tsub[, 'ewindmonyr'], myName)

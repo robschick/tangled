@@ -10,6 +10,20 @@
 #' of health anomaly for an individual. Each column is a month.
 'anom'
 
+#' Health anomaly between individual health and population median health
+#' 
+#' This is a matrix of differences between individual health 
+#' and population level health. I calculate this anomaly by first 
+#' calculating the median health of the target groups (Adult males,
+#' and young and old juveniles), and then subtracting that value
+#' from the median health of each individual. Difference from \code{anom}
+#' is that here I do \emph{not} set the health to NA after the month
+#' in which the animal is estimated to have died
+#' 
+#' @format A matrix of dimensions 696 by 564; each row contains the estimates
+#' of health anomaly for an individual. Each column is a month.
+'anomSP'
+
 #' Estimated health of individual animals
 #' 
 #' This is a matrix that of individual health estimated by the model
@@ -18,6 +32,17 @@
 #' @format A matrix of dimensions 696 by 564; each row contains the estimates
 #' of health for an individual. Each column is a month.
 'healthmean'
+
+#' Estimated health of individual animals for slope plot
+#' 
+#' This is a matrix that of individual health estimated by the model
+#' in Schick et al. 2013 PLoS-ONE. Difference from \code{healthmean}
+#' is that here I don't set to NA the health for times after the estimated
+#' death.
+#' 
+#' @format A matrix of dimensions 696 by 564; each row contains the estimates
+#' of health for an individual. Each column is a month. 
+'healthmeanSP'
 
 #' Estimated death months of individual animals
 #' 

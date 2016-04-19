@@ -12,8 +12,8 @@ prepSlopeHealthDataMedian <- function(dfout){
   dfAsum <- dfout %>% 
     group_by(gearInj) %>% 
     summarise(sAnom = median(startAnom, na.rm = TRUE), 
-              endAnom = median(endAnom), 
-              recAnom = median(recAnom),
+              endAnom = median(endAnom, na.rm = TRUE), 
+              recAnom = median(recAnom, na.rm = TRUE),
               fullLab = unique(fullLab),
               sevLab = unique(sevLab),
               gearLab = unique(gearLab))
