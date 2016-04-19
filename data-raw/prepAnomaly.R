@@ -1,5 +1,5 @@
 rm(list = ls())
-load(file = 'data/eg_203_ng_50000_BIG_25000.rdata')
+load(file = 'eg_203_ng_50000_BIG_25000_BIG_25000.rdata')
 
 source(file = 'R/getDeaths.R')
 healthmean <- sumh / g
