@@ -152,6 +152,8 @@ ggsave(plot = p, filename = 'survivalGenderSeverity.png',
 dfSurv <- returnSurvdf(survdf)
 library(survival)
 survdiff(Surv(futime, event) ~ gearInj, data = dfSurv)
+survdiff(Surv(futime, event) ~ gender, data = dfSurv)
 survdiff(Surv(futime, event) ~ Severity, data = dfSurv)
+survdiff(Surv(futime, event) ~ Severity + gender, data = dfSurv)
 ```
 

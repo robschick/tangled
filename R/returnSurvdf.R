@@ -30,7 +30,7 @@ returnSurvdf <- function(survdf){
   dfSurv$event[dfSurv$knownDeath == TRUE] <- 1
   dfSurv$event[dfSurv$censored == FALSE & dfSurv$knownDeath == FALSE] <- 1
   
-  # need to get gender into dfSurv
+  dfSurv$gender <- gender[match(dfSurv$EGNo, ID)]
   
   dfSurv
 }
