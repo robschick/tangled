@@ -70,8 +70,6 @@ winDiagram <- function(anom, tangleOut, myName, egno = 1167){
     lims(y = c(-22, 20))+
     theme(legend.position = 'none')   
   p
-  
-#   ggsave(plot = p, filename = 'windowDiagram.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'pdf')
-#   ggsave(plot = p, filename = 'windowDiagram.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)  
+
 }
 
