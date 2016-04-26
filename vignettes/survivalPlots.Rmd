@@ -31,6 +31,8 @@ subset(tangleAll, EGNo == 1032)
 To get and store just that last event, we call a function called `makeEvents()`, which will prepare a data frame of the last entanglement event of each animal and add some identifying information about its death status (see next section for details).
 
 ```{r}
+library(magrittr)
+library(dplyr)
 events <- makeEvents()
 dplyr::select(events, dtime:presA)
 ```
@@ -147,22 +149,9 @@ ggsave(plot = p, filename = 'survivalGenderSeverity.png',
 
 ## Statistical Tests
 ```{r}
-# time <-  c(6,6,6,7,10,13,16,22,23,6,9,10,11,17,19,20,25,32,32,34,35,1,1,2,2,3,4,4,5,5,8,8,8,8,11,11,12,12,15,17,22,23)
-# status <- c(1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
-# treatment <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2)
-# tdat <- data.frame(time = time, status = status, treatment = treatment)
-# head(tdat)
-# subset(tdat, treatment == 1)
-# table(tdat$treatment, tdat$status)
-# fit <- survdiff(Surv(time, status) ~ treatment, data = tdat)
-# fit
-# formula <- Surv(time, status) ~ treatment
-# Terms <- if (missing(data)) 
-#   terms(formula, "strata")
-# else terms(formula, "strata", data = data)
-# 
-# Terms <- terms(Surv(time, status) ~ treatment, data = tdat)
-# offset <- attr(Terms, "offset")
-# expected <- sum(-log(offset))
+dfSurv <- returnSurvdf(survdf)
+library(survival)
+survdiff(Surv(futime, event) ~ gearInj, data = dfSurv)
+survdiff(Surv(futime, event) ~ Severity, data = dfSurv)
 ```
 

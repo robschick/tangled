@@ -17,16 +17,17 @@
 #'     information needed to calculate survivorship (Done in another function).
 #'     \describe{
 #'        \item{EGNo}{Numerical identifier of the individual whale}
-#'        \item{deathMonth}{Integer noting the \code{dtime} of the animal,
+#'        \item{deathMonth}{Integer noting the death month of the animal,
 #'            i.e. the median month it was estimated to die in}
 #'        \item{censored}{Logical indicating whether or not the animal was 
 #'            censored at \code{dcut}}
 #'        \item{censMonth}{Integer indicating the integer time for \code{dcut}}
 #'        \item{survTime0}{Integer noting the length of time between the end 
-#'            of the entanglement window and the \code{dtime}}
+#'            of the entanglement window and the \code{deathMonth}}
 #'        \item{deathMonth0}{Integer noting the maximum of \code{survTime0}}
 #'        \item{censMonth0}{Integer indicating number of months between
-#'            the end of the entanglement and the censoring month}
+#'            the end of the entanglement and the censoring month 
+#'            (\code{censMonth})}
 #'        \item{Severity}{Character describing the severity of the entanglement
 #'            injury. Ordinal values include: minor, moderate, and severe}
 #'        \item{gearInj}{Integer denoting our numerical representation of the
