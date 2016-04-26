@@ -43,6 +43,7 @@ makeEvents <- function(){
   
   
   events$dtime <- NA
+  events$deathStat <- NA
   events$knownD <- FALSE
   events$presD <- FALSE
   events$presA <- FALSE
@@ -53,19 +54,24 @@ makeEvents <- function(){
     dsub <- deathyr[id, ]
     events$dtime[i] <- which.max(dsub)
   
-    if (unique(events$EGNo)[i] %in% deadTable$SightingEGNo) {
-      events$knownD[i] <- TRUE
-    }
-  
     if (any(dsub != ng) & events$dtime[i] < dcut) {
-      events$presD[i] <- TRUE
+      events$deathStat[i] <- 2
     }
   
     if (any(dsub == ng) & events$dtime[i] > dcut) {
-      events$presA[i] <- TRUE
+      events$deathStat[i] <- 3
     }
   
+    if (unique(events$EGNo)[i] %in% deadTable$SightingEGNo) {
+      events$deathStat[i] <- 1
+    }
+    
   }
+  
+  events$knownD[which(events$deathStat == 1)] <- TRUE
+  events$presD[which(events$deathStat == 2)] <- TRUE
+  events$presA[which(events$deathStat == 3)] <- TRUE
+  
   events <- mutate(events, ewindmonyrID = match(ewindmonyr, myName))
   events
 }
