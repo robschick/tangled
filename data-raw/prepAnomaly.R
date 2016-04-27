@@ -39,4 +39,7 @@ devtools::use_data(dcut, overwrite = TRUE)
 devtools::use_data(firstSight, overwrite = TRUE)
 
 devtools::use_data(lastSight, overwrite = TRUE)
+entvec <- c('Minor - No Gear' = 6, 'Moderate - No Gear' = 5, 'Minor - Gear' = 4, 
+            'Severe - No Gear' = 3, 'Moderate - Gear' = 2, 'Severe - Gear' = 1)
+devtools::use_data(entvec, overwrite = TRUE)
 rm(list = ls())

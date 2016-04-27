@@ -24,6 +24,17 @@
 #' of health anomaly for an individual. Each column is a month.
 'anomSP'
 
+#' Entanglement class definitions
+#' 
+#' This is a length 6 named vector that describes the ordinal classes we
+#' use for the entanglement injury types. There are 6 because we have 
+#' three injury categories: minor, moderate, and severe along with whether
+#' or not the animal is carrying gear.
+#' 
+#' @format A named vector, where the names are the character descriptions
+#' and the vector values are integers
+'entvec'
+
 #' Estimated health of individual animals
 #' 
 #' This is a matrix that of individual health estimated by the model
