@@ -148,12 +148,64 @@ ggsave(plot = p, filename = 'survivalGenderSeverity.png',
 ```
 
 ## Statistical Tests
+Ok, with the data now assembled, we need to look at performing some tests. We'll turn to the `survival` package, in which we can "implement the G-rho family" of tests. To conduct the analyses, we need the data in a particular format. I wrote a function to do this (`returnSurvdf()`). 
+
+In the `dfSurv` data frame that is returned from this function, the new data columns are `futime` and `event,` where `futime` is the time (in months) from the end of the last entanglement to the event - either the animal dies, or is censored. For the purposes of this analysis, we define censoring using the `dcut` variable, which is December of the year through which matching of the photo-ID data is done. As of now (April 2017) the date we are using is December 2013.
+
+In terms of the event variable, it is comprised of 0s and 1s, where 0 = alive (but really it means right-censored), and 1 = dead. These are combined to make a `Surv` object, so that when an animal is censored it's that time _plus_ because it was still alive. Note how they are represented differently before and after the object is created with `Surv()`:
+
 ```{r}
-dfSurv <- returnSurvdf(survdf)
 library(survival)
-survdiff(Surv(futime, event) ~ gearInj, data = dfSurv)
+dfSurv <- returnSurvdf(survdf)
+head(dfSurv)
+head(Surv(dfSurv$futime, dfSurv$event))
+```
+
+Ok, the data are together, and we have the accompanying information about gender, the three class injury category, and the type of injury on the ordinal 1-6 scale. As a reminder, that is:
+
+6. Minor - no gear
+5. Moderate - no gear
+4. Minor - gear
+3. Severe - no gear
+2. Moderate - gear
+1. Severe - gear
+
+(n.b. this is stored in the package as `entvec`)
+
+Ok, let's examine a few different formulations. First we'll test if the curves for males and females are significantly different:
+
+```{r}
 survdiff(Surv(futime, event) ~ gender, data = dfSurv)
+```
+
+And they are, with females having significantly worse survival. This is shown in the `Observed` column of the summary. What this says is that more females died than were expected.
+
+We can next text for the difference between entanglement severity, i.e. the three category designation:
+```{r}
 survdiff(Surv(futime, event) ~ Severity, data = dfSurv)
+``` 
+
+Again, these are significantly different, though, it appears from the table that this difference is driven by the severe category (note the low Chi^2 values for minor and moderate. We can test this by peeling off the severe category, and just testing for the differences between minor and moderate (note that we'll see these differences picked up in the proportional hazards test as well). Indeed, these are not significant:
+
+```{r}
+survdiff(Surv(futime, event) ~ Severity, data = subset(dfSurv, Severity != 'severe'))
+```
+
+Ok, let's put the gender and severity together
+```{r}
 survdiff(Surv(futime, event) ~ Severity + gender, data = dfSurv)
+```
+
+This shows that the curves are significantly different, and these differences, again, are driven by the severe entanglements. We see more deaths for the severely entangled whales than expected for both males and females. We also see that male survival for animals with minor entanglements is higher than expected.
+
+### Cox Proportional Hazards
+We can also look at the proportional hazards of the different entanglement categories. As with the tests of difference, we'll start simple, and build in complexity.
+
+```{r}
+cfit0 <- coxph(Surv(futime, event) ~ Severity, data = dfSurv)
+cmean <- matrix(c(0, coef(cfit0)), nrow=1)
+cmean <- rbind(cmean, cmean - cmean[1])
+# dimnames(cmean) <- list(c("F", "M", "M/F ratio"), dimnames(counts)[[2]])
+signif(exp(cmean),3)
 ```
 
