@@ -203,9 +203,26 @@ We can also look at the proportional hazards of the different entanglement categ
 
 ```{r}
 cfit0 <- coxph(Surv(futime, event) ~ Severity, data = dfSurv)
-cmean <- matrix(c(0, coef(cfit0)), nrow=1)
-cmean <- rbind(cmean, cmean - cmean[1])
-# dimnames(cmean) <- list(c("F", "M", "M/F ratio"), dimnames(counts)[[2]])
+cfit0
+```
+
+
+```{r}
+cfit1 <- coxph(Surv(futime, event) ~ interaction(Severity, gender), data = dfSurv)
+cfit1
+```
+
+Let's look at the relative death rates for each gender/severity combination. We do this by extracting the coefficient vector. Females with minor entanglements are the reference case, so their rate is 1.0. 
+
+```{r}
+cmean <- matrix(c(0, coef(cfit1)), nrow=2, byrow = T)
+cmean <- rbind(cmean, cmean[1, ] - cmean[2,])
+dimnames(cmean) <- list(c("F", "M", "F/M ratio"), c('Minor', 'Moderate', 'Severe'))
 signif(exp(cmean),3)
 ```
 
+This shows a few interesting findings:
+
+1. Females with severe entanglements are 4 times as likely to die as those with a minor entanglement. 
+2. For all categories, females are more likely to die, than males, though the difference is strongest in the Minor category
+3. Females and Males in the Moderate category have reduced rates as compared to the Minor category
