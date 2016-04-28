@@ -1,4 +1,4 @@
-#' Assemble the data for plotting the barplot of % below x-health
+#' Assemble the data for plotting the barplot of \% below x-health
 #' 
 #' Goal of this is to take outputs from two different functions: 
 #' 1) \code{prephThresDataUnImp.R} and 2) \code{prephThreshDataRepro.R}

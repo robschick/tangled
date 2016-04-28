@@ -1,17 +1,15 @@
-#' Data frame of 95% uncertainty quantiles for survivorship.
+#' Data frame of 95\% uncertainty quantiles for survivorship.
 #'
 #' \code{calcKMUncertainty} ingests the list of survivorship information
 #' and returns the 2.5, 0.5 and 97.5 quantiles. The goal is to 
 #' create the data needed to plot the ribbon around the median estimate
-#' of survivorship for entangled animals. 
-#' 
-#' The processing idea is that we ingest a list, convert it to a big 
-#' data frame. And then use dplyr to group by the different sex and 
-#' severity combinations, and for each time interval, calculate the 
-#' summary statistics
+#' of survivorship for entangled animals. The processing idea is that we ingest a 
+#' list, convert it to a big data frame. And then use dplyr to group by the 
+#' different sex and severity combinations, and for each time interval, calculate 
+#' the summary statistics
 #' 
 #' @param kmlines A list (size \code{nboot}) containing information about survivorship.
-#' Each component of the list contains a data frame, which has these 10 columns
+#' @format Each component of the list contains a data frame, which has these 10 columns:
 #' \describe{
 #'    \item{interval}{The time slice for which we are recording survivorship. In this
 #'    case it is a one year interval.}

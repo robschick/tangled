@@ -1,4 +1,4 @@
-#' Prepare data frame of health in unimpacted females for % below barplot
+#' Prepare data frame of health in unimpacted females for \% below barplot
 #' 
 #' Goal is to look at the amount of time (in months) the whales are spending
 #' below certain health thresholds. The idea is to see if female whales
