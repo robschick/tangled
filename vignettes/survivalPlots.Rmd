@@ -172,9 +172,10 @@ Ok, the data are together, and we have the accompanying information about gender
 
 (n.b. this is stored in the package as `entvec`)
 
-Ok, let's examine a few different formulations. First we'll test if the curves for males and females are significantly different:
+Ok, let's examine a few different formulations. First we'll test if the curves for males and females are significantly different. From initial examination of the curves above, it looks like male survival is higher, so we'll use males as the reference group. It's generally easier to interpret a Hazard Ratio that exceeds 1 (Kleinbaum & Klein, 2012). To do this, we'll just relevel this factor, and then calculate the test: 
 
 ```{r}
+dfSurv$gender <- relevel(factor(dfSurv$gender), ref = 'M')
 survdiff(Surv(futime, event) ~ gender, data = dfSurv)
 ```
 
@@ -203,19 +204,35 @@ We can also look at the proportional hazards of the different entanglement categ
 
 ```{r}
 cfit0 <- coxph(Surv(futime, event) ~ Severity, data = dfSurv)
-cfit0
+summary(cfit0)
+```
+
+We can think of `cfit0` as the base model that just tests for the differential effects of injury type on survival, whereas below, we might want to examine this in terms of the effect accounting for covariates of interest, e.g. sex of the animal. We take that up with the next model.
+
+```{r}
+cfit1 <- coxph(Surv(futime, event) ~ Severity + gender, data = dfSurv)
+summary(cfit1)
+```
+
+What the `cfit1` model shows is that moderate entanglements are better for survival than the reference case (minor). However, these differences are not significant. In contrast, `cfit1` does that severe entanglements are much worse than minor with a hazard ration of 5.394, and this is highly significant. Finally, males are significantly better off in terms of survival than females.
+
+We can investigate if an interaction exists between gender and severity with the following model:
+```{r}
+cfit2 <- coxph(Surv(futime, event) ~ interaction(Severity, gender), data = dfSurv)
+summary(cfit2)
+```
+
+`cfit2` suggests this interaction term is significant, and therefore worth keeping in the model. We can verify this by conducting a Likelihood ratio test between these two models:
+
+```{r}
+
 ```
 
 
-```{r}
-cfit1 <- coxph(Surv(futime, event) ~ interaction(Severity, gender), data = dfSurv)
-cfit1
-```
-
-Let's look at the relative death rates for each gender/severity combination. We do this by extracting the coefficient vector. Females with minor entanglements are the reference case, so their rate is 1.0. 
+Let's look at the relative death rates for each gender/severity combination. We do this by extracting the coefficient vector. Females with minor entanglements are the reference case, so their rate is 1.0. Essentially we are calculating the hazard ratio, and then using the coefficients for both the males and females to calculate the ratio of gender.
 
 ```{r}
-cmean <- matrix(c(0, coef(cfit1)), nrow=2, byrow = T)
+cmean <- matrix(c(0, coef(cfit2)), nrow=2, byrow = T)
 cmean <- rbind(cmean, cmean[1, ] - cmean[2,])
 dimnames(cmean) <- list(c("F", "M", "F/M ratio"), c('Minor', 'Moderate', 'Severe'))
 signif(exp(cmean),3)
