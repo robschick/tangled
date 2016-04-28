@@ -24,7 +24,8 @@
 #'     time frames. The second element is a data frame of censor times - simply
 #'     used to make tick marks of when the animal was removed from the study
 #'     via censoring.
-#' @example calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE)
+#' @examples 
+#' calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE)
 calcKMCurves <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE){
   
   medsurvdf <- kdpasurvldf

@@ -5,7 +5,8 @@
 #' will return an object formatted for use in the \code{survival}
 #' package.
 #' 
-#' @example returnSurvdf(survdf)
+#' @examples
+#' returnSurvdf(survdf)
 returnSurvdf <- function(survdf){
   
   survSub <- distinct(survdf, EGNo)

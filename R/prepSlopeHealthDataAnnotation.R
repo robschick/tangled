@@ -6,7 +6,8 @@
 #' 
 #' @return \code{dfn} A data frame containing the tally of the number of
 #' events in each entanglement type.
-#' @example prepSlopeHealthDataAnnotation(dfout)
+#' @examples
+#' prepSlopeHealthDataAnnotation(dfout)
 prepSlopeHealthDataAnnotation <- function(dfout){
   
   dfn <- dfout %>% 

@@ -24,7 +24,8 @@
 #' \item{ewindmonyrID}{Integer noting the end of the entanglement window}
 #' }
 #'
-#' @example makeEvents() 
+#' @examples 
+#' makeEvents() 
 makeEvents <- function(){
   
   tSub <- tangleOut

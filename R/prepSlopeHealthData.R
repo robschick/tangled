@@ -10,7 +10,8 @@
 #' 
 #' @return \code{dfout} A data frame containing the health and health anomaly 
 #' for each entanglement event at each of the three locations
-#' @example prepSlopeHealthData()
+#' @examples 
+#' prepSlopeHealthData()
 prepSlopeHealthData <- function(){
   
   pvec <- tangleOut[, 'EndDate'] - tangleOut[, 'StartDate'] <= 365

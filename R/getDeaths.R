@@ -17,7 +17,7 @@
 #'   death month (default)
 #' @return The output will be a vector of sampled death times. Each column
 #'   will represent an individual animal's sampled times. 
-#' @example 
+#' @examples 
 #' getDeaths(deathyr, medProb = TRUE)
 getDeaths <- function(deathyr, medProb = TRUE) {
   

@@ -20,7 +20,8 @@
 #'     have had a calf and are subject to natural fluctuations related
 #'     to the calving and nursing cycle.
 #' @return \code{nAnimal} the number of unimpacted females     
-#' @example prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
+#' @examples 
+#' prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
 prephThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
 
   # this will be for the unimpacted calving females:

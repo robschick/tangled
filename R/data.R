@@ -22,7 +22,7 @@
 #'  \item{max dur}{Integer denoting the maximum number of days the animal was carrying the gear}
 #'  \item{AmyEdits}{Comments from Amy Knowlton about individual entries she updated and/or inserted}
 #' }
-"etime"
+'etime'
 
 #' Information about estimated start data of entanglement events
 #' 
@@ -43,7 +43,7 @@
 #'  entanglement event}
 #'  \item{EntanglementComment}{Comments from Amy Knowlton about the entanglement events}
 #' }
-"estStartDates"
+'estStartDates'
 
 #' Information about entanglement events - raw
 #' 

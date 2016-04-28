@@ -23,7 +23,8 @@
 #'     Default value is to calculate it over a yearly interval
 #' @param \code{medProb} this indicates whether or not we'll sample from deaths
 #'     or just return the median estimate of death (default)
-#' @example calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, 
+#' @examples 
+#' calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, 
 #'     increment = 12, medProb = TRUE)
 #' @return A list with two elements: 1) \code{kmlines} and 2) \code{censTicks}.
 #'     The first element is a data frame of the survivorship for the different

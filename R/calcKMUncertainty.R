@@ -36,14 +36,14 @@
 #'    order of badness: minor, moderate, severe.}
 #'     \item{interval}{The time slice for which we are recording survivorship. In this
 #'    case it is a one year interval.}
-#'     \item{low}{2.5% Quantile of survivorship.}
-#'     \item{med}{50% Quantile of survivorship.}
-#'     \item{high}{97.5% Quantile of survivorship.}
+#'     \item{low}{2.5\% Quantile of survivorship.}
+#'     \item{med}{50\% Quantile of survivorship.}
+#'     \item{high}{97.5\% Quantile of survivorship.}
 #' }
-#' @example 
+#' @examples 
 #' calcKMUncertainty(kmlines)
 #' 
-calcKMUncertainty <- function(kmlines) {
+calcKMUncertainty <- function(kmlines){
   
   kmdf  <- as.data.frame(data.table::rbindlist(kmlines))
   kmout <- kmdf %>% 

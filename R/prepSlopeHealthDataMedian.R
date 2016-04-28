@@ -6,7 +6,8 @@
 #' @return \code{dfoutMed} A data frame containing the median health and 
 #' health anomaly for each entanglement event at each of the three 
 #' locations
-#' @example prepSlopeHealthDataMedian(dfout)
+#' @examples
+#' prepSlopeHealthDataMedian(dfout)
 prepSlopeHealthDataMedian <- function(dfout){
   
   dfAsum <- dfout %>% 

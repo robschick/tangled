@@ -35,7 +35,8 @@
 #'        \item{knownDeath}{Logical indicating whether or not the animal is
 #'            known to have died}
 #'     }
-#' @example calcpresdSurvdat(events, kdpasurvldf)
+#' @examples 
+#' calcpresdSurvdat(events, kdpasurvldf)
 calcpresdSurvdat <- function(events, kdpasurvldf){
   
   esub <- subset(events, presD)

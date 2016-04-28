@@ -10,7 +10,8 @@
 #' @return \code{rfmthold} A 6 by 7 data frame summarising the 
 #'     information about the number of months entangled
 #'     whales are spending below certain health thresholds
-#' @example prepHealthThresholdPlotData(tmp, rfmthold)     
+#' @examples 
+#' prepHealthThresholdPlotData(tmp, rfmthold)     
 prepHealthThresholdPlotData <- function(tmp, rfmthold){
   
   gname <- c('Severe - gear', 'Moderate - gear', 'Severe - no gear', 

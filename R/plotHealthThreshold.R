@@ -6,7 +6,8 @@
 #' 
 #' @return A ggplot2 object for plotting
 #' 
-#' @example plotHealthThreshold(dfb, bsize)
+#' @examples 
+#' plotHealthThreshold(dfb, bsize)
 plotHealthThreshold <- function(dfb, bsize){
   p <- ggplot(dfb, aes(x = gearName, y = pctthold, fill = status))+
     geom_bar(stat = 'identity')+

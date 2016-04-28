@@ -30,7 +30,8 @@
 #'        \item{knownDeath}{Logical indicating whether or not the animal is
 #'            known to have died}
 #'     }
-#' @example calckdpaSurvdat(events)
+#' @examples  
+#' calckdpaSurvdat(events)
 calckdpaSurvdat <- function(events){
   
   kdpasub <- subset(events, !presD)
