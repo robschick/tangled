@@ -222,24 +222,27 @@ cfit2 <- coxph(Surv(futime, event) ~ interaction(Severity, gender), data = dfSur
 summary(cfit2)
 ```
 
-`cfit2` suggests this interaction term is significant, and therefore worth keeping in the model. We can verify this by conducting a Likelihood ratio test between these two models:
+`cfit2` suggests this interaction term is significant, and therefore worth keeping in the model. 
 
-```{r}
-
-```
-
-
-Let's look at the relative death rates for each gender/severity combination. We do this by extracting the coefficient vector. Females with minor entanglements are the reference case, so their rate is 1.0. Essentially we are calculating the hazard ratio, and then using the coefficients for both the males and females to calculate the ratio of gender.
+Let's look at the relative death rates for each gender/severity combination, i.e. the hazard ratios, in more detail. These are the second part of that summary object Recall that males with minor entanglements are the reference case, so their rate is 1.0. 
 
 ```{r}
 cmean <- matrix(c(0, coef(cfit2)), nrow=2, byrow = T)
-cmean <- rbind(cmean, cmean[1, ] - cmean[2,])
-dimnames(cmean) <- list(c("F", "M", "F/M ratio"), c('Minor', 'Moderate', 'Severe'))
+cmean <- rbind(cmean, cmean[2, ] - cmean[1,])
+dimnames(cmean) <- list(c("M", "F", "F/M ratio"), c('Minor', 'Moderate', 'Severe'))
 signif(exp(cmean),3)
 ```
 
 This shows a few interesting findings:
 
-1. Females with severe entanglements are 4 times as likely to die as those with a minor entanglement. 
-2. For all categories, females are more likely to die, than males, though the difference is strongest in the Minor category
-3. Females and Males in the Moderate category have reduced rates as compared to the Minor category
+1. Females with severe entanglements are 8 times as likely to die as males with a minor entanglement. 
+2. Females with severe entanglements are 4 times as likely to die as females with a minor entanglement. 
+3. For all categories, females are more likely to die, than males, though the difference is strongest in the Minor category.
+4. Females and Males in the Moderate category have reduced rates as compared to the Minor category, though when factoring in the 95% CI, these differences are not significant, i.e. the estimates straddle 1.
+
+## Summary
+What the plots of the survival data and proportional hazards analysis confirm, is that severe entanglements are very bad for right whales of both sexes. It also confirms that in general survival is lower for females than it is for males. The exceptions lie in the moderate category. While females with moderate entanglements do have a higher hazard than males, this result is not significant at p = 0.103. 
+
+Though it does not come as a surprise that severe entanglements are much worse, one surprising finding is that minor entanglements are significantly worse for females. Since we know from previous work that adult female survival is of paramount importance (Fujiwara and Caswell, 2001), this stresses that further work needs to be done to reduce the effects of entanglement on survival.
+
+Further investigation into the effect of covariates on survival could include tests of age, though there are many assumptions/issues that need to be addressed herein. For example, is it age at last entanglement, versus time on study (i.e. time between entry and event [death or censoring]), population level health, and possibly environmental covariates like the NAO. These investigations are beyond the scope of this paper, but bear further inspection.
