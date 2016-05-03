@@ -24,6 +24,7 @@
 #' \item{ewindmonyrID}{Integer noting the end of the entanglement window}
 #' }
 #'
+#' @export
 #' @examples 
 #' makeEvents() 
 makeEvents <- function(){

@@ -10,6 +10,7 @@
 #' @return \code{dfAsuml} A data frame containing the difference health 
 #' in health anomaly in the two windows for each of the 6 conditions, 
 #' i.e. health during and after for each of 6 entanglement types
+#' @export
 #' @examples
 #' prepSlopeHealthDataBarplot(dfout)
 prepSlopeHealthDataBarplot <- function(dfout){

@@ -4,6 +4,7 @@
 #' population health data, and calculate the anomaly between the two
 #' @param ind - a 2 by t data frame of time-stamped individual health
 #' @param pop - a 3 by T data frame of time-stamped population health with SD
+#' @export
 #' @return hdiff - the health anomaly
 calcAnom <- function(ind, pop){
   # Inputs: 

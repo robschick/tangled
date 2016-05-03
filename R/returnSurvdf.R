@@ -5,6 +5,7 @@
 #' will return an object formatted for use in the \code{survival}
 #' package.
 #' 
+#' @export
 #' @examples
 #' returnSurvdf(survdf)
 returnSurvdf <- function(survdf){

@@ -11,6 +11,7 @@
 #' @param newgibbsJuvs32 A matrix containing the estimates of standard deviation of right whale health for Old Juveniles
 #' 
 #' @return A data frame of right whale population level health, comprised of median health between Adult males, and young and old juveniles
+#' @export
 #' @examples
 #' returnPophealth()
 returnPophealth <- function() {

@@ -10,6 +10,7 @@
 #' 
 #' @return \code{dfout} A data frame containing the health and health anomaly 
 #' for each entanglement event at each of the three locations
+#' @export
 #' @examples 
 #' prepSlopeHealthData()
 prepSlopeHealthData <- function(){

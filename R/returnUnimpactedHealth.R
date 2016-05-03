@@ -12,11 +12,13 @@
 #' @return A list element containing 2 data frames for health of the 1) 
 #'    unimpacted and reproductive active whales and 2) unimpacted and 
 #'    non-reproductive active whales. 
+#' @export
 #' @examples
 #' returnUnimpactedHealth()
 returnUnimpactedHealth <- function(){
 
   useAnom <- TRUE
+  death <- getDeaths(deathyr, medProb = TRUE)
   if (useAnom){
     healthmean <- anom
     for(i in 1:nrow(healthmean)){

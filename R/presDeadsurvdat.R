@@ -17,6 +17,7 @@
 #' the events data, so that new survival information can be calculated.
 #' @return The output will be a data frame of survival information based on the
 #' imputed death times.
+#' @export
 #' @examples 
 #' presDeadsurvdat(events, dcut, newDeadtimes)
 presDeadsurvdat <- function(events, dcut, newDeadtimes){

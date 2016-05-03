@@ -38,6 +38,7 @@
 #'     \item{med}{50\% Quantile of survivorship.}
 #'     \item{high}{97.5\% Quantile of survivorship.}
 #' }
+#' @export
 #' @examples 
 #' calcKMUncertainty(kmlines)
 #' 

@@ -5,6 +5,7 @@
 #' @param dfAsuml An 12 by 5 data frame that has the information need to make the bar plot of change during each of the two windows: entanglement and recovery
 #' 
 #' @return A \code{gridExtra} element that plots the two plots
+#' @export
 #' @examples 
 #' plotSlopeHealth(dfout, dfn, dfMed, dfAsuml)
 plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml){

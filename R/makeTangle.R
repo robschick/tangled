@@ -5,7 +5,7 @@
 #' variable. We also extract the sex from the comments, and the age of the animal.
 #' 
 #' @return \code{tangled} a data frame containing the cleaned entanglement data
-#' 
+#' @export
 makeTangle <- function(){
 	library(stringr)
 	library(lubridate)

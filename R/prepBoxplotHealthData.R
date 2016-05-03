@@ -17,6 +17,7 @@
 #'     reproductively active animals during entanglement windows
 #' @return \code{dfLongNonRepro} a melted data frame of the health of 
 #'     \emph{non}-reproductively active animals during entanglement windows
+#' @export
 #' @examples 
 #' prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = TRUE)
 prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){

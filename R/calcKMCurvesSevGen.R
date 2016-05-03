@@ -23,6 +23,7 @@
 #'     Default value is to calculate it over a yearly interval
 #' @param \code{medProb} this indicates whether or not we'll sample from deaths
 #'     or just return the median estimate of death (default)
+#' @export
 #' @examples 
 #' calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, 
 #'     increment = 12, medProb = TRUE)

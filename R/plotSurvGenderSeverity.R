@@ -32,6 +32,7 @@
 #' @param increment Scalar representing the temporal unit at which we're 
 #'   showing survival.
 #' @return A ggplot2 object that can be used to create the output plot
+#' @export
 #' @examples 
 #' plotSurvGenderSeverity(kmlines, censTicks, 7)
 plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment) {

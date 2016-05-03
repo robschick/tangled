@@ -9,6 +9,7 @@
 #' @param newgibbsJuvs3 A matrix containing the estimates of right whale health for Old Juveniles
 #' 
 #' @return A data frame of right whale population level health anomaly, e.g. observed health (matrix) - pop health (vector)
+#' @export
 #' @examples
 #' returnhealthAnom(healthmean)
 returnhealthAnom <- function(healthmean) {

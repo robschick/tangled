@@ -7,6 +7,7 @@
 #' @param etime - the timing of entanglement information for geary carrying 
 #'   animals.
 #' @param tangle - the entanglement event data
+#' @export
 #' @examples 
 #' cleanMerge(etime, tangle)
 cleanMerge <- function(etime, tangle){

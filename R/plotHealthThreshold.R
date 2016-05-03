@@ -5,7 +5,7 @@
 #' of entanglement class and severity
 #' 
 #' @return A ggplot2 object for plotting
-#' 
+#' @export
 #' @examples 
 #' plotHealthThreshold(dfb, bsize)
 plotHealthThreshold <- function(dfb, bsize){

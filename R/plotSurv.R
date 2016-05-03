@@ -26,6 +26,7 @@
 #' @param increment Scalar representing the temporal unit at which we're 
 #'   showing survival.
 #' @return A ggplot2 object that can be used to create the output plot
+#' @export
 #' @examples 
 #' plotSurv(kmlines, censTicks, 7)
 plotSurv <- function(kmlines, censTicks, yearEnd, increment) {

@@ -26,6 +26,7 @@
 #'       of months the animal was below a threshold value
 #'       during the event}     
 #' }
+#' @export
 #' @examples 
 #' prephThreshDataRepro(healthmean, thold)     
 prephThreshDataRepro <- function(healthmean, thold){

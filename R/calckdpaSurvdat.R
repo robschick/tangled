@@ -30,6 +30,7 @@
 #'        \item{knownDeath}{Logical indicating whether or not the animal is
 #'            known to have died}
 #'     }
+#' @export     
 #' @examples  
 #' calckdpaSurvdat(events)
 calckdpaSurvdat <- function(events){

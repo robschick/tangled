@@ -1,11 +1,11 @@
 #' Create a diagram showing how we extract health anomaly information during entanglement
-#' #' 
+#' 
 #' Goal of this function is to return a ggplot2 plot object to show the extraction 
 #' mechanics of intersecting the entanglement windows along with the health
 #' information - in this case the health anomaly
 #' 
+#' @export
 #' @return A ggplot2 object for plotting the extraction diagram
-#' 
 #' @examples 
 #' winDiagram(anom, tangleOut, myName, egno = 1167)
 winDiagram <- function(anom, tangleOut, myName, egno = 1167){
