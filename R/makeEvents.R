@@ -77,6 +77,6 @@ makeEvents <- function(){
   events$presD[which(events$deathStat == 2)] <- TRUE
   events$presA[which(events$deathStat == 3)] <- TRUE
   
-  events <- mutate(events, ewindmonyrID = match(ewindmonyr, myName))
+  events <- dplyr::mutate(events, ewindmonyrID = match(ewindmonyr, myName))
   events
 }
