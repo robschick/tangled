@@ -39,9 +39,9 @@ makeEvents <- function(){
   tSub <- tSub[-idx[2],]
   
   # find the last Entanglement event
-  events <- tSub magrittr::%>% 
-    dplyr::group_by(EGNo) magrittr::%>% 
-    dplyr::top_n(n=1, EventNo) magrittr::%>% 
+  events <- tSub %>% 
+    dplyr::group_by(EGNo) %>% 
+    dplyr::top_n(n=1, EventNo) %>% 
     dplyr::arrange(EGNo)
   idx <- events$EGNo %in% ID
   events <- events[idx, ]

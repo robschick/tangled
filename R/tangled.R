@@ -53,4 +53,5 @@
 #' 
 #' @docType package
 #' @name tangled
+#' @importFrom magrittr %>%
 NULL
