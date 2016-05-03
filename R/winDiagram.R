@@ -7,7 +7,9 @@
 #' @export
 #' @return A ggplot2 object for plotting the extraction diagram
 #' @examples 
+#' \dontrun{
 #' winDiagram(anom, tangleOut, myName, egno = 1167)
+#' }
 winDiagram <- function(anom, tangleOut, myName, egno = 1167){
   
   yrvec  <- 1970:2016

@@ -11,7 +11,9 @@
 #' @return A data frame of right whale population level health anomaly, e.g. observed health (matrix) - pop health (vector)
 #' @export
 #' @examples
+#' \dontrun{
 #' returnhealthAnom(healthmean)
+#' }
 returnhealthAnom <- function(healthmean) {
   
   healthmeanM <- newhgibbsMales / g
