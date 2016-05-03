@@ -13,7 +13,10 @@
 #' @return A data frame of right whale population level health, comprised of median health between Adult males, and young and old juveniles
 #' @export
 #' @examples
+#' \dontrun{
 #' returnPophealth()
+#' }
+#' 
 returnPophealth <- function() {
   
   healthmeanM <- newhgibbsMales / ngg
