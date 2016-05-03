@@ -28,7 +28,9 @@
 #' }
 #' @export
 #' @examples 
+#' \dontrun{
 #' prephThreshDataRepro(healthmean, thold)     
+#' }
 prephThreshDataRepro <- function(healthmean, thold){
 
   dfout <- numeric(0)

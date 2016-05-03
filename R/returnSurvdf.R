@@ -7,7 +7,9 @@
 #' 
 #' @export
 #' @examples
+#' \dontrun{
 #' returnSurvdf(survdf)
+#' }
 returnSurvdf <- function(survdf){
   
   survSub <- distinct(survdf, EGNo)

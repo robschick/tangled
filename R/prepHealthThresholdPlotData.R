@@ -12,7 +12,9 @@
 #'     whales are spending below certain health thresholds
 #' @export     
 #' @examples 
+#' \dontrun{
 #' prepHealthThresholdPlotData(tmp, rfmthold)     
+#' }
 prepHealthThresholdPlotData <- function(tmp, rfmthold){
   
   gname <- c('Severe - gear', 'Moderate - gear', 'Severe - no gear', 

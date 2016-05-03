@@ -14,7 +14,9 @@
 #'    non-reproductive active whales. 
 #' @export
 #' @examples
+#' \dontrun{
 #' returnUnimpactedHealth()
+#' }
 returnUnimpactedHealth <- function(){
 
   useAnom <- TRUE

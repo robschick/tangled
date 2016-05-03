@@ -19,7 +19,9 @@
 #'     \emph{non}-reproductively active animals during entanglement windows
 #' @export
 #' @examples 
+#' \dontrun{
 #' prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = TRUE)
+#' }
 prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
   
   tmp <- returnUnimpactedHealth()

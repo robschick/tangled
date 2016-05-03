@@ -7,7 +7,6 @@
 #' the survivorship is calculated. And we can store uncertainty
 #' around the death times through the use of a boot strap
 #' 
-#' @usage calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12)
 #' @param \code{survdf} is the data frame containing survival data for all
 #'     animals in the three possible categories. 
 #' @param \code{kdpasurvldf} is the data frame containing survival data for
@@ -19,6 +18,10 @@
 #'     data are considered complete through
 #' @param \code{increment} the unit of time overwhich we calculate survivorship
 #'     Default value is to calculate it over a yearly interval
+#' @param \code{medProb} A logical indicating whether or not the median estimate
+#'     of death is returned from the \code{getDeaths()} function. If TRUE, yes. 
+#'     If FALSE, then a value sampled from the posterior with normalised
+#'     probability for all candidate death months
 #' @return A list with two elements: 1) \code{kmlines} and 2) \code{censTicks}.
 #'     The first element is a data frame of the survivorship for the different
 #'     time frames. The second element is a data frame of censor times - simply
@@ -26,7 +29,9 @@
 #'     via censoring.
 #' @export     
 #' @examples 
+#' \dontrun{
 #' calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE)
+#' }
 calcKMCurves <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE){
   
   medsurvdf <- kdpasurvldf

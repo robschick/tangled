@@ -102,8 +102,9 @@ plotSurv(tmp$kmlines, tmp$censTicks, 7, increment = 12)
 If we wanted to see that with uncertainty, we'd have to recalculate some of the data:
 
 ```{r}
-tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 100, dcut, increment = 12, medProb = FALSE)
-p <- plotSurv(tmp$kmlines, tmp$censTicks, 7)
+incVal <- 12
+tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 100, dcut, increment = incVal, medProb = FALSE)
+p <- plotSurv(tmp$kmlines, tmp$censTicks, 7, increment = incVal)
 ```
 
 Doesn't look that different! If we zoom in a bit, it's easier to see

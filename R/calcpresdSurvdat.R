@@ -7,7 +7,6 @@
 #' the presumed dead animals. The goal of this structure was to be able
 #' to 
 #' 
-#' @usage \code{calcpresdSurvdat(events, kdpasurvldf)}
 #' @param \code{events} a data frame of the \emph{last} entanglement event
 #'     for individual whales.
 #' @param \code{kdpasurvldf} a data frame output from the 
@@ -37,7 +36,9 @@
 #'     }
 #' @export
 #' @examples 
+#' \dontrun{
 #' calcpresdSurvdat(events, kdpasurvldf)
+#' }
 calcpresdSurvdat <- function(events, kdpasurvldf){
   
   esub <- subset(events, presD)

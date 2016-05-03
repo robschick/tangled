@@ -22,7 +22,9 @@
 #' @return \code{nAnimal} the number of unimpacted females
 #' @export
 #' @examples 
+#' \dontrun{
 #' prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
+#' }
 prephThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
 
   # this will be for the unimpacted calving females:

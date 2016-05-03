@@ -8,7 +8,9 @@
 #' locations
 #' @export
 #' @examples
+#' \dontrun{
 #' prepSlopeHealthDataMedian(dfout)
+#' }
 prepSlopeHealthDataMedian <- function(dfout){
   
   dfAsum <- dfout %>% 

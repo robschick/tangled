@@ -7,7 +7,9 @@
 #' @return A \code{gridExtra} element that plots the two plots
 #' @export
 #' @examples 
+#' \dontrun{
 #' plotSlopeHealth(dfout, dfn, dfMed, dfAsuml)
+#' }
 plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml){
 
   p <- ggplot(data = dfout)+

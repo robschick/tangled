@@ -19,7 +19,9 @@
 #' imputed death times.
 #' @export
 #' @examples 
+#' \dontrun{
 #' presDeadsurvdat(events, dcut, newDeadtimes)
+#' }
 presDeadsurvdat <- function(events, dcut, newDeadtimes){
   
   esub <- subset(events, presD)

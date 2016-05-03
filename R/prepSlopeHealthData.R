@@ -12,7 +12,9 @@
 #' for each entanglement event at each of the three locations
 #' @export
 #' @examples 
+#' \dontrun{
 #' prepSlopeHealthData()
+#' }
 prepSlopeHealthData <- function(){
   
   pvec <- tangleOut[, 'EndDate'] - tangleOut[, 'StartDate'] <= 365

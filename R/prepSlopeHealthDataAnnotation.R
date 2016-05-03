@@ -8,7 +8,9 @@
 #' events in each entanglement type.
 #' @export
 #' @examples
+#' \dontrun{
 #' prepSlopeHealthDataAnnotation(dfout)
+#' }
 prepSlopeHealthDataAnnotation <- function(dfout){
   
   dfn <- dfout %>% 

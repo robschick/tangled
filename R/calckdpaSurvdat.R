@@ -6,7 +6,6 @@
 #' will feed into \code{calcpresdSurvdat()} to make one data frame that has
 #' survivorship for all three death categories
 #' 
-#' @usage \code{calckdpaSurvdat(events)}
 #' @param \code{events} a data frame of the \emph{last} entanglement event
 #'     for individual whales.
 #' @return \code{kdpasurvldf} a many by 10 stacked data frame containing the 
@@ -32,7 +31,9 @@
 #'     }
 #' @export     
 #' @examples  
+#' \dontrun{
 #' calckdpaSurvdat(events)
+#' }
 calckdpaSurvdat <- function(events){
   
   kdpasub <- subset(events, !presD)

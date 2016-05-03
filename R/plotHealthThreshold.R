@@ -4,10 +4,12 @@
 #' animals are below certain health threshold values as a functino
 #' of entanglement class and severity
 #' 
-#' @return A ggplot2 object for plotting
+#' @return A \code{ggplot2} object for plotting
 #' @export
 #' @examples 
+#' \dontrun{
 #' plotHealthThreshold(dfb, bsize)
+#' }
 plotHealthThreshold <- function(dfb, bsize){
   p <- ggplot(dfb, aes(x = gearName, y = pctthold, fill = status))+
     geom_bar(stat = 'identity')+

@@ -90,6 +90,7 @@
 #'  \item{EventNo}{Integer labelling the consecutive number of each entanglement event}
 #'  \item{StartDate}{A time variable describing the estimated first date of the 
 #'  entanglement event} 
+#'  \item{EndDate}{A time variable describing the end of the entanglement event}  
 #' \item{Severity}{One of three categories of worsening injury: minor, moderate, severe. These are standard definitions created by NEA}
 #' \item{gear}{Integer variable describing whether or not the animal is carrying gear as part of the entanglement: 0 for no gear; 1 for gear}
 #' \item{StartDateWindow}{Date of the altered start of the window using rules outlined below}
@@ -123,6 +124,7 @@
 #'  \item{EventNo}{Integer labelling the consecutive number of each entanglement event}
 #'  \item{StartDate}{A time variable describing the estimated first date of the 
 #'  entanglement event} 
+#'  \item{EndDate}{A time variable describing the end of the entanglement event}  
 #' \item{Severity}{One of three categories of worsening injury: minor, moderate, severe. These are standard definitions created by NEA}
 #' \item{gear}{Integer variable describing whether or not the animal is carrying gear as part of the entanglement: 0 for no gear; 1 for gear}
 #' \item{StartDateWindow}{Date of the altered start of the window using rules outlined below}
@@ -154,6 +156,7 @@
 #'  \item{EventNo}{Integer labelling the consecutive number of each entanglement event}
 #'  \item{StartDate}{A time variable describing the estimated first date of the 
 #'  entanglement event} 
+#'  \item{EndDate}{A time variable describing the end of the entanglement event}  
 #' \item{Severity}{One of three categories of worsening injury: minor, moderate, severe. These are standard definitions created by NEA}
 #' \item{gear}{Integer variable describing whether or not the animal is carrying gear as part of the entanglement: 0 for no gear; 1 for gear}
 #' \item{StartDateWindow}{Date of the altered start of the window using rules outlined below}
@@ -174,3 +177,18 @@
 #' }
 'tangNonRepro'
 
+#' Table describing all of the calving events in the right whale population
+#' 
+#' This table is from Philip Hamilton (New England Aquarium) and contains
+#' all the known information regarding calving. Each row contains calving 
+#' information from the perspective of the mom. There are 4 columns in the data
+#' frame as follows:
+#' \describe{
+#'    \item{EGNo}{4 number code that identifies individual right whale mothers}
+#'    \item{CalvingYear}{Integer noting the year that the calf was born}
+#'    \item{CalfNo}{The 4 number code identifying the ID of the calf. It's not
+#'        known in all cases, e.g. '1973CalfOf1002'.}
+#'    \item{CalvingInterval}{Integer describing the time since the mom last had a 
+#'        calf}
+#' }
+'calfTable'

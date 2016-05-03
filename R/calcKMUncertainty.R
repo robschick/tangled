@@ -40,7 +40,9 @@
 #' }
 #' @export
 #' @examples 
+#' \dontrun{
 #' calcKMUncertainty(kmlines)
+#' }
 #' 
 calcKMUncertainty <- function(kmlines){
   

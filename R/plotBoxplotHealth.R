@@ -9,7 +9,12 @@
 #'     for both the reproductively active females and the 
 #'     \emph{non}-reproductively active females. These are the data for 
 #'     plotting
+#' @return A \code{ggplot2} object for plotting
 #' @export     
+#' @examples 
+#' \dontrun{
+#' plotBoxplotHealth(dfLong, bsize)
+#' }
 plotBoxplotHealth <- function(dfLong, bsize){
   # set up for labeling the box plots
   namevec = c('Unimpacted'=0, 'Minor No Gear'=6, 'Minor Gear'=4, 'Moderate No Gear'=5,

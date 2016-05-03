@@ -9,7 +9,9 @@
 #' @param tangle - the entanglement event data
 #' @export
 #' @examples 
+#' \dontrun{
 #' cleanMerge(etime, tangle)
+#' }
 cleanMerge <- function(etime, tangle){
   
   tvec <- tangle$EntanglementComment

@@ -12,7 +12,9 @@
 #' i.e. health during and after for each of 6 entanglement types
 #' @export
 #' @examples
+#' \dontrun{
 #' prepSlopeHealthDataBarplot(dfout)
+#' }
 prepSlopeHealthDataBarplot <- function(dfout){
   
   dfAsum <- dfout %>% 
