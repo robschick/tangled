@@ -21,6 +21,7 @@ Here we depict a sample extraction for one animal (in this case EGNo 1167).
 
 ```{r}
 library(ggplot2)
+library(tangled)
 p <- winDiagram(anom, tangleOut, myName, egno = 1167)
 p
 ggsave(plot = p, filename = 'windowDiagram.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'pdf')

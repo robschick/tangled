@@ -30,6 +30,7 @@ gearInj | Definition
 We then take the `tangRepro` and `tangNonRepro` data frames that are created in the `prepAmyEntanglementData.R` script as part of `tangled` package construction. Within each of these data frames, we loop over the events and extract monthly estimates of the health anomaly during the event. Note that we also need a base reference class of whales that are not impacted by entanglement. We do that with the `returnUnimpactedHealth.R` function that is a helper function called from within `prepBoxplotHealthData.R`:
 
 ```{r}
+library(tangled)
 tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro)
 dfLong <- rbind(tmp$dfLongRepro, tmp$dfLongNonRepro)
 ```

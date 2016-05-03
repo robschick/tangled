@@ -20,6 +20,8 @@ We decided that in order to compare the health of impacted reproductively active
 These elementes will be used when we assemble the data for plotting.
 
 ```{r}
+library(magrittr)
+library(dplyr)
 thold <- 67
 tmp <- prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
 ```
