@@ -25,6 +25,7 @@ We need the entanglement data themselves, which are stored in the `tangled` pack
 
 ```{r}
 library(tangled)
+library(ggplot2)
 subset(tangleAll, EGNo == 1032)
 ```
 
@@ -136,7 +137,7 @@ ggsave(plot = p, filename = 'survivalAll.png', path = '/Users/rob/Dropbox/Papers
 ## Survival of Entangled Whales be Sex and Severity
 Ok, the processing logic is identical to that above, but the functions differ in the sense that they split out the data by gender and severity. This will likely be the figure we use for the manuscript. I'm going to plot it without uncertainty here, and I'll stop the plotting at 6 years following entanglement.
 
-```{r}
+```{r, fig.width=7,fig.height=7}
 incVal <- 12
 yearsOut <- 6
 tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
