@@ -59,7 +59,7 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment) {
                         labels = c('Minor', 'Moderate', 'Severe'))+
     theme(legend.position = c(.1, .15))+
     coord_cartesian(xlim = c(0, yearEnd))+
-    facet_grid(. ~ gender)
+    facet_grid(. ~ genderLab)
   
   return(p)
 }
