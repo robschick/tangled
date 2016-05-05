@@ -58,13 +58,15 @@ prephThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
   }
   
   nmon <- length(which(is.finite(healthnew)))
+  nmonInd <- apply(healthnew, 1, function(x) length(which(is.finite(x))))
   nmonThold <- length(which(healthnew < thold))
+  nmonTholdInd <- apply(healthnew, 1, function(x) length(which(x < thold)))
   pThold <- (nmonThold / nmon) * 100
   numAn <- nrow(healthnew)
   
-  list(healthnew = healthnew, nmon = nmon, 
-       nmonThold = nmonThold, pThold = pThold,
-       nAnimal = numAn)
+  list(healthnew = healthnew, nmon = nmon, nmonInd = nmonInd,
+       nmonThold = nmonThold, nmonTholdInd = nmonTholdInd, pThold = pThold,
+       pTholdInd = (nmonTholdInd / nmonInd) * 100, nAnimal = numAn)
        
        
 }

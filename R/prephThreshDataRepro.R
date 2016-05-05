@@ -8,9 +8,12 @@
 #' @param \code{thold} A scalar value of the health threshold to be
 #'     examined.     
 #'     
-#' @return \code{rfmthold} A 6 by 6 data frame summarising the 
-#'     information about the number of months entangled
-#'     whales are spending below certain health thresholds
+#' @return A list containing: 1) \code{rfmthold} A 6 by 6 data frame 
+#'     summarising the information about the number of months entangled
+#'     whales are spending below certain health thresholds, and 2)
+#'     \code{dfout} a 113 x 5 data frame containing the threshold
+#'     data at the level of the infidividual, i.e. not summarised like
+#'     in \cde{rfmthold}
 #' \describe{
 #'   \item{gearInj}{The entanglement injury class of the animal. 
 #'       1 = Severe w/Gear; 2 = Moderate w/Gear; 3 = Severe no gear;
@@ -63,7 +66,8 @@ prephThreshDataRepro <- function(healthmean, thold){
               maxDurMonths = max(nmonths),
               sumBeltholdMonths = sum(monthold),
               meanpthold = mean(pctmonthold))
-  rfmthold
-
+  
+  
+  list(rfmthold = rfmthold, dfout = dfout)
 }
 

@@ -26,6 +26,6 @@ prepHealthThresholdPlotData <- function(tmp, rfmthold){
                     pctthold = c(rfmthold$meanpthold, tmp$pThold),
                     nmonthold = c(rfmthold$totNumMonths, tmp$nmon),
                     nmonBthold = c(rfmthold$sumBeltholdMonths, tmp$nmonThold), 
-                    status = c(rep('Repro Fem', times = nrow(rfmthold)), 'Unimpacted Repro Fem'))
+                    status = c(rep('Impacted', times = nrow(rfmthold)), 'Unimpacted'))
   dfb
 }
