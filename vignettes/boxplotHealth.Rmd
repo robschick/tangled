@@ -1,10 +1,10 @@
 ---
-title: "Boxplot to Health During the Course of an Entanglement"
+title: "Boxplot of Health During the Course of an Entanglement"
 author: "Rob Schick, PhD"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Boxplot to Health During the Course of an Entanglement}
+  %\VignetteIndexEntry{Boxplot of Health During the Course of an Entanglement}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -29,8 +29,21 @@ gearInj | Definition
 
 We then take the `tangRepro` and `tangNonRepro` data frames that are created in the `prepAmyEntanglementData.R` script as part of `tangled` package construction. Within each of these data frames, we loop over the events and extract monthly estimates of the health anomaly during the event. Note that we also need a base reference class of whales that are not impacted by entanglement. We do that with the `returnUnimpactedHealth.R` function that is a helper function called from within `prepBoxplotHealthData.R`:
 
-```{r}
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+```{r, echo=FALSE}
 library(tangled)
+library(ggplot2)
+library(dplyr)
+library(magrittr)
+```
+
+
+```{r}
+
 tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro)
 dfLong <- rbind(tmp$dfLongRepro, tmp$dfLongNonRepro)
 ```
@@ -46,7 +59,7 @@ We can quickly summarise that to get a feel for how health changes as a function
 ```{r}
 dfLong %>% 
   group_by(status, gearInj) %>% 
-  summarise(anomaly = median(hAnom))
+  summarise(anomaly = median(hAnom, na.rm = TRUE))
 
 dfLong %>% 
   filter(gearInj > 0) %>% 
@@ -58,8 +71,9 @@ dfLong %>%
 ## The Revised Plot
 Ok, so then let's make the plot:
 
-```{r, echo=FALSE, fig.width = 8}
+```{r, echo=FALSE, fig.width = 8, fig.height=6}
 pOut <- plotBoxplotHealth(dfLong, bsize = 12)
+pOut
 ggsave(plot = pOut, filename = 'boxplotHealth.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf')
 ggsave(plot = pOut, filename = 'boxplotHealth.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
 ```
@@ -83,10 +97,13 @@ library(lme4)
 library(sjPlot)
 ft2 <- glm(hAnom ~ gfac + status, data = dfglm)
 summary(ft2)
-ft3 <- lmer(hAnom ~ gfac + (1 | status), data = dfglm)
-summary(ft3)
-sjp.lmer(ft3, type = 'fe')
-sjp.lmer(ft3)
 ```
 
+Ok, that was the `glm` and now we can look at the mixed effects model with a random effect
+
+```{r}
+ft3 <- lmer(hAnom ~ gfac + (1 | status), data = dfglm)
+summary(ft3)
+sjp.lmer(ft3)
+```
 
