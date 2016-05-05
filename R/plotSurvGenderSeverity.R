@@ -55,7 +55,7 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment) {
     theme_bw()+
     theme(panel.grid.major = element_line(size = 1.25), panel.grid.minor = element_line(size = 1))+
     scale_y_continuous(expand = c(0, 0.05))+
-    scale_colour_brewer(palette = 'Dark2', name = 'Entanglement\nSeverity',
+    scale_colour_brewer(palette = 'Dark2', name = 'Entanglement\nInjury',
                         labels = c('Minor', 'Moderate', 'Severe'))+
     theme(legend.position = c(.1, .15))+
     coord_cartesian(xlim = c(0, yearEnd))+

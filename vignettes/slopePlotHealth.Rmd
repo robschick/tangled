@@ -28,6 +28,7 @@ _A priori_ we would expect the health of the whale to decline during the time pe
 
 ```{r global_options, echo=FALSE}
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+library(tangled)
 ```
 
 

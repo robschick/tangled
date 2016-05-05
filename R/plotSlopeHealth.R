@@ -24,7 +24,7 @@ plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml){
                      paste('n = ', dfn[which(dfn$gearInj == 2), 'n'], sep = ''),   # moderate gear
                      paste('n = ', dfn[which(dfn$gearInj == 1), 'n'], sep = '')))+ # severe gear
     scale_x_continuous(breaks = c(0, 1, 2),
-                     labels = c( 'Start', 'End', 'After\n12 Months'))+
+                     labels = c( "'Start'", "'End'", 'After\n12 Months'))+
     facet_grid(gearLab ~ sevLab)+
     theme_bw()+
     theme(panel.grid.minor.x = element_blank())+
@@ -37,7 +37,7 @@ plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml){
                                   "Moderate Gear", "Severe No Gear",  "Severe Gear")))+
     labs(x = '', y = 'Deviation From Population Health', fill = c('Time Period'))+
     scale_fill_brewer(type = 'qual', palette = 'Dark2', direction = -1, 
-                    labels = c('Entanglement\nWindow', 'Recovery\nWindow'))+
+                    labels = c('Entanglement\nWindow', "'Recovery'\nWindow"))+
     theme_bw()
 
   grid.arrange(p, p2, ncol=1, heights = c(0.7,  0.3))
