@@ -41,6 +41,8 @@ library(magrittr)
 library(dplyr)
 events <- makeEvents()
 dplyr::select(events, dtime:presA)
+events %>% group_by(Severity) %>% 
+  summarise(ngrp = n())
 ```
 
 So that shows a snippet of the data, including the 4 main columns that we calculate inside the `makeEvents()` function. For example, the first line shows that for EGNo 1004, it was a known dead animal, and the month it died was ```r myName[410]```. This can be checked against the input data about known deaths in `deadTable`:
