@@ -41,8 +41,7 @@ library(magrittr)
 library(dplyr)
 events <- makeEvents()
 dplyr::select(events, dtime:presA)
-events %>% group_by(Severity) %>% 
-  summarise(ngrp = n())
+
 ```
 
 So that shows a snippet of the data, including the 4 main columns that we calculate inside the `makeEvents()` function. For example, the first line shows that for EGNo 1004, it was a known dead animal, and the month it died was ```r myName[410]```. This can be checked against the input data about known deaths in `deadTable`:
@@ -52,6 +51,15 @@ subset(deadTable, SightingEGNo == 1004)
 ```
 
 That gives us the information we need to start examining the death data in order to estimate survivorship.
+
+First we want to be able to label the survival curves to get a sense of the size of each risk group.
+
+```{r}
+events$gender <- gender[match(events$EGNo, ID)]
+events %>% group_by(Severity, gender) %>% 
+  summarise(ngrp = n())
+```
+
 
 ### Death Data
 To estimate survivorship, we need information about the timing of deaths for each individual whale. As seen in the `events` data frame, there are three categories for death status:

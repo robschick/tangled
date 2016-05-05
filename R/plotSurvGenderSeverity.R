@@ -56,7 +56,7 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment) {
     theme(panel.grid.major = element_line(size = 1.25), panel.grid.minor = element_line(size = 1))+
     scale_y_continuous(expand = c(0, 0.05))+
     scale_colour_brewer(palette = 'Dark2', name = 'Entanglement\nInjury',
-                        labels = c('Minor (n = 304)', 'Moderate (n = 111)', 'Severe (n = 49)'))+
+                        labels = c('Minor (F = 135, M = 169)', 'Moderate (F = 52, M = 59)', 'Severe (F = 23, M = 26)'))+
     theme(legend.position = c(.1, .15))+
     coord_cartesian(xlim = c(0, yearEnd))+
     facet_grid(. ~ genderLab)
