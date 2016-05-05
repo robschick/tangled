@@ -119,7 +119,7 @@ If we wanted to see that with uncertainty, we'd have to recalculate some of the 
 
 ```{r}
 incVal <- 12
-tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 100, dcut, increment = incVal, medProb = FALSE)
+tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 10, dcut, increment = incVal, medProb = FALSE)
 p <- plotSurv(tmp$kmlines, tmp$censTicks, 7, increment = incVal)
 ```
 
@@ -133,7 +133,7 @@ The takeaway, though, is that at the yearly scale, there's relatively little unc
 
 ```{r}
 incVal <- 1
-tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 100, dcut, increment = incVal, medProb = FALSE)
+tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 10, dcut, increment = incVal, medProb = FALSE)
 pmon <- plotSurv(tmp$kmlines, tmp$censTicks, 7, increment = incVal)
 pmon + lims(x = c(1, 36), y = c(0.75, 1))
 ```

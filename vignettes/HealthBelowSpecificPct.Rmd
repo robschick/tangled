@@ -27,6 +27,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 library(tangled)
 library(magrittr)
 library(dplyr)
+library(ggplot2)
 thold <- 67
 tmp <- prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
 ```
