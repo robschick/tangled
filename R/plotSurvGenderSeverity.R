@@ -40,8 +40,15 @@
 plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment) {
   
   plotdf <- as.data.frame(data.table::rbindlist(kmlines))
+  plotdf$genderLab <- NA
+  plotdf$genderLab[plotdf$gender == 'M'] <- 'Male'
+  plotdf$genderLab[plotdf$gender == 'F'] <- 'Female'
   plotdf$newgroup <- paste(plotdf$group, plotdf$sev, sep = '.')
+  
   cplotdf <- as.data.frame(data.table::rbindlist(censTicks))
+  cplotdf$genderLab <- NA
+  cplotdf$genderLab[cplotdf$gender == 'M'] <- 'Male'
+  cplotdf$genderLab[cplotdf$gender == 'F'] <- 'Female'
   cplotdf$newgroup <- paste(cplotdf$group, cplotdf$sev, sep = '.')
   
   p <- ggplot(data = plotdf, aes(interval, psurv, group = newgroup, colour = sev)) + 

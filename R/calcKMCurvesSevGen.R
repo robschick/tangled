@@ -93,9 +93,6 @@ calcKMCurvesSevGen <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment =
         kmdf$psurv <- cumprod(kmdf$propSurv)
         kmdf$sev <- svvec[j]
         kmdfAll <- rbind(kmdfAll, kmdf)
-        kmdfAll$genderLab <- kmdfAll$gender
-        kmdfAll$genderLab[kmdfAll$genderLab == 'M'] <- 'Male'
-        kmdfAll$genderLab[kmdfAll$genderLab == 'F'] <- 'Female'
         kmlines[[nb]] <- data.frame(kmdfAll, group = paste('iter', nb, sep = ''))
         
         # I want a censored month in here as well for plotting purposes
@@ -113,9 +110,6 @@ calcKMCurvesSevGen <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment =
         
         csubAll <- rbind(csubAll, csub)
         csubAll$gender <- gender[match(csubAll$EGNo, ID)]
-        csubAll$genderLab <- csubAll$gender
-        csubAll$genderLab[csubAll$genderLab == 'M'] <- 'Male'
-        csubAll$genderLab[csubAll$genderLab == 'F'] <- 'Female'
         censTicks[[nb]] <- data.frame(csubAll, group = paste('iter', nb, sep = ''))
         
         } # end loop over severity
