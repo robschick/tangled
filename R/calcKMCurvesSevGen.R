@@ -60,9 +60,6 @@ calcKMCurvesSevGen <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment =
   
     # to group the data into temporal units, e.g. yearly
     survdf$gender <- gender[match(survdf$EGNo, ID)]
-    survdf$genderLab <- survdf$gender
-    survdf$genderLab[survdf$genderLab == 'M'] <- 'Male'
-    survdf$genderLab[survdf$genderLab == 'F'] <- 'Female'
     survdf$yearInt <- findInterval(survdf$survTime0, seq(0, nt, by = increment)) 
     survdf$censYearInt <- findInterval(survdf$censMonth0, seq(0, nt, by = increment))
     survdf$deathyearInt <- findInterval(survdf$deathMonth0, seq(0, nt, by = increment))
