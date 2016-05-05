@@ -26,6 +26,11 @@ The way we chose to look at these was with slope and bar graphs. Specifically, w
 
 _A priori_ we would expect the health of the whale to decline during the time period from point 1 to point 2, and then to recover from point 2 to point 3. We would also expect the health of the animal to decline more as the severity of the entanglement increased. That is the decline from point 1 to 2 for a minor - no gear entanglement injury would be less than for a severe - with gear injury. This might look something like this:
 
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+
 ```{r, fig.cap="Fig 1. Simulated change in health over two periods: 1) during the entanglement window; and 2) from the end of the window to 12 months out", fig.width=6, fig.height=4, echo=FALSE}
 library(RColorBrewer)
 mypal <- brewer.pal(3, 'Dark2')

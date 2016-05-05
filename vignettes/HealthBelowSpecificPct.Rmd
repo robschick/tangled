@@ -19,6 +19,10 @@ We decided that in order to compare the health of impacted reproductively active
 
 These elementes will be used when we assemble the data for plotting.
 
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
 ```{r}
 library(magrittr)
 library(dplyr)

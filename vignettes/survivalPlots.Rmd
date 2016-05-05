@@ -23,6 +23,11 @@ Definitions of these three are given in Knowlton et al. (XXXX).
 
 We need the entanglement data themselves, which are stored in the `tangled` package. This is a data frame containing the pertinent information on individual entanglement events, e.g. the individual identifier, the temporal extent, the severity, etc. Here's a data snippet for one animal who's experienced multiple entanglements. (Note that for the purposes of this analysis, we'll mostly be focusing on the _last_ entanglement.) 
 
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+
 ```{r}
 library(tangled)
 library(ggplot2)
