@@ -1,6 +1,10 @@
 rm(list = ls())
 load(file = 'data-raw/eg_203_ng_50000_BIG_25000_BIG_25000.rdata')
 
+source('R/returnPophealth.R')
+pophealth <- returnPophealth()
+devtools:: use_data(pophealth, overwrite = TRUE)
+
 source(file = 'R/getDeaths.R')
 healthmeanSP <- healthmean <- sumh / g
 deathMed <- getDeaths(deathyr, medProb = TRUE)
@@ -29,8 +33,9 @@ anomSP <- returnhealthAnom(healthmeanSP)
 devtools::use_data(anomSP, overwrite = TRUE)
 devtools::use_data(ID, overwrite = TRUE)
 
-devtools::use_data(nt, overwrite = TRUE)
 
+
+devtools::use_data(nt, overwrite = TRUE)
 devtools::use_data(myName, overwrite = TRUE)
 
 dcut <- which(myName == '12-2013') 

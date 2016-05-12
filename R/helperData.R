@@ -10,7 +10,7 @@
 #' of health anomaly for an individual. Each column is a month.
 'anom'
 
-#' Health anomaly between individual health and population median health
+#' Health anomaly between individual health and population median health not NA after deathtime
 #' 
 #' This is a matrix of differences between individual health 
 #' and population level health. I calculate this anomaly by first 
@@ -54,6 +54,23 @@
 #' @format A matrix of dimensions 696 by 564; each row contains the estimates
 #' of health for an individual. Each column is a month. 
 'healthmeanSP'
+
+#' Population level health of right whales
+#' 
+#' This is a 4-column data frame containing information about the population
+#' level health of the North Atlantic right whale population. It's calculated
+#' using health information from Adult males, and both male and female 
+#' juveniles. 
+#' 
+#' @format A data frame with 564 rows and 4 columns:
+#' \describe{
+#' \item{time}{Integer index of the month for the current row}
+#' \item{popHealth}{Median population level health estimate}
+#' \item{hsd}{Standard deviation of population level health estimate}
+#' \item{date}{Date in \code{as.Date()} format of the month corresponding
+#'     to the estimate.}
+#' }
+'pophealth'
 
 #' Estimated death months of individual animals
 #' 
