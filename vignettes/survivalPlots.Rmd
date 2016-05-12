@@ -140,7 +140,7 @@ pmon + lims(x = c(1, 36), y = c(0.75, 1))
 
 I prefer at the yearly level for now and without uncertainty, so will stick with that.
 
-```{r}
+```{r, fig.width=8,fig.height=6}
 incVal <- 12
 yearsOut <- 6
 tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
@@ -152,14 +152,14 @@ ggsave(plot = p, filename = 'survivalAll.png', path = '/Users/rob/Dropbox/Papers
 ## Survival of Entangled Whales be Sex and Severity
 Ok, the processing logic is identical to that above, but the functions differ in the sense that they split out the data by gender and severity. This will likely be the figure we use for the manuscript. I'm going to plot it without uncertainty here, and I'll stop the plotting at 6 years following entanglement.
 
-```{r, fig.width=7,fig.height=7}
+```{r, fig.width=8,fig.height=6}
 incVal <- 12
 yearsOut <- 6
 tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
 p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal)
 p
 ggsave(plot = p, filename = 'survivalGenderSeverity.pdf', 
-       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf')
+       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
 ggsave(plot = p, filename = 'survivalGenderSeverity.png', 
        path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```

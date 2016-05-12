@@ -74,7 +74,7 @@ Ok, so then let's make the plot:
 ```{r, echo=FALSE, fig.width = 8, fig.height=6}
 pOut <- plotBoxplotHealth(dfLong, bsize = 12)
 pOut
-ggsave(plot = pOut, filename = 'boxplotHealth.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf')
+ggsave(plot = pOut, filename = 'boxplotHealth.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
 ggsave(plot = pOut, filename = 'boxplotHealth.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
 ```
 
