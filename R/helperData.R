@@ -44,6 +44,16 @@
 #' of health for an individual. Each column is a month.
 'healthmean'
 
+#' Estimated standard deviation health of individual animals
+#' 
+#' This is a matrix of the standard deviation of individual health estimates 
+#' returned by the model in Schick et al. 2013 PLoS-ONE.
+#' 
+#' @format A matrix of dimensions 696 by 564; each row contains the estimates
+#' of the standard deviation around health for an individual. Each column is a 
+#' month.
+'healthsd'
+
 #' Estimated health of individual animals for slope plot
 #' 
 #' This is a matrix that of individual health estimated by the model
