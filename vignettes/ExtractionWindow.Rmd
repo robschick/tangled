@@ -15,15 +15,14 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
 Goal of this vignette is to describe in words, and diagrams, how we chose the windows for the different entanglement events. And how we overlaid those on top of the health information data to assess how the entanglements impact health.
 
-## Window Definition
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+
 
 ## Figures
 
 Here we depict a sample extraction for one animal (in this case EGNo 1167).
 
-```{r}
+```{r, fig.width=9, fig.height=6}
 library(ggplot2)
 library(tangled)
 p <- winDiagram(anom, tangleOut, myName, egno = 1167)
