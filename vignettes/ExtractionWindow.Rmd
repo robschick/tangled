@@ -62,7 +62,7 @@ hplot <- data.frame(date = dateTime,
 
 hplot$pos <- hplot$hanom > 0
 
-hplotsub1 <- hplot[hplot$date >= as.Date(tdatplot$StartDateWindow[2]) & hplot$date <= as.Date(tdatplot$recov12months[2]), ]
+hplotsub1 <- hplot[hplot$date >= as.Date(tdatplot$StartDateWindow[2]) & hplot$date <= as.Date(tdatplot$EndDateWindow[2]), ]
 hplotsub2 <- hplot[hplot$date >= as.Date(tdatplot$StartDateWindow[4]) & hplot$date <= as.Date(tdatplot$recov12months[4]), ]
 hplotsub1$event <- 2
 hplotsub2$event <- 4
@@ -106,9 +106,9 @@ p2 <- ggplot(hplot, aes(x = date, y = hanom, fill = pos)) +
       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[2]), 
                xmax = as.Date(tdatplot$EndDateWindow[2]), 
                ymin = -25, ymax = 25, alpha = 0.4, fill = pal[3])+
-      annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[2]), 
-               xmax = as.Date(tdatplot$recov12months[2]), 
-               ymin = -25, ymax = 25, alpha = 0.4, fill = pal[2])+
+#       annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[2]), 
+#                xmax = as.Date(tdatplot$recov12months[2]), 
+#                ymin = -25, ymax = 25, alpha = 0.4, fill = pal[2])+
       # Event 2
       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
                xmax = as.Date(tdatplot$EndDateWindow[4]), 
