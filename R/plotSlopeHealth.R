@@ -24,7 +24,7 @@ plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml){
                      paste('n = ', dfn[which(dfn$gearInj == 2), 'n'], sep = ''),   # moderate gear
                      paste('n = ', dfn[which(dfn$gearInj == 1), 'n'], sep = '')))+ # severe gear
     scale_x_continuous(breaks = c(0, 1, 2),
-                     labels = c( "'Start'", "'End'", 'After\n12 Months'))+
+                     labels = c( "'Start'", "'End'", '\nAfter\n12 Months'))+
     facet_grid(gearLab ~ sevLab)+
     theme_bw()+
     theme(panel.grid.minor.x = element_blank())+
