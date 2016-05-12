@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r global_options, echo=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.width=9, fig.height=6)
 ```
 
 Goal of this vignette is to describe in words, and diagrams, how we chose the windows for the different entanglement events. And how we overlaid those on top of the health information data to assess how the entanglements impact health.
@@ -22,18 +22,144 @@ Goal of this vignette is to describe in words, and diagrams, how we chose the wi
 
 Here we depict a sample extraction for one animal (in this case EGNo 1167).
 
-```{r, fig.width=9, fig.height=6}
+```{r}
 library(ggplot2)
 library(tangled)
+library(dplyr)
 p <- winDiagram(anom, tangleOut, myName, egno = 1167)
 p
 ggsave(plot = p, filename = 'windowDiagram.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'pdf')
 ggsave(plot = p, filename = 'windowDiagram.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)  
 ```
 
+However, that's not a completely satisfactory look at the data, so we're going to revise that somewhat. To do that let's build up the new plot with a few different components. The first is going to be a plot of the individual animal's health, along with the population level health, and some ancillary information about the timing of different entanglement events. 
+
+We can accomplish this with three data inputs:
+
+1. `healthmean` to plot out the individual health
+2. `pophealth` to show the population level health
+3. `tangleOut` to show the timing of the information of each entanglement event.
+
+```{r}
+hdat <- subset(healthmean, row.names(healthmean) == 1167)
+hsd <- subset(healthsd, row.names(healthsd) == 1167)
+hanom <- subset(anom, row.names(anom) == 1167)
+tdat <- subset(tangleOut, EGNo == 1167)
+
+tdatplot <- tdat %>% 
+  select(c(2:4, 7, 8, 13))
+  
+yrvec  <- 1970:2016
+nyr    <- length(yrvec)
+monYr  <- cbind( rep(c(1:12), nyr), rep(yrvec, each = 12) )
+dateTime <- as.Date(paste(1, monYr[, 1], monYr[, 2], sep = '/'), format = '%d/%m/%Y')
+  
+hplot <- data.frame(date = dateTime,
+                    health = as.vector(hdat),
+                    hsdUpper = as.vector(hdat + hsd),
+                    hsdLower = as.vector(hdat - hsd),
+                    hanom = as.vector(hanom))
+
+hplot$pos <- hplot$hanom > 0
+
+hplotsub1 <- hplot[hplot$date >= as.Date(tdatplot$StartDateWindow[2]) & hplot$date <= as.Date(tdatplot$recov12months[2]), ]
+hplotsub2 <- hplot[hplot$date >= as.Date(tdatplot$StartDateWindow[4]) & hplot$date <= as.Date(tdatplot$recov12months[4]), ]
+hplotsub1$event <- 2
+hplotsub2$event <- 4
+hplotsub <- rbind(hplotsub1, hplotsub2)
+
+```
+
+With the data sorted (mostly), we can build up each of the plot elements, starting with the health & population health, and then the anomaly.
+```{r}
+library(ggplot2)
+library(scales)
+library(lubridate)
+base_size <- 10
+datelims <- c(as.Date('1996-01-01'), as.Date('2004-01-01'))
+pal <- RColorBrewer::brewer.pal(3, 'Greys')
+
+p1 <- ggplot(data = hplot, aes(x = date, y = health))+
+      geom_line(data = pophealth, aes(x = date, y = popHealth), lty = 2, colour = 'grey50')+
+      geom_ribbon(aes(x = date, ymin = hsdLower, ymax = hsdUpper), alpha = 0.2)+
+      geom_line()+
+      ylim(c(0, 100))+
+      labs(x = 'Year', y = '')+
+      scale_x_date(minor_breaks = date_breaks(width = "1 year"), 
+               limits = datelims)+
+      theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
+      theme(axis.text.y = element_text(size = base_size, hjust=1),
+        axis.title.y = element_text(size = base_size, angle=90),
+        legend.text = element_text(size = base_size),
+        legend.title = element_text(size = base_size),
+        panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
+      theme_bw()
+
+p2 <- ggplot(hplot, aes(x = date, y = hanom, fill = pos)) +
+      geom_bar(stat = 'identity', position = 'identity', width = 40)+
+      labs(x = 'Year', y = '')+
+      guides(fill = 'none')+
+      scale_x_date(minor_breaks = date_breaks(width = "1 year"), 
+               limits = datelims)+
+      # Event 1
+      annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[2]), 
+               xmax = as.Date(tdatplot$EndDateWindow[2]), 
+               ymin = -25, ymax = 25, alpha = 0.4, fill = pal[3])+
+      annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[2]), 
+               xmax = as.Date(tdatplot$recov12months[2]), 
+               ymin = -25, ymax = 25, alpha = 0.4, fill = pal[2])+
+      # Event 2
+      annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
+               xmax = as.Date(tdatplot$EndDateWindow[4]), 
+               ymin = -25, ymax = 25, alpha = 0.4, fill = pal[3])+
+      annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[4]), 
+               xmax = as.Date(tdatplot$recov12months[4]), 
+               ymin = -25, ymax = 25, alpha = 0.4, fill = pal[2])+
+      lims(y = c(-25, 25))+
+      theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
+      theme(axis.text.y = element_text(size = base_size, hjust=1),
+        axis.title.y = element_text(size = base_size, angle=90),
+        legend.text = element_text(size = base_size),
+        legend.title = element_text(size = base_size),
+        panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
+      theme_bw()
+  
+```
+
+Ok, lastly we need to make the facets for the individual events.
+
+```{r}
+p3 <- ggplot(hplotsub, aes(x = date, y = hanom, fill = pos)) +
+      geom_bar(stat = 'identity', position = 'identity', width = 40)+
+      labs(x = 'Year', y = '')+
+      guides(fill = 'none')+
+      scale_x_date(minor_breaks = date_breaks(width = "1 year"))+
+      lims(y = c(-22.5, 22.5))+
+      theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
+      theme(axis.text.y = element_text(size = base_size, hjust=1),
+        axis.title.y = element_text(size = base_size, angle=90),
+        legend.text = element_text(size = base_size),
+        legend.title = element_text(size = base_size),
+        panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
+      theme_bw()+
+  facet_grid(~ event, scales = 'free_x')
+```
+
+Putting them all together yields:
+
+```{r}
+library(gridExtra)
+grid.arrange(p1, p2, p3, nrow = 3, ncol = 1)
+
+```
+
+
+## Entanglement Window Definitions
 Here is some old, leftover code from last year (2015) that described how to make and depict some different windows.
 
-### Entanglement Window Definitions
 First, the non entangled whales (NEW) comprise whales that have either _never_ been entangled, or whales that _have been_ entangled, but are not currently entangled with the important caveat that once an animal experiences a severe entanglement - any non-entangled periods after that will not be examined/included. 
 
 So for example, an NEW might be a whale that has never been entangled. For its whole life, then, we'll extract the health values and include them in the larger summary. Alternatively, and animal may have experienced multiple entanglements over its lifetime. Let's say an animal lives from 2000-2010, but was moderately entangled in 2001 (July - December), and then had a minor entanglement in 2004 (May - June). The time periods of entanglement during which we would calculate health would be: July - December 2001, and May - June 2004. All other times in this range would be included in the summary of NEW. n.b. that entanglment severity is depicted with increasingly saturated red colours.
