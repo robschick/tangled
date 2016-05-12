@@ -4,7 +4,7 @@
 #' takes the entanglement event window, and using these to create
 #' a data object summarising the change from start to finish of
 #' an entanglement window. The input values of health are: 
-#' \code{healthmean} and \code{anom}, which are the estimated
+#' \code{healthmeanSP} and \code{anomSP}, which are the estimated
 #' health of each animal, and the anomaly of each animal's health
 #' compared to the population median
 #' 
@@ -56,27 +56,5 @@ prepSlopeHealthData <- function(){
   
   dfout <- tbl_df(merge(dfout, labels, by.x = 'gearInj', by.y = 'gearInjury'))
   dfout
-
-#   dfn <- dfout %>% 
-#     group_by(gearInj) %>% 
-#     summarise(n = n_distinct(egno))
-# 
-#   # Prepping data for horizontal Bar plot  
-#   dfAsum <- dfout %>% 
-#     group_by(gearInj) %>% 
-#     summarise(sAnom = median(startAnom, na.rm = TRUE), 
-#               endAnom = median(endAnom), 
-#               recAnom = median(recAnom),
-#               fullLab = unique(fullLab),
-#               sevLab = unique(sevLab),
-#               gearLab = unique(gearLab))
-# dfAsuml <- reshape2::melt(dfAsum, id.vars = c('gearInj', 'fullLab', 'sevLab', 'gearLab'))
-# dfAsuml$x <- rep(0:2, each = 6)
-# 
-#   dfAsuml <- dfAsum %>% 
-#     group_by(fullLab, sevLab, gearLab) %>% 
-#     summarise(diff1 = endAnom - sAnom,
-#               diff2 = recAnom - endAnom) %>% 
-#     reshape2::melt(id.vars = c('fullLab', 'sevLab', 'gearLab'))
   
 }
