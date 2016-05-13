@@ -231,7 +231,7 @@ cfit1 <- coxph(Surv(futime, event) ~ Severity + gender, data = dfSurv)
 summary(cfit1)
 ```
 
-What the `cfit1` model shows is that moderate entanglements are better for survival than the reference case (minor). However, these differences are not significant. In contrast, `cfit1` does that severe entanglements are much worse than minor with a hazard ration of 5.394, and this is highly significant. Finally, males are significantly better off in terms of survival than females.
+What the `cfit1` model shows is that moderate entanglements are better for survival than the reference case (minor). However, these differences are not significant. In contrast, `cfit1` does show that severe entanglements are much worse than minor with a hazard ration of 5.394, and this is highly significant. Finally, males are significantly better off in terms of survival than females.
 
 We can investigate if an interaction exists between gender and severity with the following model:
 ```{r}
