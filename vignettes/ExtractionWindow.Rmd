@@ -62,8 +62,12 @@ hplot <- data.frame(date = dateTime,
 
 hplot$pos <- hplot$hanom > 0
 
-hplotsub1 <- hplot[hplot$date >= as.Date(tdatplot$StartDateWindow[2]) & hplot$date <= as.Date(tdatplot$EndDateWindow[2]), ]
-hplotsub2 <- hplot[hplot$date >= as.Date(tdatplot$StartDateWindow[4]) & hplot$date <= as.Date(tdatplot$recov12months[4]), ]
+event2Start <- as.Date(tdatplot$StartDateWindow[2]) - years(1)
+event2End <- as.Date(tdatplot$EndDateWindow[2]) + years(1)
+event4Start <- as.Date(tdatplot$StartDateWindow[4]) - years(1)
+event4End <- as.Date(tdatplot$recov12months[4]) + years(1)
+hplotsub1 <- hplot[hplot$date >= event2Start & hplot$date <= event2End, ]
+hplotsub2 <- hplot[hplot$date >= event4Start & hplot$date <= event4End, ]
 hplotsub1$event <- 2
 hplotsub2$event <- 4
 hplotsub <- rbind(hplotsub1, hplotsub2)
@@ -77,6 +81,7 @@ library(scales)
 library(lubridate)
 base_size <- 10
 datelims <- c(as.Date('1996-01-01'), as.Date('2004-01-01'))
+datelims <- c(as.Date('1981-09-01'), as.Date('2014-01-01'))
 pal <- RColorBrewer::brewer.pal(3, 'Greys')
 
 p1 <- ggplot(data = hplot, aes(x = date, y = health))+
@@ -84,17 +89,20 @@ p1 <- ggplot(data = hplot, aes(x = date, y = health))+
       geom_ribbon(aes(x = date, ymin = hsdLower, ymax = hsdUpper), alpha = 0.2)+
       geom_line()+
       ylim(c(0, 100))+
-      labs(x = 'Year', y = '')+
+      labs(x = '', y = 'Health')+
       scale_x_date(minor_breaks = date_breaks(width = "1 year"), 
                limits = datelims)+
+  theme_bw()+
       theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
       theme(axis.text.y = element_text(size = base_size, hjust=1),
+            axis.text.x = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.title.x = element_blank(),
         axis.title.y = element_text(size = base_size, angle=90),
         legend.text = element_text(size = base_size),
         legend.title = element_text(size = base_size),
         panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
-        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
-      theme_bw()
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))#+      theme_bw()
 
 p2 <- ggplot(hplot, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
@@ -117,24 +125,31 @@ p2 <- ggplot(hplot, aes(x = date, y = hanom, fill = pos)) +
                xmax = as.Date(tdatplot$recov12months[4]), 
                ymin = -25, ymax = 25, alpha = 0.4, fill = pal[2])+
       lims(y = c(-25, 25))+
+  theme_bw()+
       theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
       theme(axis.text.y = element_text(size = base_size, hjust=1),
         axis.title.y = element_text(size = base_size, angle=90),
         legend.text = element_text(size = base_size),
         legend.title = element_text(size = base_size),
         panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
-        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
-      theme_bw()
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))
   
 ```
 
 Ok, lastly we need to make the facets for the individual events.
 
 ```{r}
-p3 <- ggplot(hplotsub, aes(x = date, y = hanom, fill = pos)) +
+p3 <- ggplot(hplotsub1, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
-      labs(x = 'Year', y = '')+
+      labs(x = 'Year', y = 'Health Anomaly')+
       guides(fill = 'none')+
+      annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[2]), 
+               xmax = as.Date(tdatplot$EndDateWindow[2]), 
+               ymin = 0, ymax = 20, alpha = 0.4, fill = pal[3])+
+      annotate('text', x = as.Date('1997-06-15'), y = -15, 
+             label = 'Entanglement health window\n3 months prior to first\n date detected with scars ')+
+      annotate('segment', x = as.Date('1997-06-15'), xend = as.Date('1997-06-15'), 
+             y = -7, yend = -0.25, arrow = arrow())+
       scale_x_date(minor_breaks = date_breaks(width = "1 year"))+
       lims(y = c(-22.5, 22.5))+
       theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
@@ -144,15 +159,53 @@ p3 <- ggplot(hplotsub, aes(x = date, y = hanom, fill = pos)) +
         legend.title = element_text(size = base_size),
         panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
         panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
-      theme_bw()+
-  facet_grid(~ event, scales = 'free_x')
+      theme_bw()
+
+p4 <- ggplot(hplotsub2, aes(x = date, y = hanom, fill = pos)) +
+      geom_bar(stat = 'identity', position = 'identity', width = 40)+
+      labs(x = 'Year', y = '')+
+      guides(fill = 'none')+
+      annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
+               xmax = as.Date(tdatplot$EndDateWindow[4]), 
+               ymin = -22, ymax = 22, alpha = 0.4, fill = pal[3])+
+      annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[4]), 
+               xmax = as.Date(tdatplot$recov12months[4]), 
+               ymin = -22, ymax = 22, alpha = 0.4, fill = pal[2])+
+      annotate('point', x = as.Date(tdatplot$StartDateWindow[4]), y = -20, size = 3)+
+      annotate('point', x = as.Date(tdatplot$EndDateWindow[4]), y = 3.5, size = 3)+
+      annotate('point', x = as.Date(tdatplot$recov12months[4]), y = 7.25, size = 3)+
+      scale_x_date(minor_breaks = date_breaks(width = "1 year"))+
+      lims(y = c(-22.5, 22.5))+
+      theme(plot.margin = unit(c(0, 5, 0, 0.5), 'line'))+
+      theme(axis.text.y = element_text(size = base_size, hjust=1),
+        axis.title.y = element_text(size = base_size, angle=90),
+        legend.text = element_text(size = base_size),
+        legend.title = element_text(size = base_size),
+        panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
+      theme_bw()
+
 ```
 
 Putting them all together yields:
 
 ```{r}
 library(gridExtra)
-grid.arrange(p1, p2, p3, nrow = 3, ncol = 1)
+gA <- ggplot_gtable(ggplot_build(p1))
+gB <- ggplot_gtable(ggplot_build(p2))
+gC <- ggplot_gtable(ggplot_build(p3))
+gD <- ggplot_gtable(ggplot_build(p4))
+
+maxWidth = grid::unit.pmax(gA$widths[2:3], gB$widths[2:3], gC$widths[2:3], gD$widths[2:3])
+
+gA$widths[2:3] <- as.list(maxWidth)
+gB$widths[2:3] <- as.list(maxWidth)
+gC$widths[2:3] <- as.list(maxWidth)
+gD$widths[2:3] <- as.list(maxWidth)
+
+grid.arrange(gA, gB, gC, gD, 
+             layout_matrix = matrix(c(1, 1, 2, 2, 3, 4), 3, 2, byrow = TRUE), respect = TRUE,
+             heights = c(0.3, 0.2, 0.5))
 
 ```
 
