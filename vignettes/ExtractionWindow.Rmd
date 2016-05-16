@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r global_options, echo=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.width=9, fig.height=6)
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.width=8, fig.height=6)
 ```
 
 Goal of this vignette is to describe in words, and diagrams, how we chose the windows for the different entanglement events. And how we overlaid those on top of the health information data to assess how the entanglements impact health.
