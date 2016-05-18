@@ -1,6 +1,6 @@
 library(dplyr)
 rm(list = ls())
-load(file = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/data/kmcalcInput.rda') # contains survdf
+load(file = '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/data/kmcalcInput.rda') # contains survdf
 # so known death animals get censored and shown with a tick mark
 
 # Let's start with just 5 animals to work out the maths
