@@ -1,0 +1,109 @@
+---
+title: "Boxplot of Health During the Course of an Entanglement"
+author: "Rob Schick, PhD"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Boxplot of Health During the Course of an Entanglement}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The goal of this vignette is to describe median health during the (shortened) entanglement windows as a function of gear-carrying status and injury severity. To do this, we will create a series of paired boxplots showing health anomaly during the entanglment window for both non-reproductive animals and reproductive females. This will also include a comparison of unimpacted animals for reference.
+
+As with the slope plots, we need to prepare the data, and then plot it.
+
+## Data Preparation
+To make this plot, we need estimates of health (anomaly) for each of the 6 injury classes for reproductively active and for non-reproductively active whales. 
+
+A reminder that this is the order of the categories:
+
+gearInj | Definition
+-----------|----------
+1 | Severe with gear
+2 | Moderate with gear
+3 | Severe no gear
+4 | Minor with gear
+5 | Moderate no gear
+6 | Minor no gear
+
+We then take the `tangRepro` and `tangNonRepro` data frames that are created in the `prepAmyEntanglementData.R` script as part of `tangled` package construction. Within each of these data frames, we loop over the events and extract monthly estimates of the health anomaly during the event. Note that we also need a base reference class of whales that are not impacted by entanglement. We do that with the `returnUnimpactedHealth.R` function that is a helper function called from within `prepBoxplotHealthData.R`:
+
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+```{r, echo=FALSE}
+library(tangled)
+library(ggplot2)
+library(dplyr)
+library(magrittr)
+```
+
+
+```{r}
+
+tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro)
+dfLong <- rbind(tmp$dfLongRepro, tmp$dfLongNonRepro)
+```
+
+At the end of this looping the new data look like this:
+
+```{r, warning=FALSE, message=FALSE}
+head(dfLong)
+```
+
+We can quickly summarise that to get a feel for how health changes as a function of gear injury type as well as an estimate of how many events are in each category. (Note that the number of events for the Unimpacted class does not reflect the actual number of events, rather the number of whale-months. So it's not useful to compare that to the entangled classes.)
+
+```{r}
+dfLong %>% 
+  group_by(status, gearInj) %>% 
+  summarise(anomaly = median(hAnom, na.rm = TRUE))
+
+dfLong %>% 
+  filter(gearInj > 0) %>% 
+  group_by(status, gearInj) %>% 
+  summarise(numEvents = n())
+```
+
+
+## The Revised Plot
+Ok, so then let's make the plot:
+
+```{r, echo=FALSE, fig.width = 8, fig.height=6}
+pOut <- plotBoxplotHealth(dfLong, bsize = 12)
+pOut
+ggsave(plot = pOut, filename = 'boxplotHealth.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+ggsave(plot = pOut, filename = 'boxplotHealth.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
+```
+
+
+## Statistical Analysis of the Differences
+With the data prepared and plotted, we want to determine quantitatively if there are differences between the entanglement classes and in between the reproductive status. To test this we can run a `glm()` and/or a `glmm()` on the dataset using health anomaly as the dependent variable. 
+
+```{r}
+library(multcomp)
+dfglm <- transform(dfLong, gfac = as.factor(gearInj))
+ft1 <- glm(hAnom ~ gfac, data = dfglm)
+summary(ft1)
+summary(glht(ft1, mcp(gfac = "Tukey")))
+```
+
+That shows some clear and significant patterns in the data. However, it doesn't show the comparison of the effects of reproductive status in the analysis. To do that, we'll explore two models: 1) a linear model with both injury and status as fixed effects; and 2) a mixed model with a fixed effect for injury, and then a random effect for reproductive status.
+
+```{r}
+library(lme4)
+library(sjPlot)
+ft2 <- glm(hAnom ~ gfac + status, data = dfglm)
+summary(ft2)
+```
+
+Ok, that was the `glm` and now we can look at the mixed effects model with a random effect
+
+```{r}
+ft3 <- lmer(hAnom ~ gfac + (1 | status), data = dfglm)
+summary(ft3)
+sjp.lmer(ft3)
+```
+

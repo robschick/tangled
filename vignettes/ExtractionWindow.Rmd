@@ -1,0 +1,507 @@
+---
+title: "Extraction Window"
+author: "Rob Schick, PhD"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Extraction Window}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.width=8, fig.height=6)
+```
+
+Goal of this vignette is to describe in words, and diagrams, how we chose the windows for the different entanglement events. And how we overlaid those on top of the health information data to assess how the entanglements impact health.
+
+
+
+
+## Figures
+
+Here we depict a sample extraction for one animal (in this case EGNo 1167).
+
+```{r}
+library(ggplot2)
+library(tangled)
+library(dplyr)
+p <- winDiagram(anom, tangleOut, myName, egno = 1167)
+p
+ggsave(plot = p, filename = 'windowDiagram.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'pdf')
+ggsave(plot = p, filename = 'windowDiagram.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)  
+```
+
+However, that's not a completely satisfactory look at the data, so we're going to revise that somewhat. To do that let's build up the new plot with a few different components. The first is going to be a plot of the individual animal's health, along with the population level health, and some ancillary information about the timing of different entanglement events. 
+
+We can accomplish this with three data inputs:
+
+1. `healthmean` to plot out the individual health
+2. `pophealth` to show the population level health
+3. `tangleOut` to show the timing of the information of each entanglement event.
+
+```{r}
+hdat <- subset(healthmean, row.names(healthmean) == 1167)
+hsd <- subset(healthsd, row.names(healthsd) == 1167)
+hanom <- subset(anom, row.names(anom) == 1167)
+tdat <- subset(tangleOut, EGNo == 1167)
+
+tdatplot <- tdat %>% 
+  select(c(2:4, 7, 8, 13))
+  
+yrvec  <- 1970:2016
+nyr    <- length(yrvec)
+monYr  <- cbind( rep(c(1:12), nyr), rep(yrvec, each = 12) )
+dateTime <- as.Date(paste(1, monYr[, 1], monYr[, 2], sep = '/'), format = '%d/%m/%Y')
+  
+hplot <- data.frame(date = dateTime,
+                    health = as.vector(hdat),
+                    hsdUpper = as.vector(hdat + hsd),
+                    hsdLower = as.vector(hdat - hsd),
+                    hanom = as.vector(hanom))
+
+hplot$pos <- hplot$hanom > 0
+
+event2Start <- as.Date(tdatplot$StartDateWindow[2]) - years(1)
+event2End <- as.Date(tdatplot$EndDateWindow[2]) + years(1)
+event4Start <- as.Date(tdatplot$StartDateWindow[4]) - years(1)
+event4End <- as.Date(tdatplot$recov12months[4]) + years(1)
+hplotsub1 <- hplot[hplot$date >= event2Start & hplot$date <= event2End, ]
+hplotsub2 <- hplot[hplot$date >= event4Start & hplot$date <= event4End, ]
+hplotsub1$event <- 2
+hplotsub2$event <- 4
+hplotsub <- rbind(hplotsub1, hplotsub2)
+
+```
+
+With the data sorted (mostly), we can build up each of the plot elements, starting with the health & population health, and then the anomaly.
+```{r}
+library(ggplot2)
+library(scales)
+library(lubridate)
+base_size <- 10
+datelims <- c(as.Date('1996-01-01'), as.Date('2004-01-01'))
+datelims <- c(as.Date('1981-09-01'), as.Date('2014-01-01'))
+pal <- RColorBrewer::brewer.pal(3, 'Greys')
+
+p1 <- ggplot(data = hplot, aes(x = date, y = health))+
+      geom_line(data = pophealth, aes(x = date, y = popHealth), lty = 2, colour = 'grey50')+
+      geom_ribbon(aes(x = date, ymin = hsdLower, ymax = hsdUpper), alpha = 0.2)+
+      geom_line()+
+      ylim(c(0, 100))+
+      labs(x = '', y = 'Health')+
+      scale_x_date(minor_breaks = date_breaks(width = "1 year"), 
+               limits = datelims)+
+  theme_bw()+
+      theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
+      theme(axis.text.y = element_text(size = base_size, hjust=1),
+            axis.text.x = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.title.x = element_blank(),
+        axis.title.y = element_text(size = base_size, angle=90),
+        legend.text = element_text(size = base_size),
+        legend.title = element_text(size = base_size),
+        panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))#+      theme_bw()
+
+p2 <- ggplot(hplot, aes(x = date, y = hanom, fill = pos)) +
+      geom_bar(stat = 'identity', position = 'identity', width = 40)+
+      labs(x = 'Year', y = '')+
+      guides(fill = 'none')+
+      scale_x_date(minor_breaks = date_breaks(width = "1 year"), 
+               limits = datelims)+
+      # Event 1
+      annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[2]), 
+               xmax = as.Date(tdatplot$EndDateWindow[2]), 
+               ymin = -25, ymax = 25, alpha = 0.4, fill = pal[3])+
+#       annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[2]), 
+#                xmax = as.Date(tdatplot$recov12months[2]), 
+#                ymin = -25, ymax = 25, alpha = 0.4, fill = pal[2])+
+      # Event 2
+      annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
+               xmax = as.Date(tdatplot$EndDateWindow[4]), 
+               ymin = -25, ymax = 25, alpha = 0.4, fill = pal[3])+
+      annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[4]), 
+               xmax = as.Date(tdatplot$recov12months[4]), 
+               ymin = -25, ymax = 25, alpha = 0.4, fill = pal[2])+
+      lims(y = c(-25, 25))+
+  theme_bw()+
+      theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
+      theme(axis.text.y = element_text(size = base_size, hjust=1),
+        axis.title.y = element_text(size = base_size, angle=90),
+        legend.text = element_text(size = base_size),
+        legend.title = element_text(size = base_size),
+        panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))
+  
+```
+
+Ok, lastly we need to make the facets for the individual events.
+
+```{r}
+p3 <- ggplot(hplotsub1, aes(x = date, y = hanom, fill = pos)) +
+      geom_bar(stat = 'identity', position = 'identity', width = 40)+
+      labs(x = 'Year', y = 'Health Anomaly')+
+      guides(fill = 'none')+
+      annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[2]), 
+               xmax = as.Date(tdatplot$EndDateWindow[2]), 
+               ymin = 0, ymax = 20, alpha = 0.4, fill = pal[3])+
+      annotate('text', x = as.Date('1997-06-15'), y = -15, 
+             label = 'Entanglement health window\n3 months prior to first\n date detected with scars ')+
+      annotate('segment', x = as.Date('1997-06-15'), xend = as.Date('1997-06-15'), 
+             y = -7, yend = -0.25, arrow = arrow())+
+      scale_x_date(minor_breaks = date_breaks(width = "1 year"))+
+      lims(y = c(-22.5, 22.5))+
+      theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
+      theme(axis.text.y = element_text(size = base_size, hjust=1),
+        axis.title.y = element_text(size = base_size, angle=90),
+        legend.text = element_text(size = base_size),
+        legend.title = element_text(size = base_size),
+        panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
+      theme_bw()
+
+p4 <- ggplot(hplotsub2, aes(x = date, y = hanom, fill = pos)) +
+      geom_bar(stat = 'identity', position = 'identity', width = 40)+
+      labs(x = 'Year', y = '')+
+      guides(fill = 'none')+
+      annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
+               xmax = as.Date(tdatplot$EndDateWindow[4]), 
+               ymin = -22, ymax = 22, alpha = 0.4, fill = pal[3])+
+      annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[4]), 
+               xmax = as.Date(tdatplot$recov12months[4]), 
+               ymin = -22, ymax = 22, alpha = 0.4, fill = pal[2])+
+      annotate('point', x = as.Date(tdatplot$StartDateWindow[4]), y = -20, size = 3)+
+      annotate('point', x = as.Date(tdatplot$EndDateWindow[4]), y = 3.5, size = 3)+
+      annotate('point', x = as.Date(tdatplot$recov12months[4]), y = 7.25, size = 3)+
+      scale_x_date(minor_breaks = date_breaks(width = "1 year"))+
+      lims(y = c(-22.5, 22.5))+
+      theme(plot.margin = unit(c(0, 5, 0, 0.5), 'line'))+
+      theme(axis.text.y = element_text(size = base_size, hjust=1),
+        axis.title.y = element_text(size = base_size, angle=90),
+        legend.text = element_text(size = base_size),
+        legend.title = element_text(size = base_size),
+        panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
+      theme_bw()
+
+```
+
+Putting them all together yields:
+
+```{r}
+library(gridExtra)
+gA <- ggplot_gtable(ggplot_build(p1))
+gB <- ggplot_gtable(ggplot_build(p2))
+gC <- ggplot_gtable(ggplot_build(p3))
+gD <- ggplot_gtable(ggplot_build(p4))
+
+maxWidth = grid::unit.pmax(gA$widths[2:3], gB$widths[2:3], gC$widths[2:3], gD$widths[2:3])
+
+gA$widths[2:3] <- as.list(maxWidth)
+gB$widths[2:3] <- as.list(maxWidth)
+gC$widths[2:3] <- as.list(maxWidth)
+gD$widths[2:3] <- as.list(maxWidth)
+
+grid.arrange(gA, gB, gC, gD, 
+             layout_matrix = matrix(c(1, 1, 2, 2, 3, 4), 3, 2, byrow = TRUE), respect = TRUE,
+             heights = c(0.3, 0.2, 0.5))
+
+```
+
+
+## Entanglement Window Definitions
+Here is some old, leftover code from last year (2015) that described how to make and depict some different windows.
+
+First, the non entangled whales (NEW) comprise whales that have either _never_ been entangled, or whales that _have been_ entangled, but are not currently entangled with the important caveat that once an animal experiences a severe entanglement - any non-entangled periods after that will not be examined/included. 
+
+So for example, an NEW might be a whale that has never been entangled. For its whole life, then, we'll extract the health values and include them in the larger summary. Alternatively, and animal may have experienced multiple entanglements over its lifetime. Let's say an animal lives from 2000-2010, but was moderately entangled in 2001 (July - December), and then had a minor entanglement in 2004 (May - June). The time periods of entanglement during which we would calculate health would be: July - December 2001, and May - June 2004. All other times in this range would be included in the summary of NEW. n.b. that entanglment severity is depicted with increasingly saturated red colours.
+
+Graphically, this would look like:
+
+```{r, entVis, echo=FALSE}
+plot(seq.Date(as.Date('2000/01/01'), as.Date('2010/12/31'), by = 'month'), y = seq(0, 1, 
+     length = length(seq.Date(as.Date('2000/01/01'), as.Date('2010/12/31'), by = 'month'))), 
+     xlab = 'Date', ylab = '', type = 'n')
+
+rect(xleft = as.Date('2000/01/01'), ybottom = 0.25, xright = as.Date('2001/06/30'), ytop = 0.75, col = 'grey60')
+rect(xleft = as.Date('2001/07/01'), ybottom = 0.25, xright = as.Date('2001/12/31'), ytop = 0.75, col = rgb(255, 51, 51, maxColorValue = 255))
+rect(xleft = as.Date('2002/01/01'), ybottom = 0.25, xright = as.Date('2004/04/30'), ytop = 0.75, col = 'grey60')
+rect(xleft = as.Date('2004/05/01'), ybottom = 0.25, xright = as.Date('2004/06/30'), ytop = 0.75, col = rgb(255, 204, 204, maxColorValue = 255))
+rect(xleft = as.Date('2004/07/01'), ybottom = 0.25, xright = as.Date('2010/12/31'), ytop = 0.75, col = 'grey60')
+text(as.Date('2005/07/01'), 0.9, labels = 'Non-Entangled Periods')
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.85, x1 = as.Date('2000/09/01'), y1 = 0.7)
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.85, x1 = as.Date('2003/01/01'), y1 = 0.7)
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.85, x1 = as.Date('2008/09/01'), y1 = 0.7)
+
+text(as.Date('2005/07/01'), 0.1, labels = 'Entangled Periods')
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.15, x1 = as.Date('2001/10/15'), y1 = 0.3)
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.15, x1 = as.Date('2004/05/31'), y1 = 0.3)
+```
+
+If however, this animal had experienced a severe entanglement in November & December of 2009, no months of 2010 would be included as NEW health. 
+
+```{r, entVisSev, echo=FALSE}
+plot(seq.Date(as.Date('2000/01/01'), as.Date('2010/12/31'), by = 'month'), y = seq(0, 1, 
+     length = length(seq.Date(as.Date('2000/01/01'), as.Date('2010/12/31'), by = 'month'))), 
+     xlab = 'Date', ylab = '', type = 'n')
+
+rect(xleft = as.Date('2000/01/01'), ybottom = 0.25, xright = as.Date('2001/06/30'), ytop = 0.75, col = 'grey60')
+rect(xleft = as.Date('2001/07/01'), ybottom = 0.25, xright = as.Date('2001/12/31'), ytop = 0.75, col = rgb(255, 51, 51, maxColorValue = 255))
+rect(xleft = as.Date('2002/01/01'), ybottom = 0.25, xright = as.Date('2004/04/30'), ytop = 0.75, col = 'grey60')
+rect(xleft = as.Date('2004/05/01'), ybottom = 0.25, xright = as.Date('2004/06/30'), ytop = 0.75, col = rgb(255, 204, 204, maxColorValue = 255))
+rect(xleft = as.Date('2004/07/01'), ybottom = 0.25, xright = as.Date('2009/10/31'), ytop = 0.75, col = 'grey60')
+rect(xleft = as.Date('2009/11/01'), ybottom = 0.25, xright = as.Date('2009/12/31'), ytop = 0.75, col = rgb(255, 0, 0, maxColorValue = 255))
+rect(xleft = as.Date('2010/01/01'), ybottom = 0.25, xright = as.Date('2010/12/31'), ytop = 0.75, density = 20)
+
+text(as.Date('2005/07/01'), 0.9, labels = 'Non-Entangled Periods')
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.85, x1 = as.Date('2000/09/01'), y1 = 0.7)
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.85, x1 = as.Date('2003/01/01'), y1 = 0.7)
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.85, x1 = as.Date('2008/09/01'), y1 = 0.7)
+
+text(as.Date('2005/07/01'), 0.1, labels = 'Entangled Periods')
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.15, x1 = as.Date('2001/10/15'), y1 = 0.3)
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.15, x1 = as.Date('2004/05/31'), y1 = 0.3)
+arrows(x0 = as.Date('2005/07/01'), y0 = 0.15, x1 = as.Date('2009/11/30'), y1 = 0.3)
+
+text(as.Date('2009/07/01'), 0.1, labels = 'Excluded')
+arrows(x0 = as.Date('2009/07/01'), y0 = 0.15, x1 = as.Date('2010/07/01'), y1 = 0.3)
+```
+
+### Entanglement Time Period Definitions
+Now we know what is and what isn't in entangled, we want to know the time periods that each of this correspond to. First, once a female whale becomes `reproductively active`, we will exclude her from the analysis. This is done to minimise the natural influence of reproduction on body condition. Second, for `gear-carrying whales (GCW)`, we have 4 possible health window scenarios:
+
+1. Animal is detected with gear, and the last date with gear (LDWG) to line gone is < 6 months
+2. Animal is detected with gear, and there is no line gone date
+3. Animal is detected with gear, and the last date with gear (LDWG) to line gone is > 6 months
+4. Gear window from start date to 1st detection is less than 6 months
+
+For each of these scenarios, we will calculate health as follows:
+
+1. Start of the window is 3 months prior to date of detection; end of window is 1, 2, or 3 months past LDWG. Anything between 3 and 6 months is truncated to 3 months
+2. Start of the window is 3 months prior to date of detection; end of window is 3 months past LDWG
+3. Start of the window is 3 months prior to date of detection; end of window is 3 months past LDWG (n.b. this is equivalent to above)
+4. Start of the window is 3 months prior to date of detection if >=3 months, 1, or 2 months back otherwise; end of window is date of detection
+
+Third, for `non gear-carrying whales (NGCW)` we have two scenarios:
+
+1. The entanglement window is > 6 months
+2. The entanglement window is < 6 months
+
+For each of these scenarios, we will calculate health as follows:
+
+1. Start of the window is 3 months prior to date of detection; end of window is date of detection
+2. Start of the window is 3 months prior to date of detection if >=3 months, 1, or 2 months back otherwise; end of window is date of detection
+
+Again, let's plot them out to make sure they look right:
+
+
+```{r, plotLinesLDWG, echo=FALSE}
+plot(x = seq(-8, 12), y = seq(1, 6, length = length(seq(-8, 12))), type = 'n', axes = FALSE, xlab = 'Months', ylab = '', 
+     main = 'No more than 6 months btw LDWG and Line Gone &\nMore than 6 Months in pre-detection window')
+axis(side = 1, at = seq(-8, 12))
+axis(side = 2, at = seq(6), las = 1)
+abline(v = seq(-8, 12), col = 'grey80')
+abline(v = 0, col = 'grey40')
+
+# Gear carrying with < 6 months of line carrying, but > 3
+segments(x0 = -3, y0 = 6, x1 = 8)
+points(-3, 6, pch = '|')
+points(8, 6, pch = '|')
+points(5, 6, pch = 17)
+points(9, 6, pch = 2)
+points(10, 6, pch = 2)
+points(11, 6, pch = 2)
+
+# Gear carrying with < 6 months of line carrying, but = 3
+segments(x0 = -3, y0 = 3, x1 = 8)
+points(-3, 3, pch = '|')
+points(8, 3, pch = '|')
+points(5, 3, pch = 17)
+points(8, 3, pch = 2)
+
+# Gear carrying with < 6 months of line carrying, but = 2
+segments(x0 = -3, y0 = 2, x1 = 7)
+points(-3, 2, pch = '|')
+points(7, 2, pch = '|')
+points(5, 2, pch = 17)
+points(7, 2, pch = 2)
+
+# Gear carrying with < 6 months of line carrying, but = 2
+segments(x0 = -3, y0 = 1, x1 = 6)
+points(-3, 1, pch = '|')
+points(6, 1, pch = '|')
+points(5, 1, pch = 17)
+points(6, 1, pch = 2)
+
+for(i in c(6, 3, 2, 1)){  
+  points(-8, i, pch = 16)
+}
+
+for(i in c(6, 3, 2, 1)){  
+  points(0, i, pch = 24, bg = 'grey50')
+}
+
+text(-6, 5, labels = 'Date Prior\nw/no gear', cex = 0.75)
+arrows(x0 = -6, y0 = 5.25, x1 = -8, y1 = 5.9)
+
+text(-2, 5, labels = 'First Date\nw/gear', cex = 0.75)
+arrows(x0 = -2, y0 = 5.25, x1 = -0.2, y1 = 5.9)
+
+text(3.5, 5, labels = 'Last Date\nw/gear', cex = 0.75)
+arrows(x0 = 3.5, y0 = 5.25, x1 = 4.75, y1 = 5.9)
+
+text(8.5, 5, labels = 'Line Gone\n(4-6 months later)', cex = 0.75)
+arrows(x0 = 8.5, y0 = 5.25, x1 = 8.85, y1 = 5.9)
+
+text(10.5, 3, labels = 'Line Gone\n(3 months later)', cex = 0.75)
+text(10.5, 2, labels = 'Line Gone\n(2 months later)', cex = 0.75)
+text(10.5, 1, labels = 'Line Gone\n(1 month later)', cex = 0.75)
+
+segments(x0 = -3, y0 = 4.25, x1 = 8)
+points(-3, 4.25, pch = '|')
+points(8, 4.25, pch = '|')
+text(2.5, 4, labels = '"Health Window"', cex = 0.75)
+```
+
+
+```{r, plotLinesNoLineGonePreDetect, echo=FALSE}
+plot(x = seq(-8, 12), y = seq(1, 6, length = length(seq(-8, 12))), type = 'n', axes = FALSE, xlab = 'Months', ylab = '',
+     main = 'No more than 6 months btw LDWG and Line Gone &\nLess than 6 Months in pre-detection window')
+axis(side = 1, at = seq(-8, 12))
+axis(side = 2, at = seq(6), las = 1)
+abline(v = seq(-8, 12), col = 'grey80')
+abline(v = 0, col = 'grey40')
+
+# Gear carrying with < 6 months of line carrying, but > 3
+segments(x0 = -3, y0 = 6, x1 = 8)
+points(-3, 6, pch = '|')
+points(8, 6, pch = '|')
+points(5, 6, pch = 17)
+points(9, 6, pch = 2)
+points(10, 6, pch = 2)
+points(11, 6, pch = 2)
+
+points(c(-6, -5, -4), c(6, 6, 6), pch = 16)
+
+# Gear carrying with < 6 months of line carrying, but = 3
+segments(x0 = -3, y0 = 3, x1 = 8)
+points(8, 3, pch = '|')
+points(5, 3, pch = 17)
+points(8, 3, pch = 2)
+points(-3, 3, pch = 16)
+
+# Gear carrying with < 6 months of line carrying, but = 2
+segments(x0 = -2, y0 = 2, x1 = 7)
+points(7, 2, pch = '|')
+points(5, 2, pch = 17)
+points(7, 2, pch = 2)
+points(-2, 2, pch = 16)
+
+# Gear carrying with < 6 months of line carrying, but = 1
+segments(x0 = -1, y0 = 1, x1 = 7)
+points(7, 1, pch = '|')
+points(5, 1, pch = 17)
+points(7, 1, pch = 2)
+points(-1, 1, pch = 16)
+
+
+for(i in c(6, 3, 2, 1)){  
+  points(0, i, pch = 24, bg = 'grey50')
+}
+
+text(-6, 5, labels = 'Date Prior\nw/no gear\n6, 5, 4 mo', cex = 0.75)
+arrows(x0 = -6, y0 = 5.25, x1 = -6, y1 = 5.9)
+arrows(x0 = -6, y0 = 5.25, x1 = -5, y1 = 5.9)
+arrows(x0 = -6, y0 = 5.25, x1 = -4, y1 = 5.9)
+
+text(-2, 5, labels = 'First Date\nw/gear', cex = 0.75)
+arrows(x0 = -2, y0 = 5.25, x1 = -0.2, y1 = 5.9)
+
+text(3.5, 5, labels = 'Last Date\nw/gear', cex = 0.75)
+arrows(x0 = 3.5, y0 = 5.25, x1 = 4.75, y1 = 5.9)
+
+text(8.5, 5, labels = 'Line Gone\n(4-6 months later)', cex = 0.75)
+arrows(x0 = 8.5, y0 = 5.25, x1 = 8.85, y1 = 5.9)
+
+
+segments(x0 = -3, y0 = 4.25, x1 = 8)
+points(-3, 4.25, pch = '|')
+points(8, 4.25, pch = '|')
+text(2.5, 4, labels = '"Health Window"', cex = 0.75)
+
+
+
+```
+
+
+```{r, plotLinesNoLineGone, echo=FALSE}
+plot(x = seq(-6, 12), y = seq(1, 6, length = length(seq(-6, 12))), type = 'n', axes = FALSE, xlab = 'Months', ylab = '', main = 'No Line Gone Date')
+axis(side = 1, at = seq(-6, 12))
+axis(side = 2, at = seq(6), las = 1)
+abline(v = seq(-6, 12), col = 'grey80')
+abline(v = 0, col = 'grey40')
+
+# Gear carrying with < 6 months of line carrying, but > 3
+segments(x0 = -3, y0 = 6, x1 = 8)
+points(-3, 6, pch = '|')
+points(8, 6, pch = '|')
+points(5, 6, pch = 17)
+points(0, 6, pch = 24, bg = 'grey50')
+
+text(-2, 5, labels = 'First Date\nw/gear', cex = 0.75)
+arrows(x0 = -2, y0 = 5.25, x1 = -0.2, y1 = 5.9)
+
+text(3.5, 5, labels = 'Last Date\nw/gear', cex = 0.75)
+arrows(x0 = 3.5, y0 = 5.25, x1 = 4.75, y1 = 5.9)
+
+segments(x0 = -3, y0 = 4.25, x1 = 8)
+points(-3, 4.25, pch = '|')
+points(8, 4.25, pch = '|')
+text(2.5, 4, labels = '"Health Window"', cex = 0.75)
+```
+
+
+```{r, plotLinesNoGear, echo=FALSE}
+plot(x = seq(-6, 12), y = seq(1, 6, length = length(seq(-6, 12))), type = 'n', axes = FALSE, xlab = 'Months', ylab = '', main = 'Non Gear Whales')
+axis(side = 1, at = seq(-6, 12))
+axis(side = 2, at = seq(6), las = 1)
+abline(v = seq(-6, 12), col = 'grey80')
+abline(v = 0, col = 'grey40')
+
+segments(x0 = 0, y0 = 6, x1 = 3)
+points(-0, 6, pch = '|')
+points(3, 6, pch = 4,  cex = 2)
+text(4, 5, labels = '"End Date"', cex = 0.75)
+arrows(x0 = 4, y0 = 5.25, x1 = 3, y1 = 5.9)
+
+text(7, 5.85, labels = '> 6 month Pre-\nDetection Window', cex = 0.75)
+text(8, 2, labels = '< 6 month Pre-\nDetection Window', cex = 0.75)
+segments(5, 1, 5, 3)
+
+points(-6, 6, pch = 16)
+text(-4.5, 5, labels = '"Start Date"', cex = 0.75)
+arrows(x0 = -4.5, y0 = 5.25, x1 = -5.85, y1 = 5.9)
+
+
+points(-3, 3, pch = 16)
+points(-2, 3, pch = 16)
+points(-1, 3, pch = 16)
+points(0, 3, pch = 16)
+points(3, 3, pch = 4,  cex = 2)
+segments(x0 = 0, y0 = 3, x1 = 3)
+points(0, 3, pch = '|')
+
+points(1, 2, pch = 16)
+points(3, 2, pch = 4,  cex = 2)
+segments(x0 = 1, y0 = 2, x1 = 3)
+points(1, 2, pch = '|')
+
+points(2, 1, pch = 16)
+points(3, 1, pch = 4,  cex = 2)
+segments(x0 = 2, y0 = 1, x1 = 3)
+points(2, 1, pch = '|')
+
+```
+
+

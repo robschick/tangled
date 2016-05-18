@@ -1,0 +1,109 @@
+---
+title: "Calculating and Plotting the # of Months Reproductively Active Females Spend Below Certain Health Thresholds"
+author: "Rob Schick, PhD"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculating and Plotting the # of Months Reproductively Active Females Spend Below Certain Health Thresholds}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Prepare the Data to Examine Unimpacted Females
+We decided that in order to compare the health of impacted reproductively active females we'd want to have a reference category of unimpacted but reproductively active females. So that means females that have had a calf, but who have never been entangled. Turns out this isn't a large #(!) but it gives us a useful reference class. To get that data assembled, we run this function and return its output as 4 different list elements:
+
+1. `healthnew` - this is a data frame containing finite values of health for animals that comprise the unimpacted criteria
+2. `nmon` - the number of months with finite health values in `healthnew`
+3. `nmomThold` - the number of months in `healthnew` with health values below the specified health threshold
+4. `pThold` - the percentage of months below the specified health threshold, i.e. `(nmomThold / nmon) * 100`
+
+These elementes will be used when we assemble the data for plotting.
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+```{r}
+library(tangled)
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+thold <- 67
+tmp <- prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
+```
+
+## Prepare the Data for the Impacted Females
+With the unimpacted data prepared, we need to assemble the data that determines the amount of time (in months) individual entangled whales are spending below specific health thresholds. We do this with the `prephThreshDataRepro.R` function. This function returns a list with two elements: 1) `rfmthold` a 6 by 6 data frame summarising the months below the health threshold, and 2) `dfout` the same information, but not summarised, i.e. retained at the level of the individual event. We'll use `rfmthold` and `dfout` for statistical analysis.
+
+```{r}
+tmp2 <- prephThreshDataRepro(healthmean, thold)
+tmp2$rfmthold
+```
+
+## Assemble and Plot the Data
+Ok, we can now put these two data sources together and make the plot. 
+
+```{r}
+dfb <- prepHealthThresholdPlotData(tmp, tmp2$rfmthold)
+dfb
+```
+
+Let's make this a table for the manuscript as well:
+
+```{r}
+knitr::kable(dfb)
+```
+
+
+```{r, fig.width=8, fig.height=6}
+p <- plotHealthThreshold(dfb, bsize = 12)
+p
+ggsave(plot = p, filename = 'healthThold.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'pdf', width = 9, height = 6, units = 'in')
+pweb <- plotHealthThreshold(dfb, bsize = 16)
+ggsave(plot = pweb, filename = 'healthThold.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
+```
+
+## Statistical Analysis of the differences
+Ok, a quick `Kruskal Wallis` test indicates there's no difference in the percentages:
+
+```{r}
+kruskal.test(dfb$pctthold, factor(dfb$gearInj), data = dfb)
+```
+
+However, I don't thnk this is really the right way to test this. A more appropriate way is to have a row for each entanglement event. There's a clear mass at 0 here, which is problematic.
+
+```{r}
+hist(tmp2$dfout$pctmonthold)
+```
+
+So I can log transform the entanglement data, and then perform a glm on that. I'll make Minor - No Gear the reference class first
+
+```{r}
+tmp2$dfout$gearInj <- relevel(factor(tmp2$dfout$gearInj), ref = 6)
+summary(fit1 <- glm(log1p(pctmonthold) ~ factor(gearInj), data = tmp2$dfout))
+```
+
+Which suggests that severe with gear (class 1) is significantly worse. Of course, this doesn't add include the unimpacted animals, but I'm really not sure how to do that. We don't want to add just the summary 6% value, because that would be mixing data types - a summary over all unimpacted animals together with a data frame of individual entanglement events.
+
+To do that, I modified the function `prepThreshDataUnImp` to return a vector of percentage of months below the threshold. This is `tmp$pTholdInd` which I can fold into `tmp2$dfout`. I'll do that here:
+
+```{r}
+unDat <- data.frame(egno = noquote(names(tmp$nmonInd)),
+                    nmonths = tmp$nmonInd,
+                    monthold = tmp$nmonTholdInd,
+                    pctmonthold = tmp$pTholdInd,
+                    gearInj = 0)
+unDat <- unDat[!is.na(unDat$pctmonthold), ]
+unDat$gearInj <- factor(unDat$gearInj)
+levels(unDat$gearInj) <- c(levels(unDat$gearInj), levels(tmp2$dfout$gearInj))
+dnew <- rbind(tmp2$dfout, unDat)
+```
+
+Now we can try a glm with all the data
+
+```{r}
+dnew$gearInj <- relevel(factor(dnew$gearInj), ref = '0')
+summary(fit3 <- glm(log1p(pctmonthold) ~ factor(gearInj), data = dnew))
+```
+
+This corroborates the above test - severe with gear is significantly different from the Unimpacted. None of the others seem significant.
