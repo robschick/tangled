@@ -33,7 +33,7 @@
 #' calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE)
 #' }
 calcKMCurves <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE){
->>>>>>> f04602636b4ee9860f6a5b6568da4d9fc6ade942
+
   
   medsurvdf <- kdpasurvldf
   nt <- dcut
