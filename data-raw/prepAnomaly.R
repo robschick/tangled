@@ -4,7 +4,7 @@ load(file = 'data-raw/eg_203_ng_50000_BIG_25000_BIG_25000.rdata')
 # Population level median health
 source('R/returnPophealth.R')
 pophealth <- returnPophealth()
-devtools:: use_data(pophealth, overwrite = TRUE)
+devtools::use_data(pophealth, overwrite = TRUE)
 
 # Individual health
 source(file = 'R/getDeaths.R')
