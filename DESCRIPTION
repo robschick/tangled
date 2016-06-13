@@ -1,0 +1,32 @@
+Package: tangled
+Type: Package
+Title: Creates data objects and plots for Knowlton, Schick et al. manuscript on
+    entanglement
+Version: 0.0.9000
+Date: 2016-04-05
+Authors@R: person('Robert', 'Schick', email = 'robschick@gmail.com', role = c('aut', 'cre'))
+Description: Here we take multiple sources of input data - raw, as well as
+    model estimates using the model from Schick et al. 2013 - PLoS-ONE to
+    estimate and quantify the effects of entanglement events on individual
+    right whale health. The goal is to examine health change across a window,
+    health during a window, and the links between health and survival as
+    a function of different entanglement severity classes.
+Imports:
+    dplyr,
+    ggplot2,
+    gridExtra,
+    survival,
+    magrittr,
+    stringr,
+    lubridate,
+    RColorBrewer,
+    lme4,
+    multcomp,
+    sjPlot
+License: Proprietary
+LazyData: true
+Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 5.0.1
