@@ -39,8 +39,10 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 library(tangled)
 library(magrittr)
 library(dplyr)
+library(ggplot2)
 ```
 
+## Drop the Ship-Struck Animals
 To get and store just that last event, we call a function called `makeEvents()`, which will prepare a data frame of the last entanglement event of each animal and add some identifying information about its death status (see next section for details). However, as compared to the regular survival analysis, here we'll back out the animals in the list above:
 
 ```{r}
@@ -49,5 +51,33 @@ nrow(events)
 avec <- c(1128, 1504, 1907, 1223, 2250, 1623, 2220, 2450, 1014, 2150, 1004, 1909, 2143, 2617, 1267, 3508, 1308)
 events <- dplyr::filter(events, !EGNo %in% avec)
 nrow(events)
+
 ```
 
+```{r, echo=FALSE}
+events$gender <- gender[match(events$EGNo, ID)]
+```
+
+## Calculate Survivorship
+```{r}
+kdpasurvldf <- calckdpaSurvdat(events)
+survdf <- calcpresdSurvdat(events, kdpasurvldf)
+```
+
+
+
+
+## Survival of Entangled Whales be Sex and Severity
+Ok, the processing logic is identical to that above, but the functions differ in the sense that they split out the data by gender and severity. This will likely be the figure we use for the manuscript. I'm going to plot it without uncertainty here, and I'll stop the plotting at 6 years following entanglement.
+
+```{r, fig.width=8,fig.height=6}
+incVal <- 12
+yearsOut <- 6
+tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
+p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal)
+p
+ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.pdf',
+       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.png',
+       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+```
