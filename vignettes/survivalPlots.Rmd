@@ -30,7 +30,6 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
 ```{r}
 library(tangled)
-library(ggplot2)
 subset(tangleAll, EGNo == 1032)
 ```
 
@@ -112,6 +111,7 @@ To do that, then, we specify a boot strap, and sample from `deathyr` to get diff
 The outputs from the `calcKMCurves()` function are two fold, and will be used to plot the curve. In the `tmp` list, we have the KM curve and the ticks when animals get censored. These can then be passed to the plotting code:
 
 ```{r}
+library(ggplot2)
 plotSurv(tmp$kmlines, tmp$censTicks, 7, increment = 12)
 ```
 
