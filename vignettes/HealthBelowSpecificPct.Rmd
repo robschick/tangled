@@ -2,7 +2,7 @@
 title: "Calculating and Plotting the # of Months Reproductively Active Females Spend Below Certain Health Thresholds"
 author: "Rob Schick, PhD"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: word_document
 vignette: >
   %\VignetteIndexEntry{Calculating and Plotting the # of Months Reproductively Active Females Spend Below Certain Health Thresholds}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,7 +17,7 @@ We decided that in order to compare the health of impacted reproductively active
 3. `nmomThold` - the number of months in `healthnew` with health values below the specified health threshold
 4. `pThold` - the percentage of months below the specified health threshold, i.e. `(nmomThold / nmon) * 100`
 
-These elementes will be used when we assemble the data for plotting.
+These elements will be used when we assemble the data for plotting.
 
 ```{r global_options, echo=FALSE}
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
@@ -40,8 +40,25 @@ tmp2 <- prephThreshDataRepro(healthmean, thold)
 tmp2$rfmthold
 ```
 
+__UPDATE - 6/14/2016__
+You had asked about the numbers of animals below the threshold as a function of category because you were surprised about the number of minors with all of their months below 67. I've summarised the data a bit to look at that a bit further. 
+
+So what I do in this next chunk of code is to take the percentages of months below the threshold, and assign them into 6 different bins with the `cut()` function. Note that this is just to show the summary in a bit coarser way. Then I normalise within entanglement types to show the percentage of events by category that are below the threshold. Then I plot them.
+
+```{r}
+dfmat <- tmp2$dfout
+dfmat$intLev <- cut(dfmat$pctmonthold, 6)
+round(table(dfmat$gearInj, dfmat$intLev) / rowSums(table(dfmat$gearInj, dfmat$intLev)), 3)
+tabmat <- as.data.frame(table(dfmat$gearInj, dfmat$intLev) / rowSums(table(dfmat$gearInj, dfmat$intLev)))
+
+ggplot(tabmat, aes(Var2, Var1) )+
+  geom_tile(aes(fill = Freq))
+```
+
+What that shows is that while indeed there are more events below the threshold as the severity increases, you still do have some minor events where the animals are in bad health ~19.7%.
+
 ## Assemble and Plot the Data
-Ok, we can now put these two data sources together and make the plot. 
+Ok, back to the previous analysis. Now we can put these two data sources together and make the plot. 
 
 ```{r}
 dfb <- prepHealthThresholdPlotData(tmp, tmp2$rfmthold)
@@ -76,7 +93,7 @@ However, I don't thnk this is really the right way to test this. A more appropri
 hist(tmp2$dfout$pctmonthold)
 ```
 
-_Update - 6/14/2016 - I'll use the arcsine transformation instead_
+__Update - 6/14/2016 - I'll use the arcsine transformation instead__
 
 So I can transform the entanglement data, and then perform a glm on that. I'll make Minor - No Gear the reference class first
 
