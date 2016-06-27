@@ -1,0 +1,31 @@
+---
+title: "Survival of Entangled Right Whales - Excluding Those Struck and Killed by Ships"
+author: "Rob Schick, PhD"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Survival of Entangled Right Whales - Excluding Those Struck and Killed by Ships}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Survival of Entangled Whales be Sex and Severity - Ship Struck Animals Removed
+Here we extend the previous analysis to look at survivorship of entangled whales who did not die as a result of being struck by a ship. We'll do this by backing them out of the data frames used to estimate survivorship. The list of animals to be exlcuded is:
+
+* 1128
+* 1504
+* 1907 (although also a severe with gear engtl)
+* 1223
+* 2250
+* 1623
+* 2220
+* 2450
+* 1014
+* 2150
+* 1004
+* 1909
+* 2143
+* 2617
+* 1267
+* 3508
+* 1308
