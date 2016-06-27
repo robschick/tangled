@@ -29,3 +29,25 @@ Here we extend the previous analysis to look at survivorship of entangled whales
 * 1267
 * 3508
 * 1308
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+
+```{r,echo=FALSE}
+library(tangled)
+library(magrittr)
+library(dplyr)
+```
+
+To get and store just that last event, we call a function called `makeEvents()`, which will prepare a data frame of the last entanglement event of each animal and add some identifying information about its death status (see next section for details). However, as compared to the regular survival analysis, here we'll back out the animals in the list above:
+
+```{r}
+events <- makeEvents()
+nrow(events)
+avec <- c(1128, 1504, 1907, 1223, 2250, 1623, 2220, 2450, 1014, 2150, 1004, 1909, 2143, 2617, 1267, 3508, 1308)
+events <- dplyr::filter(events, !EGNo %in% avec)
+nrow(events)
+```
+
