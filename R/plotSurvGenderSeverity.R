@@ -29,8 +29,7 @@
 #'   the animal to be alive at the time modelling end.
 #' @param increment Scalar representing the temporal unit at which we're 
 #'   showing survival.
-#' @param increment Scalar representing the temporal unit at which we're 
-#'   showing survival.
+#' @param legendLabs Character vector to be used in plotting the legend.
 #' @return A ggplot2 object that can be used to create the output plot
 #' @export
 #' @examples 
