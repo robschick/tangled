@@ -9,4 +9,67 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-The goal of this vignette is to conduct a simple statistical analysis of the calving data for females that have experienced different entanglement severity.
+The goal of this vignette is to conduct a simple statistical analysis of the calving data for females that have experienced different entanglement severity. We'll start by creating the data frame using data from Amy Knowlton at NEAq:
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+
+```{r loadLibraries, echo=FALSE}
+library(tangled)
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r makeCalfdata}
+calves <- matrix(c(76,	302,	34,	10,	0, 128,	521,	60,	23,	8), nrow = 2, byrow = TRUE,
+                 dimnames = list(c('Calf', 'No Calf'), 
+                                 c('Not impacted',	'Recovered', 'Minor',	'Moderate',	'Severe')))
+knitr::kable(calves)
+```
+
+What the above table shows is that 0 animals who have experienced a severe entanglement have gone on to have a calf. The calf to no-calf ratio for all is:
+
+```{r calcRatio}
+calves[1, ] / calves[2, ] * 100
+```
+
+
+## Statistical Analysis
+The first obvious test is a Chi-square test, however this does not allow for 0 values in the contingency table. There are two alternatives: Fisher's Exact test, and Barnard's test - the latter of which seems to be preferred in the statistical literature. We need to use a new package to conduct the test - the `Exact` package. 
+
+This looks for a comparison of a 2x2 contingency table, so in the next chunk we'll run a test comparing these 4 cases to the `Not Impacted` reference case:
+
+1. Recovered
+2. Minor
+3. Moderate
+4. Severe
+
+The test will return the p-value for a two-sided test.
+
+```{r conductTest}
+library(Exact)
+csubrp <- calves[, c(1, 2)]
+csubMinp <- calves[, c(1, 3)]
+csubModP <- calves[, c(1, 4)]
+csubsp <- calves[, c(1, 5)]
+
+recp <- exact.test(csubrp ,alternative="two.sided", to.plot = FALSE)$p.value
+minp <- exact.test(csubMinp, alternative="two.sided", to.plot = FALSE)$p.value
+modp <- exact.test(csubModP, alternative="two.sided", to.plot = FALSE)$p.value
+sevp <- exact.test(csubsp, alternative="two.sided", to.plot = FALSE)$p.value
+```
+
+Let's summarise those in a table:
+
+```{r makeDF}
+df <- data.frame(test = c('Recovered', 'Minor', 'Moderate', 'Severe'),
+                 pval = c(recp, minp, modp, sevp))
+knitr::kable(df)
+```
+
+This shows that severe are significantly different from the Not Impacted reference case.
+
