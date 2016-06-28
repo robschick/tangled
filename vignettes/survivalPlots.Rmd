@@ -55,8 +55,11 @@ First we want to be able to label the survival curves to get a sense of the size
 
 ```{r}
 events$gender <- gender[match(events$EGNo, ID)]
-events %>% group_by(Severity, gender) %>% 
-  summarise(ngrp = n())
+labs <- events %>% group_by(Severity, gender) %>% summarise(total = n())
+labs
+legendLabs <- c(paste('Minor (F = ', labs[1, 3], ', M = ', labs[2, 3], ')', sep = ''),
+                paste('Moderate (F = ', labs[3, 3], ', M = ', labs[4, 3], ')', sep = ''),
+                paste('Severe (F = ', labs[5, 3], ', M = ', labs[6, 3], ')', sep = ''))
 ```
 
 
@@ -156,7 +159,7 @@ Ok, the processing logic is identical to that above, but the functions differ in
 incVal <- 12
 yearsOut <- 6
 tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
-p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal)
+p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal, legendLabs)
 p
 ggsave(plot = p, filename = 'survivalGenderSeverity.pdf', 
        path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
@@ -258,7 +261,7 @@ This shows a few interesting findings:
 4. Females and Males in the Moderate category have reduced rates as compared to the Minor category, though when factoring in the 95% CI, these differences are not significant, i.e. the estimates straddle 1.
 
 ## Summary
-What the plots of the survival data and proportional hazards analysis confirm, is that severe entanglements are very bad for right whales of both sexes. It also confirms that in general survival is lower for females than it is for males. The exceptions lie in the moderate category. While females with moderate entanglements do have a higher hazard than males, this result is not significant at p = 0.103. 
+What the plots of the survival data and proportional hazards analysis confirm, is that severe entanglements are very bad for right whales of both sexes. It also confirms that in general survival is lower for females than it is for males. The exceptions lie in the moderate category. While females with moderate entanglements do have a higher hazard than males, this result is not significant at p = 0.079. 
 
 Though it does not come as a surprise that severe entanglements are much worse, one surprising finding is that minor entanglements are significantly worse for females. Since we know from previous work that adult female survival is of paramount importance (Fujiwara and Caswell, 2001), this stresses that further work needs to be done to reduce the effects of entanglement on survival.
 
