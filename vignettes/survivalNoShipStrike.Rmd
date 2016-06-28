@@ -46,7 +46,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```
 
 
-```{r,echo=FALSE, loadLibraries}
+```{r loadLibraries,echo=FALSE}
 library(tangled)
 library(magrittr)
 library(dplyr)
@@ -56,7 +56,7 @@ library(ggplot2)
 ## Drop the Ship-Struck Animals
 To get and store just that last event, we call a function called `makeEvents()`, which will prepare a data frame of the last entanglement event of each animal and add some identifying information about its death status (see next section for details). However, as compared to the regular survival analysis, here we'll back out the animals in the list above:
 
-```{r, pullOutAnimals}
+```{r pullOutAnimals}
 events <- makeEvents()
 nrow(events)
 avec <- c(1128, 1504, 1907, 1223, 2250, 1623, 2220, 2450, 1014, 2150, 1004, 1909, 2143, 2617, 1267, 3508, 1308,
@@ -66,7 +66,7 @@ nrow(events)
 
 ```
 
-```{r, echo=FALSE, addGender}
+```{r addGender, echo=FALSE}
 events$gender <- gender[match(events$EGNo, ID)]
 labs <- events %>% group_by(Severity, gender) %>% summarise(total = n())
 legendLabs <- c(paste('Minor (F = ', labs[1, 3], ', M = ', labs[2, 3], ')', sep = ''),
@@ -75,7 +75,7 @@ legendLabs <- c(paste('Minor (F = ', labs[1, 3], ', M = ', labs[2, 3], ')', sep 
 ```
 
 ## Calculate Survivorship
-```{r, calcSurvivorship}
+```{r calcSurvivorship}
 kdpasurvldf <- calckdpaSurvdat(events)
 survdf <- calcpresdSurvdat(events, kdpasurvldf)
 ```
@@ -83,10 +83,10 @@ survdf <- calcpresdSurvdat(events, kdpasurvldf)
 
 
 
-## Survival of Entangled Whales be Sex and Severity
+## Survival of Entangled Whales by Sex and Severity
 Ok, the processing logic is identical to that above, but the functions differ in the sense that they split out the data by gender and severity. This will likely be the figure we use for the manuscript. I'm going to plot it without uncertainty here, and I'll stop the plotting at 6 years following entanglement.
 
-```{r, fig.width=8,fig.height=6, plotKMCurves}
+```{r plotKMCurves, fig.width=8,fig.height=6}
 incVal <- 12
 yearsOut <- 6
 tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
@@ -97,3 +97,61 @@ ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.pdf',
 ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.png',
        path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
+
+
+## Statistical Tests
+Ok, with the data now assembled, we need to look at performing some tests. We'll turn to the `survival` package, in which we can "implement the G-rho family" of tests. To conduct the analyses, we need the data in a particular format. I wrote a function to do this (`returnSurvdf()`). 
+
+In the `dfSurv` data frame that is returned from this function, the new data columns are `futime` and `event,` where `futime` is the time (in months) from the end of the last entanglement to the event - either the animal dies, or is censored. For the purposes of this analysis, we define censoring using the `dcut` variable, which is December of the year through which matching of the photo-ID data is done. As of now (April 2016) the date we are using is December 2013.
+
+```{r makeSurvData}
+library(survival)
+dfSurv <- returnSurvdf(survdf)
+```
+
+### G-Rho Tests
+From initial examination of the curves above, it looks like male survival is higher, so we'll use males as the reference group. It's generally easier to interpret a Hazard Ratio that exceeds 1 (Kleinbaum & Klein, 2012). To do this, we'll just relevel this factor, and then calculate the test: 
+
+```{r tastmaleVFemale}
+dfSurv$gender <- relevel(factor(dfSurv$gender), ref = 'M')
+survdiff(Surv(futime, event) ~ gender, data = dfSurv)
+```
+
+And they are, with females having significantly worse survival. This is shown in the `Observed` column of the summary. What this says is that more females died than were expected.
+
+Let's put the gender and severity together to test the difference in the curves:
+
+```{r testGenderInjury}
+survdiff(Surv(futime, event) ~ Severity + gender, data = dfSurv)
+```
+
+This shows that the curves are significantly different, and these differences appear to be driven by the severe entanglements and the minor entanglements for males. We see more deaths for the severely entangled whales than expected for both males and females. We also see that male survival for animals with minor entanglements is higher than expected.
+
+### Cox Proportional Hazards
+We can also look at the proportional hazards of the different entanglement categories. We can investigate if an interaction exists between gender and severity with the following model:
+
+```{r}
+cfit2 <- coxph(Surv(futime, event) ~ interaction(Severity, gender), data = dfSurv)
+summary(cfit2)
+```
+
+
+`cfit2` suggests this interaction term is significant, and therefore worth keeping in the model. 
+
+Let's look at the relative death rates for each gender/severity combination, i.e. the hazard ratios, in more detail. These are the second part of that summary object Recall that males with minor entanglements are the reference case, so their rate is 1.0. 
+
+```{r}
+cmean <- matrix(c(0, coef(cfit2)), nrow=2, byrow = T)
+cmean <- rbind(cmean, cmean[2, ] - cmean[1,])
+dimnames(cmean) <- list(c("M", "F", "F/M ratio"), c('Minor', 'Moderate', 'Severe'))
+knitr::kable(signif(exp(cmean),3))
+```
+
+This shows a few interesting findings:
+
+1. Females with severe entanglements are ~8 times as likely to die as males with a minor entanglement. 
+2. Males with severe entanglements are almost 8 times as likely to die as males with a minor entanglement. 
+3. Females with severe entanglements are 4 times as likely to die as females with a minor entanglement. 
+4. For all categories, females are more likely to die, than males, though the difference is strongest in the Minor category.
+5. Females and Males in the Moderate category have reduced rates as compared to the Minor category, though when factoring in the 95% CI, these differences are not significant, i.e. the estimates straddle 1.
+
