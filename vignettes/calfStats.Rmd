@@ -48,7 +48,7 @@ This looks for a comparison of a 2x2 contingency table, so in the next chunk we'
 3. Moderate
 4. Severe
 
-The test will return the p-value for a two-sided test.
+The test will return the p-value for a two-sided test. Specifically, we are running a Barnard's unconditional exact test. The model is a Binomial, and the method for finding the "as or more extreme" tables is "Z-pooled."
 
 ```{r conductTest}
 library(Exact)
