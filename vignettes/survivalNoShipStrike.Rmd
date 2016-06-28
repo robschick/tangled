@@ -30,12 +30,23 @@ Here we extend the previous analysis to look at survivorship of entangled whales
 * 3508
 * 1308
 
+Note that there are also other animals to be excluded. These are animals who had severe prop cuts the last time they were seen:
+Severe prop cuts when last seen alive and now presumed dead
+
+* 1006
+* 1045
+* 2404
+* 2425
+* 2820
+* 3522
+* 3853
+
 ```{r global_options, echo=FALSE}
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```
 
 
-```{r,echo=FALSE}
+```{r,echo=FALSE, loadLibraries}
 library(tangled)
 library(magrittr)
 library(dplyr)
@@ -45,21 +56,26 @@ library(ggplot2)
 ## Drop the Ship-Struck Animals
 To get and store just that last event, we call a function called `makeEvents()`, which will prepare a data frame of the last entanglement event of each animal and add some identifying information about its death status (see next section for details). However, as compared to the regular survival analysis, here we'll back out the animals in the list above:
 
-```{r}
+```{r, pullOutAnimals}
 events <- makeEvents()
 nrow(events)
-avec <- c(1128, 1504, 1907, 1223, 2250, 1623, 2220, 2450, 1014, 2150, 1004, 1909, 2143, 2617, 1267, 3508, 1308)
+avec <- c(1128, 1504, 1907, 1223, 2250, 1623, 2220, 2450, 1014, 2150, 1004, 1909, 2143, 2617, 1267, 3508, 1308,
+          1006, 1045, 2404, 2425, 2820, 3522, 3853)
 events <- dplyr::filter(events, !EGNo %in% avec)
 nrow(events)
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, addGender}
 events$gender <- gender[match(events$EGNo, ID)]
+labs <- events %>% group_by(Severity, gender) %>% summarise(total = n())
+legendLabs <- c(paste('Minor (F = ', labs[1, 3], ', M = ', labs[2, 3], ')', sep = ''),
+                paste('Moderate (F = ', labs[3, 3], ', M = ', labs[4, 3], ')', sep = ''),
+                paste('Severe (F = ', labs[5, 3], ', M = ', labs[6, 3], ')', sep = ''))
 ```
 
 ## Calculate Survivorship
-```{r}
+```{r, calcSurvivorship}
 kdpasurvldf <- calckdpaSurvdat(events)
 survdf <- calcpresdSurvdat(events, kdpasurvldf)
 ```
@@ -70,11 +86,11 @@ survdf <- calcpresdSurvdat(events, kdpasurvldf)
 ## Survival of Entangled Whales be Sex and Severity
 Ok, the processing logic is identical to that above, but the functions differ in the sense that they split out the data by gender and severity. This will likely be the figure we use for the manuscript. I'm going to plot it without uncertainty here, and I'll stop the plotting at 6 years following entanglement.
 
-```{r, fig.width=8,fig.height=6}
+```{r, fig.width=8,fig.height=6, plotKMCurves}
 incVal <- 12
 yearsOut <- 6
 tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
-p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal)
+p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal, legendLabs)
 p
 ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.pdf',
        path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
