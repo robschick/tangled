@@ -1,0 +1,12 @@
+---
+title: "Testing the Impact of Entanglements on Calving"
+author: "Rob Schick, PhD"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Testing the Impact of Entanglements on Calving}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The goal of this vignette is to conduct a simple statistical analysis of the calving data for females that have experienced different entanglement severity.
