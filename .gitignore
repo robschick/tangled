@@ -4,3 +4,4 @@
 inst/doc
 .rdata
 data-raw/*.rdata
+vignettes/.build.timestamp
