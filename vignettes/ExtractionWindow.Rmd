@@ -48,7 +48,7 @@ hanom <- subset(anom, row.names(anom) == 1167)
 tdat <- subset(tangleOut, EGNo == 1167)
 
 tdatplot <- tdat %>% 
-  select(c(2:10, 13))
+  dplyr::select(c(2:10, 13))
   
 yrvec  <- 1970:2016
 nyr    <- length(yrvec)
@@ -82,7 +82,7 @@ library(scales)
 library(lubridate)
 base_size <- 10
 datelims <- c(as.Date('1996-01-01'), as.Date('2004-01-01'))
-datelims <- c(as.Date('1981-09-01'), as.Date('2014-01-01'))
+datelims <- c(as.Date('1981-04-01'), as.Date('2014-01-01'))
 pal <- RColorBrewer::brewer.pal(3, 'Greys')
 
 p1 <- ggplot(data = hplot, aes(x = date, y = health))+
@@ -93,6 +93,7 @@ p1 <- ggplot(data = hplot, aes(x = date, y = health))+
       labs(x = '', y = 'Health')+
       scale_x_date(minor_breaks = date_breaks(width = "1 year"), 
                limits = datelims)+
+      annotate('text', x = datelims[1], y = 97.5, label = 'A)')+
    # Event 1
       annotate('segment', x = as.Date(tdatplot$StartDateWindow[2]), 
                xend = as.Date(tdatplot$EndDateWindow[2]), 
@@ -122,6 +123,7 @@ p2 <- ggplot(hplot, aes(x = date, y = hanom, fill = pos)) +
       guides(fill = 'none')+
       scale_x_date(minor_breaks = date_breaks(width = "1 year"), 
                limits = datelims)+
+      annotate('text', x = datelims[1], y = 10, label = 'B)')+
 #       # Event 1
 #       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[2]), 
 #                xmax = as.Date(tdatplot$EndDateWindow[2]), 
@@ -157,6 +159,8 @@ p3 <- ggplot(hplotsub1, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
       labs(x = 'Year', y = 'Health Anomaly')+
       guides(fill = 'none')+
+      annotate('text', x = as.Date(hplotsub1$date[1]), y = 20, label = 'C)')+
+      # annotate('text', x = as.Date("1996-06-01", format = '%Y-%m-%d'), y = 20, label = 'C)')+
       annotate('point', x = as.Date(tdatplot$EndDateWindow[2]) - months(3), y = 14, size = dotsize)+
       annotate('text', x = as.Date(tdatplot$EndDateWindow[2]) - months(3), y = 18, size = textsize, label = '1')+ 
       annotate('point', x = as.Date(tdatplot$EndDateWindow[2]), y = 14.5, size = dotsize)+
@@ -181,6 +185,7 @@ p4 <- ggplot(hplotsub2, aes(x = date, y = hanom, fill = pos)) +
 #       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
 #                xmax = as.Date(tdatplot$EndDateWindow[4]) + months(3), 
 #                ymin = -22, ymax = 22, alpha = 0.4, fill = pal[3])+
+      annotate('text', x = as.Date(hplotsub2$date[1]), y = 20, label = 'E)')+
       annotate('point', x = as.Date(tdatplot$StartDateWindow[4]) - months(3), y = -20, size = dotsize)+
       annotate('point', x = as.Date(tdatplot$StartDateWindow[4]) + months(3), y = -17, size = dotsize)+    
       annotate('point', x = as.Date(tdatplot$EndDateWindow[4]), y = 3.5, size = dotsize)+
@@ -210,6 +215,7 @@ p5 <- ggplot(hplotsub1, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
       labs(x = 'Year', y = 'Health Anomaly')+
       guides(fill = 'none')+
+      annotate('text', x = as.Date(hplotsub1$date[1]), y = 20, label = 'D)')+
       annotate('point', x = as.Date(tdatplot$EndDateWindow[2]), y = 14.5, size = dotsize)+
       annotate('text', x = as.Date(tdatplot$EndDateWindow[2]), y = 18.5, size = textsize, label = '2a')+    
       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[2]), 
@@ -231,6 +237,7 @@ p6 <- ggplot(hplotsub2, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
       labs(x = 'Year', y = '')+
       guides(fill = 'none')+
+      annotate('text', x = as.Date(hplotsub2$date[1]), y = 20, label = 'F)')+
       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
                xmax = as.Date(tdatplot$EndDateWindow[4]) + months(3), 
                ymin = -22, ymax = 22, alpha = 0.4, fill = pal[3])+
@@ -275,11 +282,15 @@ gD$widths[2:3] <- as.list(maxWidth)
 gE$widths[2:3] <- as.list(maxWidth)
 gF$widths[2:3] <- as.list(maxWidth)
 
-grid.arrange(gA, gB, gC, gD, gE, gF,
+p <- grid.arrange(gA, gB, gC, gD, gE, gF,
              layout_matrix = matrix(c(1, 1, 2, 2, 3, 4, 5, 6), 4, 2, byrow = TRUE), 
              respect = TRUE,
              heights = c(0.3, 0.2, 0.5, 0.5))
 
+ggsave(plot = p, filename = 'extractionWindow.pdf',
+       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+ggsave(plot = p, filename = 'extractionWindow.png',
+       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
 
 

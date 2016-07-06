@@ -57,7 +57,7 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment, legen
     geom_segment(data = subset(cplotdf, group == 'iter1'), 
                  aes(x = censMonth0 / increment, y = psurv, 
                      xend = censMonth0 / increment, yend = psurv + 0.015)) + 
-    labs(y = 'Survivorship', x = 'Time Following End of Entanglement')+
+    labs(y = 'Survivorship', x = 'Years Following End of Entanglement Injury')+
     theme_bw()+
     theme(panel.grid.major = element_line(size = 1.25), panel.grid.minor = element_line(size = 1))+
     scale_y_continuous(expand = c(0, 0.05))+
