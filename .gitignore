@@ -5,3 +5,5 @@ inst/doc
 .rdata
 data-raw/*.rdata
 vignettes/.build.timestamp
+vignettes/.DS_Store
+.DS_Store
