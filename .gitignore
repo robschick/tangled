@@ -3,4 +3,4 @@
 .RData
 inst/doc
 .rdata
-data-dar/.rdata
+data-raw/*.rdata
