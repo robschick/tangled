@@ -2,7 +2,7 @@
 title: "Boxplot of Health During the Course of an Entanglement"
 author: "Rob Schick, PhD"
 date: "`r Sys.Date()`"
-output: word_document
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Boxplot of Health During the Course of an Entanglement}
   %\VignetteEngine{knitr::rmarkdown}
@@ -118,7 +118,8 @@ df <- dfglm %>%
   filter(gearInj != 0) %>% 
   group_by(gearInj, status) %>% 
   summarise(Total = n(),
-            Length = mean(nMonths))
+            Length = mean(nMonths),
+            maxLength = max(nMonths))
 knitr::kable(df, digits = 2)
 
 ```
