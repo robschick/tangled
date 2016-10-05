@@ -90,20 +90,37 @@ summary(ft1)
 summary(glht(ft1, mcp(gfac = "Tukey")))
 ```
 
+### Include Reproductive Status
 That shows some clear and significant patterns in the data. However, it doesn't show the comparison of the effects of reproductive status in the analysis. To do that, we'll explore two models: 1) a linear model with both injury and status as fixed effects; and 2) a mixed model with a fixed effect for injury, and then a random effect for reproductive status.
 
 ```{r}
-library(lme4)
-library(sjPlot)
-ft2 <- glm(hAnom ~ gfac + status, data = dfglm)
+library(broom)
+ft2 <- glm(hAnom ~ gfac + status + gfac:status, data = dfglm)
 summary(ft2)
+knitr::kable(tidy(ft2), digits = 3)
 ```
 
 Ok, that was the `glm` and now we can look at the mixed effects model with a random effect
 
 ```{r}
+library(lme4)
+library(sjPlot)
 ft3 <- lmer(hAnom ~ gfac + (1 | status), data = dfglm)
 summary(ft3)
 sjp.lmer(ft3)
+```
+
+## Summary Table
+Need to put together a summary table for the ms of all the events included in this analysis.
+
+```{r}
+df <- dfglm %>% 
+  filter(gearInj != 0) %>% 
+  group_by(gearInj, status) %>% 
+  summarise(Total = n(),
+            Length = mean(nMonths),
+            maxLength = max(nMonths))
+knitr::kable(df, digits = 2)
+
 ```
 

@@ -29,15 +29,14 @@
 #'   the animal to be alive at the time modelling end.
 #' @param increment Scalar representing the temporal unit at which we're 
 #'   showing survival.
-#' @param increment Scalar representing the temporal unit at which we're 
-#'   showing survival.
+#' @param legendLabs Character vector to be used in plotting the legend.
 #' @return A ggplot2 object that can be used to create the output plot
 #' @export
 #' @examples 
 #' \dontrun{
 #' plotSurvGenderSeverity(kmlines, censTicks, 7)
 #' }
-plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment) {
+plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment, legendLabs) {
   
   plotdf <- as.data.frame(data.table::rbindlist(kmlines))
   plotdf$genderLab <- NA
@@ -58,12 +57,11 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment) {
     geom_segment(data = subset(cplotdf, group == 'iter1'), 
                  aes(x = censMonth0 / increment, y = psurv, 
                      xend = censMonth0 / increment, yend = psurv + 0.015)) + 
-    labs(y = 'Survivorship', x = 'Time Following End of Entanglement')+
+    labs(y = 'Survivorship', x = 'Years Following End of Entanglement Injury')+
     theme_bw()+
     theme(panel.grid.major = element_line(size = 1.25), panel.grid.minor = element_line(size = 1))+
     scale_y_continuous(expand = c(0, 0.05))+
-    scale_colour_brewer(palette = 'Dark2', name = 'Entanglement\nInjury',
-                        labels = c('Minor (F = 135, M = 169)', 'Moderate (F = 52, M = 59)', 'Severe (F = 23, M = 26)'))+
+    scale_colour_brewer(palette = 'Dark2', name = 'Entanglement\nInjury', labels = legendLabs)+
     theme(legend.position = c(.15, .15))+
     coord_cartesian(xlim = c(0, yearEnd))+
     facet_grid(. ~ genderLab)
