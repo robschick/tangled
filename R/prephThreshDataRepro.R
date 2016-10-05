@@ -13,7 +13,7 @@
 #'     whales are spending below certain health thresholds, and 2)
 #'     \code{dfout} a 113 x 5 data frame containing the threshold
 #'     data at the level of the infidividual, i.e. not summarised like
-#'     in \cde{rfmthold}
+#'     in \code{rfmthold}
 #' \describe{
 #'   \item{gearInj}{The entanglement injury class of the animal. 
 #'       1 = Severe w/Gear; 2 = Moderate w/Gear; 3 = Severe no gear;
