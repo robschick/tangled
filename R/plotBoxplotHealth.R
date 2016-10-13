@@ -9,13 +9,15 @@
 #'     for both the reproductively active females and the 
 #'     \emph{non}-reproductively active females. These are the data for 
 #'     plotting
+#' @param \code{cval} a string controlling the size of the labels above the 
+#'     box plots. Default is 4.
 #' @return A \code{ggplot2} object for plotting
 #' @export     
 #' @examples 
 #' \dontrun{
 #' plotBoxplotHealth(dfLong, bsize)
 #' }
-plotBoxplotHealth <- function(dfLong, bsize){
+plotBoxplotHealth <- function(dfLong, bsize, cval = 4){
   # set up for labeling the box plots
   namevec = c('Unimpacted'=0, 'Minor No Gear'=6, 'Minor Gear'=4, 'Moderate No Gear'=5,
               'Moderate Gear'=2, 'Severe No Gear'=3, 'Severe Gear'=1)
@@ -43,7 +45,7 @@ plotBoxplotHealth <- function(dfLong, bsize){
     geom_boxplot(aes(fill = factor(status), group = paste(factor(gearInj), status)), outlier.shape=NA, notch = FALSE)+
     annotate('text', x = c(1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18,
                            1 + 3.82, 1 + 4.18, 1 + 4.82, 1 + 5.18, 1 + 5.82, 1 + 6.18), y = 25, 
-             label = plabel, cex = 5)+
+             label = plabel, cex = cval)+
     labs(y = 'Deviation From Population Health', x = 'Entanglement Category', fill = 'Reproductive Status')+
     scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 
                                 'Moderate\nNo Gear','Moderate\nGear', 
