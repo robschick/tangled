@@ -35,7 +35,7 @@
 #'     time frames. The second element is a data frame of censor times - simply
 #'     used to make tick marks of when the animal was removed from the study
 #'     via censoring.
-calcKMCurvesSevGen <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE){
+calcKMCurvesSevGen <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment, medProb = TRUE){
   
   medsurvdf <- kdpasurvldf
   nt <- dcut

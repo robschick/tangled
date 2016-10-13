@@ -37,7 +37,9 @@
 #' plotSurvGenderSeverity(kmlines, censTicks, 7)
 #' }
 plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment, legendLabs) {
-  
+  if(increment == 1) {yearEnd <- yearEnd * 12}
+  xlabvec <- 'Years Following End of Entanglement Injury'
+  if(increment == 1) {xlabvec <- 'Months Following End of Entanglement Injury'}
   plotdf <- as.data.frame(data.table::rbindlist(kmlines))
   plotdf$genderLab <- NA
   plotdf$genderLab[plotdf$gender == 'M'] <- 'Male'
@@ -51,20 +53,20 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment, legen
   cplotdf$newgroup <- paste(cplotdf$group, cplotdf$sev, sep = '.')
   
   p <- ggplot(data = plotdf, aes(interval, psurv, group = newgroup, colour = sev)) + 
-    # geom_step(aes(y = jitter(psurv, 5), group = newgroup), alpha = 0.15, colour = 'grey50') + 
+    # geom_step(aes(y = jitter(psurv, 5), group = newgroup), alpha = 0.15, colour = 'grey50') +
     geom_step(data = subset(plotdf, group == 'iter1')) +
     ylim(0, 1) + 
     geom_segment(data = subset(cplotdf, group == 'iter1'), 
                  aes(x = censMonth0 / increment, y = psurv, 
                      xend = censMonth0 / increment, yend = psurv + 0.015)) + 
-    labs(y = 'Survivorship', x = 'Years Following End of Entanglement Injury')+
+    labs(y = 'Survivorship', x = xlabvec)+
     theme_bw()+
-    theme(panel.grid.major = element_line(size = 1.25), panel.grid.minor = element_line(size = 1))+
     scale_y_continuous(expand = c(0, 0.05))+
     scale_colour_brewer(palette = 'Dark2', name = 'Entanglement\nInjury', labels = legendLabs)+
     theme(legend.position = c(.15, .15))+
     coord_cartesian(xlim = c(0, yearEnd))+
     facet_grid(. ~ genderLab)
   
+  if(increment == 1) {p <- p + scale_x_continuous(breaks = c(0, 12, 24, 36, 48, 60, 72))}
   return(p)
 }
