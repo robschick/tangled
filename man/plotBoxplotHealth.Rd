@@ -4,7 +4,7 @@
 \alias{plotBoxplotHealth}
 \title{Plot boxplots of health during entanglement and compare to unimpacted}
 \usage{
-plotBoxplotHealth(dfLong, bsize)
+plotBoxplotHealth(dfLong, bsize, cval = 4)
 }
 \arguments{
 \item{\code{bsize}}{a scalar indicating how big to make the labels}
@@ -13,6 +13,9 @@ plotBoxplotHealth(dfLong, bsize)
 for both the reproductively active females and the 
 \emph{non}-reproductively active females. These are the data for 
 plotting}
+
+\item{\code{cval}}{a string controlling the size of the labels above the 
+box plots. Default is 4.}
 }
 \value{
 A \code{ggplot2} object for plotting

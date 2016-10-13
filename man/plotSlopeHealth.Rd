@@ -4,7 +4,7 @@
 \alias{plotSlopeHealth}
 \title{Return the slope health plot as a \code{gridExtra} grob}
 \usage{
-plotSlopeHealth(dfout, dfn, dfMed, dfAsuml)
+plotSlopeHealth(dfout, dfn, dfMed, dfAsuml, aval = 0.5)
 }
 \arguments{
 \item{dfout}{A 579 by 11 data frame containing all the health and health anomaly information at three points}
@@ -12,6 +12,8 @@ plotSlopeHealth(dfout, dfn, dfMed, dfAsuml)
 \item{dfn}{A 6 by 2 data frame containing the number of entanglement events used in the plotting. This is used in the annotation.}
 
 \item{dfAsuml}{An 12 by 5 data frame that has the information need to make the bar plot of change during each of the two windows: entanglement and recovery}
+
+\item{aval}{A transparency value for plotting the lines; closer to 1 = more black.}
 }
 \value{
 A \code{gridExtra} element that plots the two plots
@@ -21,7 +23,7 @@ Return the slope health plot as a \code{gridExtra} grob
 }
 \examples{
 \dontrun{
-plotSlopeHealth(dfout, dfn, dfMed, dfAsuml)
+plotSlopeHealth(dfout, dfn, dfMed, dfAsuml, aval)
 }
 }
 

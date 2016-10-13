@@ -4,7 +4,7 @@
 \alias{plotSurvGenderSeverity}
 \title{Plot of Kaplan-Meier survival curve for all entangled whales.}
 \usage{
-plotSurvGenderSeverity(kmlines, censTicks, yearEnd, increment)
+plotSurvGenderSeverity(kmlines, censTicks, yearEnd, increment, legendLabs)
 }
 \arguments{
 \item{kmlines}{A list with \code{nboot} components that contains a data frame
@@ -20,14 +20,13 @@ the animal to be alive at the time modelling end.}
 \item{increment}{Scalar representing the temporal unit at which we're 
 showing survival.}
 
+\item{legendLabs}{Character vector to be used in plotting the legend.}
+
 \item{censticks}{A list with \code{nboot} components that contains a data frame
 in each component. The data frame contains information on when the animal
 is censored. The changes in eact iteration, and right now the function
 is set up to just plot the censored marks from the most probable censored
 year.}
-
-\item{increment}{Scalar representing the temporal unit at which we're 
-showing survival.}
 }
 \value{
 A ggplot2 object that can be used to create the output plot

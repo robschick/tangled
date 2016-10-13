@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ## Survival of Entangled Whales be Sex and Severity - Ship Struck Animals Removed
-Here we extend the previous analysis to look at survivorship of entangled whales who did not die as a result of being struck by a ship. We'll do this by backing them out of the data frames used to estimate survivorship. The list of animals to be exlcuded is:
+Here we extend the previous analysis to look at survivorship of entangled whales who did not die as a result of being struck by a ship. We'll do this by backing them out of the data frames used to estimate survivorship. The list of animals to be excluded is:
 
 * 1128
 * 1504
@@ -87,15 +87,15 @@ survdf <- calcpresdSurvdat(events, kdpasurvldf)
 Ok, the processing logic is identical to that above, but the functions differ in the sense that they split out the data by gender and severity. This will likely be the figure we use for the manuscript. I'm going to plot it without uncertainty here, and I'll stop the plotting at 6 years following entanglement.
 
 ```{r plotKMCurves, fig.width=8,fig.height=6}
-incVal <- 12
+incVal <- 1
 yearsOut <- 6
 tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
 p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal, legendLabs)
 p
 ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.pdf',
-       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+       path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
 ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.png',
-       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+       path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
 
 
