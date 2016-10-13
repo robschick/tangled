@@ -116,7 +116,7 @@ So let's make it. This is accomplished with one call:
 
 ```{r, fig.width=8, fig.height=6}
 library(gridExtra)
-pOut <- plotSlopeHealth(dfout, dfn, dfMed, dfAsuml)
+pOut <- plotSlopeHealth(dfout, dfn, dfMed, dfAsuml, aval = 0.1)
 pOut
 ggsave(plot = pOut, filename = 'slopeHealth.pdf', path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
 ggsave(plot = pOut, filename = 'slopeHealth.png', path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
