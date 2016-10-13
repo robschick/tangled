@@ -29,8 +29,8 @@ library(dplyr)
 library(lubridate)
 p <- winDiagram(anom, tangleOut, myName, egno = 1167)
 p
-ggsave(plot = p, filename = 'windowDiagram.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'pdf')
-ggsave(plot = p, filename = 'windowDiagram.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)  
+ggsave(plot = p, filename = 'windowDiagram.pdf', path = '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'pdf')
+ggsave(plot = p, filename = 'windowDiagram.png', path = '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)  
 ```
 
 However, that's not a completely satisfactory look at the data, so we're going to revise that somewhat. To do that let's build up the new plot with a few different components. The first is going to be a plot of the individual animal's health, along with the population level health, and some ancillary information about the timing of different entanglement events. 
