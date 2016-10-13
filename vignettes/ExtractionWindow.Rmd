@@ -23,6 +23,7 @@ Goal of this vignette is to describe in words, and diagrams, how we chose the wi
 Here we depict a sample extraction for one animal (in this case EGNo 1167).
 
 ```{r}
+rm(list = ls())
 library(ggplot2)
 library(tangled)
 library(dplyr)
@@ -106,7 +107,7 @@ p1 <- ggplot(data = hplot, aes(x = date, y = health))+
                xend = as.Date(tdatplot$recov12months[4]), 
                y = 5, yend = 5, colour = pal[2], size = 2)+
   theme_bw()+
-      theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
+      theme(plot.margin = unit(c(0.5, 1, 0, 0.5), 'line'))+
       theme(axis.text.y = element_text(size = base_size, hjust=1),
             axis.text.x = element_blank(),
             axis.ticks.x = element_blank(),
@@ -115,7 +116,7 @@ p1 <- ggplot(data = hplot, aes(x = date, y = health))+
         legend.text = element_text(size = base_size),
         legend.title = element_text(size = base_size),
         panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
-        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))#+      theme_bw()
+        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))
 
 p2 <- ggplot(hplot, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
@@ -124,24 +125,10 @@ p2 <- ggplot(hplot, aes(x = date, y = hanom, fill = pos)) +
       scale_x_date(minor_breaks = date_breaks(width = "1 year"), 
                limits = datelims)+
       annotate('text', x = datelims[1], y = 10, label = 'B)')+
-#       # Event 1
-#       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[2]), 
-#                xmax = as.Date(tdatplot$EndDateWindow[2]), 
-#                ymin = -25, ymax = 25, alpha = 0.4, fill = pal[3])+
-# #       annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[2]), 
-# #                xmax = as.Date(tdatplot$recov12months[2]), 
-# #                ymin = -25, ymax = 25, alpha = 0.4, fill = pal[2])+
-#       # Event 2
-#       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
-#                xmax = as.Date(tdatplot$EndDateWindow[4]), 
-#                ymin = -25, ymax = 25, alpha = 0.4, fill = pal[3])+
-#       annotate('rect', xmin = as.Date(tdatplot$EndDateWindow[4]), 
-#                xmax = as.Date(tdatplot$recov12months[4]), 
-#                ymin = -25, ymax = 25, alpha = 0.4, fill = pal[2])+
       lims(y = c(-25, 25))+
   theme_bw()+
       theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
-      theme(axis.text.y = element_text(size = base_size, hjust=1),
+      theme(axis.text.y = element_text(size = base_size - 4, hjust=1),
         axis.title.y = element_text(size = base_size, angle=90),
         legend.text = element_text(size = base_size),
         legend.title = element_text(size = base_size),
@@ -153,8 +140,9 @@ p2 <- ggplot(hplot, aes(x = date, y = hanom, fill = pos)) +
 Ok, lastly we need to make the facets for the individual events.
 
 ```{r}
-dotsize <- 3
-textsize <- 5
+dotsize <- 2
+textsize <- 4
+# Panel C
 p3 <- ggplot(hplotsub1, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
       labs(x = 'Year', y = 'Health Anomaly')+
@@ -162,11 +150,11 @@ p3 <- ggplot(hplotsub1, aes(x = date, y = hanom, fill = pos)) +
       annotate('text', x = as.Date(hplotsub1$date[1]), y = 20, label = 'C)')+
       # annotate('text', x = as.Date("1996-06-01", format = '%Y-%m-%d'), y = 20, label = 'C)')+
       annotate('point', x = as.Date(tdatplot$EndDateWindow[2]) - months(3), y = 14, size = dotsize)+
-      annotate('text', x = as.Date(tdatplot$EndDateWindow[2]) - months(3), y = 18, size = textsize, label = '1')+ 
+      annotate('text', x = as.Date(tdatplot$EndDateWindow[2]) - months(3), y = 19, size = textsize, label = 'P')+ 
       annotate('point', x = as.Date(tdatplot$EndDateWindow[2]), y = 14.5, size = dotsize)+
-      annotate('text', x = as.Date(tdatplot$EndDateWindow[2]), y = 18.5, size = textsize, label = '2a')+    
+      annotate('text', x = as.Date(tdatplot$EndDateWindow[2]), y = 19.5, size = textsize, label = 'S')+    
       annotate('point', x = as.Date(tdatplot$EndDateWindow[2] + months(12)), y = -8.5, size = dotsize)+
-      annotate('text', x = as.Date(tdatplot$EndDateWindow[2] + months(12)), y = -12, size = textsize, label = '3')+     
+      annotate('text', x = as.Date(tdatplot$EndDateWindow[2] + months(12)), y = -13, size = textsize, label = 'L')+     
       scale_x_date(minor_breaks = date_breaks(width = "1 year"))+
       lims(y = c(-22.5, 22.5))+
       theme(plot.margin = unit(c(0, 1, 0, 0.5), 'line'))+
@@ -178,22 +166,20 @@ p3 <- ggplot(hplotsub1, aes(x = date, y = hanom, fill = pos)) +
         panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
       theme_bw()
 
+# Panel E
 p4 <- ggplot(hplotsub2, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
       labs(x = 'Year', y = '')+
       guides(fill = 'none')+
-#       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
-#                xmax = as.Date(tdatplot$EndDateWindow[4]) + months(3), 
-#                ymin = -22, ymax = 22, alpha = 0.4, fill = pal[3])+
       annotate('text', x = as.Date(hplotsub2$date[1]), y = 20, label = 'E)')+
       annotate('point', x = as.Date(tdatplot$StartDateWindow[4]) - months(3), y = -20, size = dotsize)+
       annotate('point', x = as.Date(tdatplot$StartDateWindow[4]) + months(3), y = -17, size = dotsize)+    
       annotate('point', x = as.Date(tdatplot$EndDateWindow[4]), y = 3.5, size = dotsize)+
       annotate('point', x = as.Date(tdatplot$recov12months[4]), y = 7.25, size = dotsize)+
-      annotate('text', label = '1', x = as.Date(tdatplot$StartDateWindow[4]) - months(3), y = -16, size = textsize)+
-      annotate('text', label = '2a', x = as.Date(tdatplot$StartDateWindow[4]) + months(3), y = -13, size = textsize)+    
-      annotate('text', label = '2b', x = as.Date(tdatplot$EndDateWindow[4]), y = 7.5, size = textsize)+
-      annotate('text', label = '3', x = as.Date(tdatplot$recov12months[4]), y = 11.25, size = textsize)+
+      annotate('text', label = 'P', x = as.Date(tdatplot$StartDateWindow[4]) - months(3), y = -15, size = textsize)+
+      annotate('text', label = 'S', x = as.Date(tdatplot$StartDateWindow[4]) + months(3), y = -12, size = textsize)+    
+      annotate('text', label = 'G', x = as.Date(tdatplot$EndDateWindow[4]), y = 8.5, size = textsize)+
+      annotate('text', label = 'L', x = as.Date(tdatplot$recov12months[4]), y = 12.25, size = textsize)+
       scale_x_date(minor_breaks = date_breaks(width = "1 year"))+
       lims(y = c(-22.5, 22.5))+
       theme(plot.margin = unit(c(0, 5, 0, 0.5), 'line'))+
@@ -210,14 +196,14 @@ p4 <- ggplot(hplotsub2, aes(x = date, y = hanom, fill = pos)) +
 Now I'm going to add in the suggested changes from Amy Knowlton (7 June 2016), which basically are to take the lower two panels, and refactor them into 4 panels.
 
 ```{r}
-# Make panel d - as panel 3, but with just one point labeled.
+# Panel D - as panel 3, but with just one point labeled.
 p5 <- ggplot(hplotsub1, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
       labs(x = 'Year', y = 'Health Anomaly')+
       guides(fill = 'none')+
       annotate('text', x = as.Date(hplotsub1$date[1]), y = 20, label = 'D)')+
       annotate('point', x = as.Date(tdatplot$EndDateWindow[2]), y = 14.5, size = dotsize)+
-      annotate('text', x = as.Date(tdatplot$EndDateWindow[2]), y = 18.5, size = textsize, label = '2a')+    
+      annotate('text', x = as.Date(tdatplot$EndDateWindow[2]), y = 19.5, size = textsize, label = 'S')+    
       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[2]), 
                xmax = as.Date(tdatplot$EndDateWindow[2]), 
                ymin = 0, ymax = 20, alpha = 0.4, fill = pal[3])+
@@ -232,7 +218,7 @@ p5 <- ggplot(hplotsub1, aes(x = date, y = hanom, fill = pos)) +
         panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))+
       theme_bw()
 
-# make panel e - as panel 4, but with two points labeled
+# make panel F - as panel E, but with two points labeled
 p6 <- ggplot(hplotsub2, aes(x = date, y = hanom, fill = pos)) +
       geom_bar(stat = 'identity', position = 'identity', width = 40)+
       labs(x = 'Year', y = '')+
@@ -241,14 +227,10 @@ p6 <- ggplot(hplotsub2, aes(x = date, y = hanom, fill = pos)) +
       annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[4]), 
                xmax = as.Date(tdatplot$EndDateWindow[4]) + months(3), 
                ymin = -22, ymax = 22, alpha = 0.4, fill = pal[3])+
-      # annotate('point', x = as.Date(tdatplot$StartDateWindow[4]) - months(3), y = -20, size = 3)+
       annotate('point', x = as.Date(tdatplot$StartDateWindow[4]) + months(3), y = -17, size = dotsize)+    
       annotate('point', x = as.Date(tdatplot$EndDateWindow[4]), y = 3.5, size = dotsize)+
-      # annotate('point', x = as.Date(tdatplot$recov12months[4]), y = 7.25, size = 3)+
-        # annotate('text', label = '1', x = as.Date(tdatplot$StartDateWindow[4]) - months(3), y = -18, size = 6)+
-      annotate('text', label = '2a', x = as.Date(tdatplot$StartDateWindow[4]) + months(3), y = -13, size = textsize)+    
-      annotate('text', label = '2b', x = as.Date(tdatplot$EndDateWindow[4]), y = 7.5, size = textsize)+
-      # annotate('text', label = '3', x = as.Date(tdatplot$recov12months[4]), y = 9.25, size = 6)+
+      annotate('text', label = 'S', x = as.Date(tdatplot$StartDateWindow[4]) + months(3), y = -12, size = textsize)+    
+      annotate('text', label = 'G', x = as.Date(tdatplot$EndDateWindow[4]), y = 8.5, size = textsize)+
       scale_x_date(minor_breaks = date_breaks(width = "1 year"))+
       lims(y = c(-22.5, 22.5))+
       theme(plot.margin = unit(c(0, 5, 0, 0.5), 'line'))+
@@ -288,9 +270,9 @@ p <- grid.arrange(gA, gB, gC, gD, gE, gF,
              heights = c(0.3, 0.2, 0.5, 0.5))
 
 ggsave(plot = p, filename = 'extractionWindow.pdf',
-       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+       path = '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
 ggsave(plot = p, filename = 'extractionWindow.png',
-       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+       path = '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
 
 
