@@ -12,7 +12,7 @@
 #' }
 returnSurvdf <- function(survdf){
   
-  survSub <- distinct(survdf, EGNo)
+  survSub <- distinct(survdf, EGNo, .keep_all = TRUE)
    
 #   nrow(survSub)
 #   nrow(filter(survSub, censored == TRUE))
