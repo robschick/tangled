@@ -89,7 +89,7 @@ Ok, the processing logic is identical to that above, but the functions differ in
 ```{r plotKMCurves, fig.width=8,fig.height=6}
 incVal <- 1
 yearsOut <- 6
-tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
+tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1000, dcut, increment = incVal, medProb = FALSE)
 p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal, legendLabs)
 p
 ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.pdf',
