@@ -53,7 +53,7 @@ calcKMCurvesSevGen <- function(survdf, kdpasurvldf, nboot = 1, dcut, increment, 
     # sampled data along with the median survival data frame
     # which is input to the function:
     if (nb > 1) {
-      deathSamp <- getDeaths(deathyr, medProb = TRUE)
+      deathSamp <- getDeaths(deathyr, medProb = medProb)
       enew <- presDeadsurvdat(events, dcut, deathSamp)
       survdf <- rbind(enew, medsurvdf)  
     }
