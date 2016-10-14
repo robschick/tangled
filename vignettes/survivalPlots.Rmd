@@ -148,8 +148,8 @@ incVal <- 12
 yearsOut <- 6
 tmp <- calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
 p <- plotSurv(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal)
-ggsave(plot = p, filename = 'survivalAll.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf')
-ggsave(plot = p, filename = 'survivalAll.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+ggsave(plot = p, filename = 'survivalAll.pdf', path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf')
+ggsave(plot = p, filename = 'survivalAll.png', path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
 
 ## Survival of Entangled Whales be Sex and Severity
@@ -162,9 +162,9 @@ tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incV
 p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal, legendLabs)
 p
 ggsave(plot = p, filename = 'survivalGenderSeverity.pdf', 
-       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+       path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
 ggsave(plot = p, filename = 'survivalGenderSeverity.png', 
-       path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+       path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
 
 ## Statistical Tests
