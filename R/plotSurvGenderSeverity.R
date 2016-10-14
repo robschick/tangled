@@ -54,11 +54,12 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment, legen
   
   plotdf <- group_by(plotdf, interval, gender, sev) %>% 
     mutate(survlo = min(psurv, na.rm = TRUE),
+           meansurv = mean(psurv, na.rm = TRUE),
               survhi = max(psurv, na.rm = TRUE))
   
-  p <- ggplot(data = plotdf, aes(interval, psurv, group = newgroup, colour = sev)) + 
+  p <- ggplot(data = plotdf, aes(interval, psurv, group = newgroup)) + 
     # geom_step(aes(y = jitter(psurv, 5), group = newgroup), alpha = 0.15, colour = 'grey50') +
-    geom_ribbon(aes(x = interval, ymax = survhi, ymin = survlo), fill = 'grey50', alpha = 0.15, colour = NA)+
+    geom_ribbon(aes(x = interval, ymax = survhi, ymin = survlo, fill = sev), alpha = 0.15, colour = NA)+
     geom_step(data = subset(plotdf, group == 'iter1')) +
     ylim(0, 1) + 
     geom_segment(data = subset(cplotdf, group == 'iter1'), 
@@ -67,7 +68,8 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment, legen
     labs(y = 'Survivorship', x = xlabvec)+
     theme_bw()+
     scale_y_continuous(expand = c(0, 0.05))+
-    scale_colour_brewer(palette = 'Dark2', name = 'Entanglement\nInjury', labels = legendLabs)+
+    # scale_colour_brewer(palette = 'Dark2', name = 'Entanglement\nInjury', labels = legendLabs)+
+    scale_fill_brewer(palette = 'Dark2', name = 'Entanglement\nInjury', labels = legendLabs)+
     theme(legend.position = c(.15, .15))+
     coord_cartesian(xlim = c(0, yearEnd))+
     facet_grid(. ~ genderLab)
