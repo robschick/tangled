@@ -52,8 +52,13 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment, legen
   cplotdf$genderLab[cplotdf$gender == 'F'] <- 'Female'
   cplotdf$newgroup <- paste(cplotdf$group, cplotdf$sev, sep = '.')
   
+  plotdf <- group_by(plotdf, interval, gender, sev) %>% 
+    mutate(survlo = min(psurv, na.rm = TRUE),
+              survhi = max(psurv, na.rm = TRUE))
+  
   p <- ggplot(data = plotdf, aes(interval, psurv, group = newgroup, colour = sev)) + 
     # geom_step(aes(y = jitter(psurv, 5), group = newgroup), alpha = 0.15, colour = 'grey50') +
+    geom_ribbon(aes(x = interval, ymax = survhi, ymin = survlo), fill = 'grey50', alpha = 0.15, colour = NA)+
     geom_step(data = subset(plotdf, group == 'iter1')) +
     ylim(0, 1) + 
     geom_segment(data = subset(cplotdf, group == 'iter1'), 
