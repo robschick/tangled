@@ -57,14 +57,14 @@ plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment, legen
            meansurv = mean(psurv, na.rm = TRUE),
               survhi = max(psurv, na.rm = TRUE))
   
-  p <- ggplot(data = plotdf, aes(interval, psurv, group = newgroup)) + 
+  p <- ggplot(data = subset(plotdf, group == 'iter1'), aes(interval, psurv, group = newgroup)) + 
     # geom_step(aes(y = jitter(psurv, 5), group = newgroup), alpha = 0.15, colour = 'grey50') +
-    geom_ribbon(aes(x = interval, ymax = survhi, ymin = survlo, fill = sev), alpha = 0.15, colour = NA)+
-    geom_step(data = subset(plotdf, group == 'iter1')) +
+    geom_ribbon(aes(x = interval, ymax = survhi, ymin = survlo, fill = sev), alpha = 0.65, colour = NA)+
+    geom_step(data = subset(plotdf, group == 'iter1'), colour = 'grey30') +
     ylim(0, 1) + 
     geom_segment(data = subset(cplotdf, group == 'iter1'), 
                  aes(x = censMonth0 / increment, y = psurv, 
-                     xend = censMonth0 / increment, yend = psurv + 0.015)) + 
+                     xend = censMonth0 / increment, yend = psurv + 0.015), colour = 'grey30') + 
     labs(y = 'Survivorship', x = xlabvec)+
     theme_bw()+
     scale_y_continuous(expand = c(0, 0.05))+
