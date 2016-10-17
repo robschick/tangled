@@ -93,7 +93,7 @@ tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1000, dcut, increment = i
 p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal, legendLabs)
 p
 ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.pdf',
-       path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+       path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 11, height = 8, units = 'in')
 ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.png',
        path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
