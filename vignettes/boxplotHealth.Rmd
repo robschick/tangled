@@ -95,7 +95,7 @@ That shows some clear and significant patterns in the data. However, it doesn't 
 
 ```{r}
 library(broom)
-ft2 <- glm(hAnom ~ gfac + status + gfac:status, data = dfglm)
+ft2 <- glm(hAnom ~ gfac + gfac:status, data = dfglm)
 summary(ft2)
 knitr::kable(tidy(ft2), digits = 3)
 ```
