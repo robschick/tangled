@@ -29,18 +29,19 @@ plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml, aval = 0.5){
     facet_grid(gearLab ~ sevLab)+
     theme_bw()+
     theme(panel.grid.minor.x = element_blank())+
-    labs(x = '', y = 'Health Anomaly')
+    labs(x = '', y = 'Health Deviation')
 
-  p2 <- ggplot(dfAsuml, aes(x = fullLab, y = value, fill = variable)) +
-    geom_bar(stat = 'identity', position = 'dodge')+
-    coord_flip()+
-    scale_x_discrete(limits = rev(c("Minor No Gear", "Minor Gear", "Moderate No Gear", 
-                                  "Moderate Gear", "Severe No Gear",  "Severe Gear")))+
-    labs(x = '', y = 'Deviation From Population Health', fill = c('Time Period'))+
-    scale_fill_brewer(type = 'qual', palette = 'Dark2', direction = -1, 
-                    labels = c('Entanglement\nWindow', "'Recovery'\nWindow"))+
-    theme_bw() +
-    theme(legend.text = element_text(size = 6))
-
-  grid.arrange(p, p2, ncol=1, heights = c(0.7,  0.3))
+  # p2 <- ggplot(dfAsuml, aes(x = fullLab, y = value, fill = variable)) +
+  #   geom_bar(stat = 'identity', position = 'dodge')+
+  #   coord_flip()+
+  #   scale_x_discrete(limits = rev(c("Minor No Gear", "Minor Gear", "Moderate No Gear", 
+  #                                 "Moderate Gear", "Severe No Gear",  "Severe Gear")))+
+  #   labs(x = '', y = 'Deviation From Population Health', fill = c('Time Period'))+
+  #   scale_fill_brewer(type = 'qual', palette = 'Dark2', direction = -1, 
+  #                   labels = c('Entanglement\nTimeframe', "'Recovery'\nTimeframe"))+
+  #   theme_bw() +
+  #   theme(legend.text = element_text(size = 6))
+  # 
+  # grid.arrange(p, p2, ncol=1, heights = c(0.7,  0.3))
+  p
 }
