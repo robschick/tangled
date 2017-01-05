@@ -39,7 +39,7 @@
 plotSurvGenderSeverity <- function(kmlines, censTicks, yearEnd, increment, legendLabs) {
   if(increment == 1) {yearEnd <- yearEnd * 12}
   xlabvec <- 'Years Following End of Entanglement Injury'
-  if(increment == 1) {xlabvec <- 'Months Following End of Entanglement Injury'}
+  if(increment == 1) {xlabvec <- 'Months Following End of Entanglement Event'}
   plotdf <- as.data.frame(data.table::rbindlist(kmlines))
   plotdf$genderLab <- NA
   plotdf$genderLab[plotdf$gender == 'M'] <- 'Male'
