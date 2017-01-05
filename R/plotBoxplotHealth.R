@@ -47,7 +47,7 @@ plotBoxplotHealth <- function(dfLong, bsize, cval = 4){
     annotate('text', x = c(0 + 0.82, 0 + 1.18, 1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18,
                            1 + 3.82, 1 + 4.18, 1 + 4.82, 1 + 5.18, 1 + 5.82, 1 + 6.18), y = 25, 
              label = plabel, cex = cval)+
-    labs(y = 'Deviation From Population Health', x = 'Entanglement Category', fill = 'Reproductive Status')+
+    labs(y = 'Deviation From Population Health', x = 'Entanglement Impact Category', fill = 'Reproductive Status')+
     scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 
                                 'Moderate\nNo Gear','Moderate\nGear', 
                                 'Severe\nNo Gear', 'Severe\nGear'))+
