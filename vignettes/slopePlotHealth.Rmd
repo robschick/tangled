@@ -37,6 +37,44 @@ library(ggplot2)
 ```{r, fig.cap="Fig 1. Simulated change in health over two periods: 1) during the entanglement window; and 2) from the end of the window to 12 months out", fig.width=6, fig.height=4, echo=FALSE}
 library(RColorBrewer)
 mypal <- brewer.pal(3, 'Dark2')
+plot(c(0, 1, 2), c(10, -40, 10), type = 'n', ylim = c(-50, 30), axes = FALSE, ann = FALSE)
+lines(c(0, 1, 2), c(0, -6, 0))
+lines(c(0, 1, 2), c(0, -35, -25), lty = 2)
+axis(1, at = c(0, 1, 2), labels = c('Start', 'End', '12 Months'))
+axis(2, at = seq(-50, 30, 10), las = 1)
+abline(h = 0, col = "grey80")
+mtext('Estimated Health Anomaly', side = 2, line = 3)
+text(1.65, -33.5, 'Severe - Gear', cex = 0.8)
+text(1.65, -6, 'Minor - No Gear', cex = 0.8)
+lines(c(0, .995), c(25, 25), col = "#D95F02", lwd = 3)
+lines(c(1.005, 2), c(25, 25), col = "#1B9E77", lwd = 3)
+text(0.5, 27, 'Entanglement Timeframe')
+text(1.5, 27, 'Recovery Timeframe')
+```
+ 
+It's also possible (indeed likeley) that the whale with the severe entanglement would not recover as much as the animal with the Minor entanglement. There are two additions we can make to this figure. First, while the slope plot effectively shows the trend, it would be nice to have to magnitude of the change depicted on a side by side bar plot, as shown below:
+
+```{r, fig.cap="Fig 2. Simulated change in health over the same two periods noted in Figure 1. This time a barplot is used to provide a common visual frame of reference.", fig.width=6, fig.height=4, echo=FALSE}
+df <- data.frame(time = rep(0:1, 2), 
+                 health = c(75 - 68, abs(68 - 74), 75 - 55, abs(55 - 72)), 
+                 status = rep(c('Minor - No Gear', 'Severe - Gear'), 2))
+
+barplot(df$health, beside = TRUE, space = c(0, 0, 0.2, 0), 
+        names = c('Minor - No Gear\nDuring', 'Minor - No Gear\nRecovery', 
+                  'Severe - Gear\nDuring', 'Severe - Gear\nRecovery'),
+        col = c("#D95F02", "#1B9E77"), ylab = 'Absolute Health Deviation', border = NA)
+```
+
+```{r, echo=FALSE}
+par(mfrow = c(2, 1))
+pdf(file = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images/slopeHealthExplainer.pdf', width = 9, height = 6)
+
+df <- data.frame(time = rep(0:1, 2), 
+                 health = c(75 - 68, abs(68 - 74), 75 - 55, abs(55 - 72)), 
+                 status = rep(c('Minor - No Gear', 'Severe - Gear'), 2))
+# plot1
+library(RColorBrewer)
+mypal <- brewer.pal(3, 'Dark2')
 plot(c(0, 1, 2), c(75, 60, 74), type = 'n', ylim = c(50, 90), axes = FALSE, ann = FALSE)
 lines(c(0, 1, 2), c(75, 68, 74))
 lines(c(0, 1, 2), c(75, 55, 72), lty = 2)
@@ -47,19 +85,14 @@ text(1.65, 60, 'Severe - Gear', cex = 0.8)
 text(0.5, 76, 'Minor - No Gear', cex = 0.8)
 lines(c(0, .995), c(80, 80), col = "#D95F02", lwd = 3)
 lines(c(1.005, 2), c(80, 80), col = "#1B9E77", lwd = 3)
-text(0.5, 82, 'Entanglement Window')
-text(1.5, 82, 'Recovery Window')
-```
- 
-It's also possible (indeed likeley) that the whale with the severe entanglement would not recover as much as the animal with the Minor entanglement. There are two additions we can make to this figure. First, while the slope plot effectively shows the trend, it would be nice to have to magnitude of the change depicted on a side by side bar plot, as shown below:
-
-```{r, fig.cap="Fig 2. Simulated change in health over the same two periods noted in Figure 1. This time a barplot is used to provide a common visual frame of reference.", fig.width=6, fig.height=4, echo=FALSE}
-df <- data.frame(time = rep(0:1, 2), 
-                 health = c(75 - 68, abs(68 - 74), 75 - 55, abs(55 - 72)), 
-                 status = rep(c('Minor - No Gear', 'Severe - Gear'), 2))
-
-barplot(df$health, beside = TRUE, space = c(0, 0, 0.2, 0), names = c('MN_During', 'MN_Recov', 'SG_During', 'SG_Recov'),
-        col = c("#D95F02", "#1B9E77"), ylab = 'Health Anomaly', border = NA)
+text(0.5, 82, 'Entanglement Timeframe')
+text(1.5, 82, 'Recovery Timeframe')
+#plot 2
+barplot(df$health, beside = TRUE, space = c(0, 0, 0.2, 0), 
+        names = c('Minor - No Gear\nDuring', 'Minor - No Gear\nRecovery', 
+                  'Severe - Gear\nDuring', 'Severe - Gear\nRecovery'),
+        col = c("#D95F02", "#1B9E77"), ylab = 'Absolute Health Deviation', border = NA)
+dev.off()
 ```
 
 That simply provides a different way to view the data, and to facilitate comparison of health decline and recovery between the windows, as well as the amount of change in the different entanglement types.
