@@ -35,7 +35,7 @@ plotBoxplotHealth <- function(dfLong, bsize, cval = 4){
               nvals$Freq[nvals$Var1 == 'NonRepFem' & nvals$Var2 == 2], 
               nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 2], 
               nvals$Freq[nvals$Var1 == 'NonRepFem' & nvals$Var2 == 3], 
-              nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 2], 
+              nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 3], 
               nvals$Freq[nvals$Var1 == 'NonRepFem' & nvals$Var2 == 1], 
               nvals$Freq[nvals$Var1 == 'RepFem' & nvals$Var2 == 1])
   
