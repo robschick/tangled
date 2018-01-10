@@ -131,4 +131,30 @@ That's the basic idea for one event, but we'd need to repeat this for every even
 
 
 ## Impacts of Entanglement on Survival
-Ok, with survival the idea is similar -- we take an impacted animal and look at its survival curve in relationship to a randomly sampled reference individual. There are several different ways to do this. We'll start by looking at survivorship from the end of the entanglement until death or censorship.
+Ok, with survival the idea is similar -- we take an impacted animal and look at its survival curve in relationship to a randomly sampled reference individual. There are several different ways to do this. We'll start here by looking at probability of survival for the impacted animal during the entanglement event and compare that to a randomly selected animal. (Here, I'll use a different impacted animal from above because 1014 is an observed dead animal - hence no uncertainty in death.) We then build up the distribution of differences in survival and plot them. Again, as before, the selection of the reference case bears careful consideration. One first set of candidates could be the animals that were never entangled, but there could be year/animal mismatches here once we start sampling more. By this I mean with so few animals that bear no scars, we could end up with year and month combinations where we have an impacted animal, but no reference animal.
+
+Let's look at the posterior, which provides an estimated month the animal died in, and then we can use that to summarize survival.
+
+```{r}
+anID <- 1130
+idx <- which(ID == anID)
+deathyr[idx, 360:375] # this snippet shows the candidate months of death
+deathyr[idx, 360:375] / ng 
+svec <- 1 - cumsum(deathyr[idx, ] / ng) 
+svec[1:firstSight[idx]] <- 0
+svec
+```
+
+We need to sample from this posterior 1,000 times to build up the distribution of survival probabilities. 
+
+```{r}
+survMat <- matrix(NA, nrow = 1000, ncol = nt)
+
+for (i in 1:nrow(survMat)){
+  psamp <- deathyr[idx, ] / sum(deathyr[idx, ], na.rm = TRUE)
+  deaths <- which(rmultinom(1, 1, psamp) == 1)  
+  survMat[i, firstSight[idx]:(deaths - 1)] <- 1
+}
+
+```
+
