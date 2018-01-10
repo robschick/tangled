@@ -122,9 +122,13 @@ Once we've sampled from the posterior for each animal, then we have to examine t
 ```{r}
 hdiff <- himpMat - hrefMat
 hdiffsum <- rowMeans(hdiff)
-hist(hdiffsum, breaks = 30)
+hist(hdiffsum, breaks = 30, main = 'Difference Between Impacted and Healthy Animal', xlab = 'Health Units')
 ```
+
+In the above plot, 100% of the sampled cases were below zero--indicating a significant effect of this entanglement on health.
+
+That's the basic idea for one event, but we'd need to repeat this for every event and reproductive category and then make the summary plots for each one, i.e. a plot of health differences between severly entangled whales carrying gear and reference whales, between severly entangled whales without gear and reference whales, etc.
 
 
 ## Impacts of Entanglement on Survival
-
+Ok, with survival the idea is similar -- we take an impacted animal and look at its survival curve in relationship to a randomly sampled reference individual. There are several different ways to do this. We'll start by looking at survivorship from the end of the entanglement until death or censorship.
