@@ -1,0 +1,29 @@
+---
+title: "New Method for Analyzing Health and Survival"
+author: "Rob Schick"
+date: "January 10, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The purpose of this document is to provide an initial overview of the suggested changes for analyzing the health and survival output from the right whale health model. These changes were suggested by Jim in response to our two initial analyses. In the first one, we enumerated health anomaly (deviation of individual health from population average health) during the entanglement window for each of the different injury clasess, in order of increasing severity:
+
+1. Severe with gear
+2. Moderate with gear
+3. Severe without gear
+4. Moderate without gear
+5. Minor with gear
+6. Minor without gear
+
+(n.b. that we did this for both reproductively active females and non-reproductively active females.)
+
+To test if health in each of these different classes was different, we conducted a glmm(), which indicated significant differences. Jim's issue with this approach was that we are treating the posterior as data, and thereby conducting statistics on statistics. He suggests using and summarizing the posterior directly, and not as data. In each sub-section below I will outline the approach with some code and initial results. In each case, we will rely on different posterior distributions -- for health and for survival.
+
+## Health During Entanglement
+
+
+## Impacts of Entanglement on Survival
+
