@@ -14,8 +14,8 @@ The purpose of this document is to provide an initial overview of the suggested 
 1. Severe with gear
 2. Moderate with gear
 3. Severe without gear
-4. Moderate without gear
-5. Minor with gear
+4. Minor with gear
+5. Moderate without gear
 6. Minor without gear
 
 (n.b. that we did this for both reproductively active females and non-reproductively active females.)
@@ -23,6 +23,107 @@ The purpose of this document is to provide an initial overview of the suggested 
 To test if health in each of these different classes was different, we conducted a glmm(), which indicated significant differences. Jim's issue with this approach was that we are treating the posterior as data, and thereby conducting statistics on statistics. He suggests using and summarizing the posterior directly, and not as data. In each sub-section below I will outline the approach with some code and initial results. In each case, we will rely on different posterior distributions -- for health and for survival.
 
 ## Health During Entanglement
+We have posterior estimates of health for each animal - stored as moments (mean, sd) in two different matrices - each of which with dimension: rows == number of animals, and columns == number of months in the analysis. Whereas before we intersected this information with the entanglement window to extract and summarize health during the window, the proposal here is to draw monthly health information for the entangled animal for the duration of the window. This would give us one sample of the time series of health. We would draw from the posterior of health many times, say 1,000, in order to build up the estimate of health and uncertainty around that health during the entanglement period. 
+
+However, we need to answer the inferential question of whether/how the distribution of these health values differ from others. To do that, we would sample 1,000 health draws from a reference animal (note how we define that is an important question to be resolved). One example of a reference animal could be an animal that was:
+
+1. similar in age to the entangled animal
+2. same gender as the entangled animal
+3. alive 
+4. unentangled
+
+Using these two distributions of health, we would then construct and compare the distribution of differences between the entangled and unentangled whale. This would mean that for each animal in each class, we would have a distribution of differences in health of size 1,000. We would repeat this process for all animals, and then be able to quantify the difference between the entangled animals and the unimpacted animals.
+
+We start by choosing one entangled animal:
+
+```{r, echo=FALSE}
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/tangRepro.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthmean.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthsd.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/ID.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/firstSight.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/lastSight.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/myName.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/gender.rda")
+tangRepro[tangRepro$EGNo == 1014, ][2, ]
+```
+
+We can look at that health trace:
+
+```{r}
+anID <- 1014
+idx <- which(ID == anID)
+genAn <- gender[idx]
+plot(healthmean[idx, firstSight[idx]:lastSight[idx]], type = 'l')
+```
+
+### Impacted Animal
+The algorithm would look something like this. We start by extracting one entanglement event from this animal, and gathering the start and stop times, and then we use the two health moments to sample from the posterior. In particular, we'll make use of the ```swindmonyr``` and ```ewindmonyr``` time indices to pull out the moments. I'll do this from the second entanglement highlighted above.
+
+```{r healthDiffs}
+startWinDate <- year(tangRepro[tangRepro$EGNo == anID, ][2, 'StartDateWindow'])
+startW <- match(tangRepro[tangRepro$EGNo == anID, ][2, 'swindmonyr'], myName)
+endW <- match(tangRepro[tangRepro$EGNo == anID, ][2, 'ewindmonyr'], myName)
+hmomMean <- healthmean[idx, startW:endW]
+hmomSD <- healthsd[idx, startW:endW]
+```
+
+What do the moments look like?
+
+```{r}
+hmomMean
+hmomSD
+```
+
+Ok, we'll want to sample from this to build up the health posterior of the impacted animal. 
+
+```{r}
+library(mvtnorm)
+himpMat <- matrix(NA, 1000, ncol = length(hmomMean))
+himpMat[, 1] <- rnorm(1000, mean = hmomMean[1], sd = hmomSD[1])
+himpMat[, 2] <- rnorm(1000, mean = hmomMean[2], sd = hmomSD[2])
+himpMat[, 3] <- rnorm(1000, mean = hmomMean[3], sd = hmomSD[3])
+himpMat[, 4] <- rnorm(1000, mean = hmomMean[4], sd = hmomSD[4])
+head(himpMat)
+```
+
+### Reference Animal
+Ok, with that built for the entangled animal, we want to sample a reference animal. Here I'll choose based on the criteria noted above. 1014 is a Female, and her age class is Adult. We need to find an unentangled adult female during the same window (```r myName[startW]```, ```r myName[endW]```). This part of the algorithm is going to take some work and thought. The first set of possible animals to remove would be those that are entangled in the same time frame. We'll use the ```tangleOut``` data frame to remove these. To do this I'll remove any animals that were entangled in the same year.
+
+```{r}
+library(lubridate)
+candidates <- tangleOut[year(tangleOut$StartDateWindow) != startWinDate, 'EGNo']
+candidates <- candidates[gender[match(candidates, ID)] == 'F'] # candidate entangled females 
+ssub <- sights[sights$AgeClassCode == 'A' & sights$GenderCode == 'F' & sights$SightingYear == startWinDate, ]
+ocand <- unique(ssub$SightingEGNo)
+fincand <- ocand[ocand %in% candidates]
+fincand
+```
+
+With that list of possible animals, then we can choose one at random, and assemble its health.
+
+```{r}
+cID <- sample(fincand, 1)
+cidx <- which(ID == cID)
+
+hmomMean <- healthmean[cidx, startW:endW]
+hmomSD <- healthsd[cidx, startW:endW]
+hrefMat <- matrix(NA, 1000, ncol = length(hmomMean))
+hrefMat[, 1] <- rnorm(1000, mean = hmomMean[1], sd = hmomSD[1])
+hrefMat[, 2] <- rnorm(1000, mean = hmomMean[2], sd = hmomSD[2])
+hrefMat[, 3] <- rnorm(1000, mean = hmomMean[3], sd = hmomSD[3])
+hrefMat[, 4] <- rnorm(1000, mean = hmomMean[4], sd = hmomSD[4])
+```
+
+
+### Distribution of Differences
+Once we've sampled from the posterior for each animal, then we have to examine the differences.
+
+```{r}
+hdiff <- himpMat - hrefMat
+hdiffsum <- rowMeans(hdiff)
+hist(hdiffsum, breaks = 30)
+```
 
 
 ## Impacts of Entanglement on Survival
