@@ -152,12 +152,32 @@ for (j in seq_along(fincand)) {
     hrefMat[i, ] <- rnorm(length(hmomMean), hmomMean, hmomSD)
   }
 
-  hdiffList[[j]] <- himpMat - hrefMat
+  hdiffList[[j]] <- data.frame(refAn = cID, meanDiff = rowMeans(himpMat - hrefMat))
 }
   
 ```
 
+We need to create a data frame to make it a bit easier to plot.
 
+```{r}
+hdiffList2 = hdiffList[-which(sapply(hdiffList, is.null))]
+hdiffdf <- do.call(rbind.data.frame, hdiffList2)
+```
+
+With that built up, let's plot it.
+
+```{r}
+library(ggplot2)
+pall <- ggplot(hdiffdf, aes(meanDiff))+
+  geom_density()+
+  labs(title = 'All Animals Averaged Together')
+pall
+
+p <- ggplot(hdiffdf, aes(meanDiff, group = refAn))+
+  geom_density()+
+  labs(title = 'All Animals Plotted Separately')
+p
+```
 
 
 
