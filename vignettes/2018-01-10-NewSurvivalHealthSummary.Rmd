@@ -78,12 +78,13 @@ hmomSD
 Ok, we'll want to sample from this to build up the health posterior of the impacted animal. 
 
 ```{r}
-library(mvtnorm)
-himpMat <- matrix(NA, 1000, ncol = length(hmomMean))
-himpMat[, 1] <- rnorm(1000, mean = hmomMean[1], sd = hmomSD[1])
-himpMat[, 2] <- rnorm(1000, mean = hmomMean[2], sd = hmomSD[2])
-himpMat[, 3] <- rnorm(1000, mean = hmomMean[3], sd = hmomSD[3])
-himpMat[, 4] <- rnorm(1000, mean = hmomMean[4], sd = hmomSD[4])
+ndraw <- 1000
+himpMat <- matrix(NA, ndraw, ncol = length(hmomMean))
+
+for (i in seq_along(1:ndraw)){
+  himpMat[i, ] <- rnorm(4, hmomMean, hmomSD)
+}
+
 head(himpMat)
 ```
 
@@ -108,11 +109,13 @@ cidx <- which(ID == cID)
 
 hmomMean <- healthmean[cidx, startW:endW]
 hmomSD <- healthsd[cidx, startW:endW]
-hrefMat <- matrix(NA, 1000, ncol = length(hmomMean))
-hrefMat[, 1] <- rnorm(1000, mean = hmomMean[1], sd = hmomSD[1])
-hrefMat[, 2] <- rnorm(1000, mean = hmomMean[2], sd = hmomSD[2])
-hrefMat[, 3] <- rnorm(1000, mean = hmomMean[3], sd = hmomSD[3])
-hrefMat[, 4] <- rnorm(1000, mean = hmomMean[4], sd = hmomSD[4])
+ndraw <- 1:1000
+hrefMat <- matrix(NA, max(ndraw), ncol = length(hmomMean))
+
+for (i in seq_along(ndraw)){
+  hrefMat[i, ] <- rnorm(length(hmomMean), hmomMean, hmomSD)
+}
+
 ```
 
 
@@ -128,6 +131,34 @@ hist(hdiffsum, breaks = 30, main = 'Difference Between Impacted and Healthy Anim
 In the above plot, 100% of the sampled cases were below zero--indicating a significant effect of this entanglement on health.
 
 That's the basic idea for one event, but we'd need to repeat this for every event and reproductive category and then make the summary plots for each one, i.e. a plot of health differences between severly entangled whales carrying gear and reference whales, between severly entangled whales without gear and reference whales, etc.
+
+### Which is the Best Reference Animal
+One of the issues the above analysis raises, is how do we know that this is a good animal to compare against? What if we chose a different animal, that for whatever reason led to a skewed result. I'll try to investigate that by comparing the health of this impacted animals against a range of candidates to see what the results look like. Se we can repeat the above calculation, but now do it for all candidate animals, not just this one reference.
+
+```{r}
+hdiffList <- vector('list', length(fincand))
+ndraw <- 1:1000
+
+for (j in seq_along(fincand)) {
+  cID <- fincand[j]
+  cidx <- which(ID == cID)
+
+  hmomMean <- healthmean[cidx, startW:endW]
+  if(any(is.na(hmomMean))) next
+  hmomSD <- healthsd[cidx, startW:endW]
+  hrefMat <- matrix(NA, max(ndraw), ncol = length(hmomMean))
+
+  for (i in seq_along(ndraw)){
+    hrefMat[i, ] <- rnorm(length(hmomMean), hmomMean, hmomSD)
+  }
+
+  hdiffList[[j]] <- himpMat - hrefMat
+}
+  
+```
+
+
+
 
 
 ## Impacts of Entanglement on Survival
@@ -158,3 +189,4 @@ for (i in 1:nrow(survMat)){
 
 ```
 
+ 
