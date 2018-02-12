@@ -1,33 +1,13 @@
 ---
-title: "New Method for Analyzing Health and Survival"
+title: "Updated Method for Analyzing Survival in Entangled Right Whales"
 author: "Rob Schick"
-date: "January 10, 2018"
-output: html_document
+date: "February 11, 2018"
+output: word_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(lubridate)
-```
-
-The purpose of this document is to provide an initial overview of the suggested changes for analyzing the health and survival output from the right whale health model. These changes were suggested by Jim in response to our two initial analyses. In the first one, we enumerated health anomaly (deviation of individual health from population average health) during the entanglement window for each of the different injury clasess, in order of increasing severity:
-
-1. Severe with gear
-2. Moderate with gear
-3. Severe without gear
-4. Minor with gear
-5. Moderate without gear
-6. Minor without gear
-
-(n.b. that we did this for both reproductively active females and non-reproductively active females.)
-
-To test if health in each of these different classes was different, we conducted a glmm(), which indicated significant differences. Jim's issue with this approach was that we are treating the posterior as data, and thereby conducting statistics on statistics. He suggests using and summarizing the posterior directly, and not as data. In each sub-section below I will outline the approach with some code and initial results. In each case, we will rely on different posterior distributions -- for health and for survival.
-
-
-
-We start by choosing one entangled animal:
-
-```{r, echo=FALSE}
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/tangRepro.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/tangleOut.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthmean.rda")
@@ -37,10 +17,22 @@ load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/firstSi
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/lastSight.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/myName.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/gender.rda")
-
 ```
 
-We can look at that health trace:
+The purpose of this document is to provide an initial overview of the suggested changes for analyzing the survival output from the right whale model. Our goal is to summarize survival by injury -- in order of increasing severity:
+
+1. Severe with gear
+2. Moderate with gear
+3. Severe without gear
+4. Minor with gear
+5. Moderate without gear
+6. Minor without gear
+
+...and ideally to do this for both males and females. For now, we won't investigate the effects of age..
+
+Though we had previously done this using the the Kaplan-Meier apprach, Jim now feels that is the incorrect metric because you have to know who survived. I had previously implemented this using the right censoring approach, but he doesn't want to go that route. Instead, what he proposes is to build up comparisons between the posterior estimate of survival probability for survival of the entangled animal - following the end of the last event, and compare it to the mean survival probability of reference animals during the period from the end of the entanglement until the survival probability goes to 0.
+
+What does this look like? We start by choosing one entangled animal and examining it's health trace:
 
 ```{r}
 anID <- 1014
@@ -49,18 +41,18 @@ genAn <- gender[idx]
 plot(healthmean[idx, firstSight[idx]:lastSight[idx]], type = 'l')
 ```
 
-### Impacted Animal
-The algorithm would look something like this. We start by extracting one entanglement event from this animal, and gathering the start and stop times, and then we use the two health moments to sample from the posterior. In particular, we'll make use of the ```swindmonyr``` and ```ewindmonyr``` time indices to pull out the moments. I'll do this from the second entanglement highlighted above.
+The algorithm would look something like this.
+
+1. We start by extracting the last entanglement event from this animal
+2. From that we gather the stop times (in particular, we'll make use of the ```ewindmonyr``` time indices to pull out the moments)
+3. Calculate the survival probability from the end of entanglement until presumed death
 
 ```{r healthDiffs}
-startWinDate <- year(tangRepro[tangRepro$EGNo == anID, ][2, 'StartDateWindow'])
-startW <- match(tangRepro[tangRepro$EGNo == anID, ][2, 'swindmonyr'], myName)
 endW <- match(tangRepro[tangRepro$EGNo == anID, ][2, 'ewindmonyr'], myName)
 ```
 
-
 ### Reference Animal
-Ok, with that built for the entangled animal, we want to sample a reference animal. Here I'll choose based on the criteria noted above. 1014 is a Female, and her age class is Adult. We need to find an unentangled adult female during the same window (```r myName[startW]```, ```r myName[endW]```). This part of the algorithm is going to take some work and thought. The first set of possible animals to remove would be those that are entangled in the same time frame. We'll use the ```tangleOut``` data frame to remove these. To do this I'll remove any animals that were entangled in the same year.
+Ok, with that built for the entangled animal, we want to sample the reference animals - against which we'll compare survival. In practice that means all animals who are alive for the whole duration of the window and who are not entangled during that interval. We'll calculate the mean of all those animals for each of the months during the entanglement survival window. Let's say we have a an 8-month survival window when the entanglement declines from 1 to 0. During each of those months, we'll calculate the difference between the individual animal and the reference class. Each of these animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category.
 
 ```{r}
 load(file = 'data-raw/eg_203_ng_50000_BIG_25000_BIG_25000.rdata')
@@ -151,20 +143,26 @@ deathyr[idx, 360:375] # this snippet shows the candidate months of death
 round(deathyr[idx, 360:375] / ng, 4)
 svec <- 1 - cumsum(deathyr[idx, ] / ng) 
 svec[1:firstSight[idx]] <- 0
-plot(svec)
+# plot(svec)
+
+test <- round(svec[360:375], 4)
+testVar <- test * (1 - test)
+plot(test, type = 'l', ylab = 'Survival Probability', xlab = 'Months Following Last Entanglement')
+lines(test + testVar, lty = 2)
+lines(test - testVar, lty = 2)
 ```
 
-We need to sample from this posterior 1,000 times to build up the distribution of survival probabilities. 
+That represents the survival with uncertainty for one animal between the time of the last entanglement and when survival probability goes to 0. We need to sample from this posterior 1,000 times to build up the distribution of survival probabilities. And then take the difference between that and the survival probabilities of the reference animals. First the entangled whale:
 
 ```{r}
-survMat <- matrix(NA, nrow = 1000, ncol = nt)
+probs <- test
+survMat <- matrix(NA, nrow = 1000, ncol = length(probs))
 
-for (i in 1:nrow(survMat)){
-  psamp <- deathyr[idx, ] / sum(deathyr[idx, ], na.rm = TRUE)
-  deaths <- which(rmultinom(1, 1, psamp) == 1)  
-  survMat[i, firstSight[idx]:(deaths - 1)] <- 1
+for(i in 1:nrow(survMat)) {
+  survMat[i, ] <- rbinom(prob = probs, n = length(probs), size = 1)
 }
 
+# pvec <- apply(survMat, 2, mean)
 ```
 
- 
+Next, we find the reference animmals, and as above, build up the survival probabilities. Then we can subtract them to get the distribution of differences. 
