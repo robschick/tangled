@@ -8,15 +8,8 @@ output: word_document
 ```{r setup, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(lubridate)
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/tangRepro.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/tangleOut.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthmean.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthsd.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/ID.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/firstSight.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/lastSight.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/myName.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/gender.rda")
+library(dplyr)
+library(tangled)
 ```
 
 The purpose of this document is to provide an initial overview of the suggested changes for analyzing the survival output from the right whale model. Our goal is to summarize survival by injury -- in order of increasing severity:
@@ -32,37 +25,91 @@ The purpose of this document is to provide an initial overview of the suggested 
 
 Though we had previously done this using the the Kaplan-Meier apprach, Jim now feels that is the incorrect metric because you have to know who survived. I had previously implemented this using the right censoring approach, but he doesn't want to go that route. Instead, what he proposes is to build up comparisons between the posterior estimate of survival probability for survival of the entangled animal - following the end of the last event, and compare it to the mean survival probability of reference animals during the period from the end of the entanglement until the survival probability goes to 0.
 
-What does this look like? We start by choosing one entangled animal and examining it's health trace:
-
-```{r}
-anID <- 1014
-idx <- which(ID == anID)
-genAn <- gender[idx]
-plot(healthmean[idx, firstSight[idx]:lastSight[idx]], type = 'l')
-```
-
 The algorithm would look something like this.
 
 1. We start by extracting the last entanglement event from this animal
-2. From that we gather the stop times (in particular, we'll make use of the ```ewindmonyr``` time indices to pull out the moments)
-3. Calculate the survival probability from the end of entanglement until presumed death
+2. From that we gather the time information corresponding to the end of the window
+3. Calculate the survival probability from the end of entanglement window until presumed death
 
-```{r healthDiffs}
-endW <- match(tangRepro[tangRepro$EGNo == anID, ][2, 'ewindmonyr'], myName)
+We start by assembling and viewing a data frame of all of the last entanglement event for each animal:
+
+```{r lastEvents}
+tangEvents <- tangleOut %>% 
+  group_by(EGNo) %>% 
+  # summarise(nevents = max(EventNo))
+  filter(EventNo == max(EventNo)) %>% 
+  arrange(EGNo)
 ```
 
-### Reference Animal
-Ok, with that built for the entangled animal, we want to sample the reference animals - against which we'll compare survival. In practice that means all animals who are alive for the whole duration of the window and who are not entangled during that interval. We'll calculate the mean of all those animals for each of the months during the entanglement survival window. Let's say we have a an 8-month survival window when the entanglement declines from 1 to 0. During each of those months, we'll calculate the difference between the individual animal and the reference class. Each of these animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category.
+For the paper, we also excluded animals that were ship struck, or had severe prop scars. This list is below:
 
 ```{r}
-load(file = 'data-raw/eg_203_ng_50000_BIG_25000_BIG_25000.rdata')
-candidates <- tangleOut[year(tangleOut$StartDateWindow) != startWinDate, 'EGNo']
-candidates <- candidates[gender[match(candidates, ID)] == 'F'] # candidate entangled females 
-ssub <- sights[sights$AgeClassCode == 'A' & sights$GenderCode == 'F' & sights$SightingYear == startWinDate, ]
+exclude <- c(1004, 1006, 1014, 1045, 1128, 1223, 1267, 1308, 1504, 1623, 1907, 1909, 2143, 2150, 2220, 2250, 2404, 2425, 2450, 2617, 2820, 3508, 3522, 3853)
+tangSub <- tangEvents %>% 
+  filter(!(EGNo %in% exclude))
+```
+
+
+## Entangled Animal
+We'll start with the first animal to illustrate the algorithm; once complete we'll run it for all animals. 
+
+```{r}
+event1 <- tangSub[1, ]
+event1
+```
+
+This particular animal had one event with a very long possible window. We shortened that to be approximately 4 months: 
+
+* Start of window: ```r event1$StartDateWindow```
+* End of window: ```r event1$EndDateWindow```
+
+We need to find its survival probability over that window:
+
+```{r}
+idx <- which(ID == event1$EGNo)
+# deathyr[idx, ] 
+svec <- 1 - cumsum(deathyr[idx, ] / ng) 
+svec[1:firstSight[idx]] <- NA
+# plot(svec)
+
+```
+
+Now we want to define the window and view the survival probability over that window.
+
+```{r}
+w <- which(deathyr[idx, ] > 0)
+w1 <- min(w)
+w2 <- max(w)
+theta <- svec[(w1 - 1):w2]
+testVar <- theta * (1 - theta)
+plot(theta, type = 'l', ylab = 'Survival Probability', 
+     xlab = 'Months Following End of Entanglement',
+     main = paste0("Sighting EGNo: ", event1$EGNo))
+lines(theta + testVar, lty = 2)
+lines(theta - testVar, lty = 2)
+```
+
+
+## Reference Animal
+Ok, with that built for the entangled animal, we want to sample the reference animals - against which we'll compare survival. In practice that means all animals who are alive for the whole duration of the window and who are not entangled during that interval. We'll summarize the mean survival of all those animals for each of the months during the entanglement survival window. Let's say we have a an 8-month survival window when the entanglement declines from 1 to 0. During each of those months, we'll calculate the difference in survival between the individual animal and the reference class. Each of these animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category. Note that we will only compare females to females, and males to males; specifically I mean for an entangled female, the reference class will be comprised of all females.
+
+```{r}
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data-raw/eg_203_ng_50000_BIG_25000_BIG_25000.rdata")
+ecand <- tangleOut[year(tangleOut$StartDateWindow) != endWinDate, 'EGNo']
+ecand <- unique(ecand[gender[match(ecand, ID)] == 'F']) 
+ssub <- sights[sights$GenderCode == 'F' & sights$SightingYear == endWinDate, ]
 ocand <- unique(ssub$SightingEGNo)
-fincand <- ocand[ocand %in% candidates]
+fincand <- ocand[!(ocand %in% ecand)]
 fincand
 ```
+
+The processing logic of the previous code block is as follows:
+
+1. load in a completed run of the PCAD model
+2. Find animals that a) are not entangled during the year we are examining; and b) are the same sex (this is the ```ecand``` vector)
+3. From the original sightings data, find all females that were seen in the year we are examining (```ssub```). (Note this is restrictive; we could expand this to all females assumed alive.)
+4. Pare down the sightings data to just have a vector of individual ```SightingEGNo``` values (```ocand```)
+5. Find a final candidate list of animals seen that year who were not entangled (```fincand```)
 
 With that list of possible animals, then we can choose one at random, and assemble its health.
 
@@ -165,4 +212,11 @@ for(i in 1:nrow(survMat)) {
 # pvec <- apply(survMat, 2, mean)
 ```
 
-Next, we find the reference animmals, and as above, build up the survival probabilities. Then we can subtract them to get the distribution of differences. 
+Next, we find the reference animmals, and as above, build up the survival probabilities. Then we can subtract them to get the distribution of differences. For reference, we'll start with the candidates that we identified above. We need to get the correct date/times selected as well to make sure the comparisons are valid. By this I mean that if our window for the entangled animal is January through July of 2000, then we need to select these times for candidate whales.
+
+```{r candidatePsurv}
+canSurv <- matrix(data = NA, nrow = 1000, ncol = fincand)
+
+
+```
+
