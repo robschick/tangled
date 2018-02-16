@@ -11,6 +11,7 @@ library(lubridate)
 library(dplyr)
 library(tangled)
 library(tidyr)
+library(purrr)
 ```
 
 The purpose of this document is to provide an initial overview of the suggested changes for analyzing the survival output from the right whale model. Our goal is to summarize survival by injury -- in order of increasing severity:
@@ -87,10 +88,36 @@ lines(theta - testVar, lty = 2)
 ```
 
 ## Survival Dataframe
-Let's loop over animals and compile a data frame with rows for each entangled individual; since the time windows will change, I'll keep those in a list column.
+Let's iterate over animal-specific events and compile a data frame with rows for each entangled individual; since the time windows will change, I'll keep the survival probabilities in a list column.
+
+```{r}
+getSurv <- function(EGNo){
+  idx <- which(ID == EGNo)
+  svec <- 1 - cumsum(deathyr[idx, ] / ng) 
+  svec[1:firstSight[idx]] <- NA
+  w <- which(deathyr[idx, ] > 0)
+  w1 <- min(w)
+  w2 <- max(w)
+  theta <- svec[(w1 - 1):w2]
+  theta
+}
+
+getSurvvar <- function(theta){
+  testVar <- theta * (1 - theta)
+  testVar
+}
+
+tangSub$svals <- NA
+tangSub$svar <- NA
+for(i in 1:nrow(tangSub)){
+  tangSub$svals[i] <- list(getSurv(tangSub$EGNo[i]))
+  tangSub$svar[i] <- list(getSurvvar(unlist(tangSub$svals[i])))
+}
+```
+
 
 ## Reference Animal
-Ok, with that built for the entangled animal, we want to sample the reference animals - against which we'll compare survival. In practice that means all animals who are alive for the whole duration of the window and who are not entangled during that interval. We'll summarize the mean survival of all those animals for each of the months during the entanglement survival window. Let's say we have a an 8-month survival window when the entanglement declines from 1 to 0. During each of those months, we'll calculate the difference in survival between the individual animal and the reference class. Each of these animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category. Note that we will only compare females to females, and males to males; specifically I mean for an entangled female, the reference class will be comprised of all females.
+Ok, with that built for the entangled animals, we want to sample the reference animals - against which we'll compare survival. In practice that means all animals who are alive for the whole duration of the window and who are not entangled during that interval. We'll summarize the mean survival of all those animals for each of the months during the entanglement survival window. Let's say we have a an 8-month survival window when the entanglement declines from 1 to 0. During each of those months, we'll calculate the difference in survival between the individual animal and the reference class. Each of these animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category. Note that we will only compare females to females, and males to males; specifically I mean for an entangled female, the reference class will be comprised of all females.
 
 ```{r}
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data-raw/eg_203_ng_50000_BIG_25000_BIG_25000.rdata")
