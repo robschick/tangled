@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
 ```
 
 The purpose of this document is to provide an initial overview of the suggested changes for analyzing the health and survival output from the right whale health model. These changes were suggested by Jim in response to our two initial analyses. In the first one, we enumerated health anomaly (deviation of individual health from population average health) during the entanglement window for each of the different injury clasess, in order of increasing severity:
@@ -38,6 +39,7 @@ We start by choosing one entangled animal:
 
 ```{r, echo=FALSE}
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/tangRepro.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/tangleOut.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthmean.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthsd.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/ID.rda")
@@ -92,7 +94,7 @@ head(himpMat)
 Ok, with that built for the entangled animal, we want to sample a reference animal. Here I'll choose based on the criteria noted above. 1014 is a Female, and her age class is Adult. We need to find an unentangled adult female during the same window (```r myName[startW]```, ```r myName[endW]```). This part of the algorithm is going to take some work and thought. The first set of possible animals to remove would be those that are entangled in the same time frame. We'll use the ```tangleOut``` data frame to remove these. To do this I'll remove any animals that were entangled in the same year.
 
 ```{r}
-library(lubridate)
+load(file = 'data-raw/eg_203_ng_50000_BIG_25000_BIG_25000.rdata')
 candidates <- tangleOut[year(tangleOut$StartDateWindow) != startWinDate, 'EGNo']
 candidates <- candidates[gender[match(candidates, ID)] == 'F'] # candidate entangled females 
 ssub <- sights[sights$AgeClassCode == 'A' & sights$GenderCode == 'F' & sights$SightingYear == startWinDate, ]
@@ -190,10 +192,10 @@ Let's look at the posterior, which provides an estimated month the animal died i
 anID <- 1130
 idx <- which(ID == anID)
 deathyr[idx, 360:375] # this snippet shows the candidate months of death
-deathyr[idx, 360:375] / ng 
+round(deathyr[idx, 360:375] / ng, 4)
 svec <- 1 - cumsum(deathyr[idx, ] / ng) 
 svec[1:firstSight[idx]] <- 0
-svec
+plot(svec)
 ```
 
 We need to sample from this posterior 1,000 times to build up the distribution of survival probabilities. 
