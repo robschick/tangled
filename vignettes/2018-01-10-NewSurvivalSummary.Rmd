@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(lubridate)
 library(dplyr)
 library(tangled)
+library(tidyr)
 ```
 
 The purpose of this document is to provide an initial overview of the suggested changes for analyzing the survival output from the right whale model. Our goal is to summarize survival by injury -- in order of increasing severity:
@@ -36,7 +37,6 @@ We start by assembling and viewing a data frame of all of the last entanglement 
 ```{r lastEvents}
 tangEvents <- tangleOut %>% 
   group_by(EGNo) %>% 
-  # summarise(nevents = max(EventNo))
   filter(EventNo == max(EventNo)) %>% 
   arrange(EGNo)
 ```
@@ -67,11 +67,8 @@ We need to find its survival probability over that window:
 
 ```{r}
 idx <- which(ID == event1$EGNo)
-# deathyr[idx, ] 
 svec <- 1 - cumsum(deathyr[idx, ] / ng) 
 svec[1:firstSight[idx]] <- NA
-# plot(svec)
-
 ```
 
 Now we want to define the window and view the survival probability over that window.
@@ -89,6 +86,8 @@ lines(theta + testVar, lty = 2)
 lines(theta - testVar, lty = 2)
 ```
 
+## Survival Dataframe
+Let's loop over animals and compile a data frame with rows for each entangled individual; since the time windows will change, I'll keep those in a list column.
 
 ## Reference Animal
 Ok, with that built for the entangled animal, we want to sample the reference animals - against which we'll compare survival. In practice that means all animals who are alive for the whole duration of the window and who are not entangled during that interval. We'll summarize the mean survival of all those animals for each of the months during the entanglement survival window. Let's say we have a an 8-month survival window when the entanglement declines from 1 to 0. During each of those months, we'll calculate the difference in survival between the individual animal and the reference class. Each of these animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category. Note that we will only compare females to females, and males to males; specifically I mean for an entangled female, the reference class will be comprised of all females.
