@@ -48,6 +48,9 @@ For the paper, we also excluded animals that were ship struck, or had severe pro
 exclude <- c(1004, 1006, 1014, 1045, 1128, 1223, 1267, 1308, 1504, 1623, 1907, 1909, 2143, 2150, 2220, 2250, 2404, 2425, 2450, 2617, 2820, 3508, 3522, 3853)
 tangSub <- tangEvents %>% 
   filter(!(EGNo %in% exclude))
+
+tangleOutSub <- tangleOut %>% 
+  filter(!(EGNo %in% exclude))
 ```
 
 
@@ -147,11 +150,11 @@ The logic in the next block is that we define indices for the start and stop of 
 ```{r}
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data-raw/eg_203_ng_50000_BIG_25000_BIG_25000.rdata")
 # Define Ranges of Entanglement for Each Animal
-tangleOut$sidx <- match(tangleOut$smonyr, myName)
-tangleOut$eidx <- match(tangleOut$ewindmonyr, myName) 
-tangleOut$range <- NA
-for(i in seq_along(tangleOut$EGNo)){
-  tangleOut$range[i] <- list(as.integer(tangleOut[i, 'sidx']):as.integer(tangleOut[i, 'eidx']))
+tangleOutSub$sidx <- match(tangleOutSub$smonyr, myName)
+tangleOutSub$eidx <- match(tangleOutSub$ewindmonyr, myName) 
+tangleOutSub$range <- NA
+for(i in seq_along(tangleOutSub$EGNo)){
+  tangleOutSub$range[i] <- list(as.integer(tangleOutSub[i, 'sidx']):as.integer(tangleOutSub[i, 'eidx']))
 }
 ```
 
@@ -159,7 +162,8 @@ With those established, then we need to remove any of the reference animals from
 
 ```{r}
 cand <- vector('list', max(seq_along(tangSub$EGNo)))
-possAn <- ID[!(ID %in% unique(tangleAll$EGNo))]
+possAn <- ID[!(ID %in% unique(tangleOutSub$EGNo))]
+possAn <- possAn[!(possAn %in% exclude)]
 possAnF <- possAn[gender[match(possAn, ID)] == 'F']
 possAnM <- possAn[gender[match(possAn, ID)] == 'M']
 
@@ -171,14 +175,14 @@ for(i in seq_along(tangSub$EGNo)) {
   candSub <- numeric(0)
   
   # So we can find possible reference animals that are not currently entangled
-  for (j in seq_along(tangleOut)) {
+  for (j in seq_along(tangleOutSub)) {
     
-    refGen <- gender[which(ID == as.integer(tangleOut[j, "EGNo"]))]
+    refGen <- gender[which(ID == as.integer(tangleOutSub[j, "EGNo"]))]
     if(candGen != refGen) next() # cuz I only want the same gender
-    range1 <- unlist(tangleOut[j, 'range'])
+    range1 <- unlist(tangleOutSub[j, 'range'])
     
     if (!any(range1 %in% entRng)) {
-      candSub <- c(candSub, tangleOut$EGNo[j])
+      candSub <- c(candSub, tangleOutSub$EGNo[j])
     }
     
   }
@@ -217,12 +221,27 @@ To recap, each element of the ```cand``` list object is a set of possible candid
 Now we have the data indices we need, and can proceed to building up $Z$,
 
 ### Summary of Survival
-
-With that list of possible animals, then we can choose one at random, and assemble its health.
+For each animal's last entanglement, we can now build up a data structure containing the two $Y$ distributions.
 
 ```{r}
-cID <- sample(fincand, 1)
-cidx <- which(ID == cID)
+library(matrixStats)
+tangSub <- data.frame(tangSub)
+yrefMat <- vector('list', length(cand))
+for (i in seq_along(tangSub$EGNo)){
+  range1 <- tangSub[i, 'sidx']:tangSub[i, 'eidx']
+  refAns <- cand[[i]]
+  refparams <- matrix(NA, nrow = length(refAns), ncol = length(range1))
+  
+  for (j in seq_along(refAns)){
+    idx <- which(ID == refAns[j])
+    svec <- 1 - cumsum(deathyr[idx, ] / ng) 
+    svec[1:firstSight[idx]] <- NA
+    theta <- svec[range1]
+    refparams[j, ] <- theta
+  }
+  yrefMat[[i]] <- colMeans(refparams, na.rm = TRUE)
+}
+
 
 ```
 
