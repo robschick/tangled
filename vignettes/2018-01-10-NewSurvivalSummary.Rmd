@@ -129,7 +129,7 @@ Ok, with that built for the entangled animals, we want to sample the reference a
 1. alive for the whole duration of the window we defined for each individual entanglement window _and_ 
 2. who are themselves not entangled during that same interval. 
 
-We'll then summarize the mean survival of all those animals for each of the months during the entanglement survival window. Finally to build up the distribution of differences we'll sample from two binomials and take the differences. Mathematically, 
+We'll then summarize the mean survival of all those animals for each of the months during the entanglement survival window. Finally to build up the distribution of differences $Z$ we'll sample from two binomials and take the differences. Mathematically, 
 
 \[
 Y_1 \sim Bin(\theta_{ent})\\
@@ -159,6 +159,10 @@ With those established, then we need to remove any of the reference animals from
 
 ```{r}
 cand <- vector('list', max(seq_along(tangSub$EGNo)))
+possAn <- ID[!(ID %in% unique(tangleAll$EGNo))]
+possAnF <- possAn[gender[match(possAn, ID)] == 'F']
+possAnM <- possAn[gender[match(possAn, ID)] == 'M']
+
 for(i in seq_along(tangSub$EGNo)) {
   
   # to find range of entangled animal's survival window:
@@ -166,6 +170,7 @@ for(i in seq_along(tangSub$EGNo)) {
   candGen <- gender[which(ID == as.integer(tangSub[i, "EGNo"]))]
   candSub <- numeric(0)
   
+  # So we can find possible reference animals that are not currently entangled
   for (j in seq_along(tangleOut)) {
     
     refGen <- gender[which(ID == as.integer(tangleOut[j, "EGNo"]))]
@@ -178,27 +183,40 @@ for(i in seq_along(tangSub$EGNo)) {
     
   }
   
-  cand[[i]] <- unique(candSub)
+  # So we can find possible reference animals who have never been entangled &
+  # alive during the relevant time
+  psub <- numeric(0)
+  
+  # to make the matching smaller in the for loop, i.e. avoid matching 
+  # males if we only want females
+  if (candGen == 'F') {
+    pvec = possAnF 
+  } else {
+    pvec = possAnM
+  }
+  
+  for (k in seq_along(pvec)) {
+    idx <- which(ID == pvec[k])
+    prange <- firstSight[idx]:lastSight[idx]
+    
+    if (any(prange %in% entRng)) {
+      psub <- c(psub, pvec[k])
+    }
+  }
+  
+  cand[[i]] <- unique(c(candSub, psub))
   
 }
 ```
 
+To recap, each element of the ```cand``` list object is a set of possible candidate reference animals. The animals in each element are of the same gender and satisfy one of two conditions: 
 
+1. they have been entangled, but are not currently entangled (current refers to the reference animal)
+2. the have never been entangled, but are alive at the same time as the reference animal
 
-```{r}
-ssub <- sights[sights$GenderCode == 'F' & sights$SightingYear == endWinDate, ]
-ocand <- unique(ssub$SightingEGNo)
-fincand <- ocand[!(ocand %in% ecand)]
-fincand
-```
+Now we have the data indices we need, and can proceed to building up $Z$,
 
-The processing logic of the previous code block is as follows:
-
-1. load in a completed run of the PCAD model
-2. Find animals that a) are not entangled during the year(s) we are examining; and b) are the same sex (this is the ```ecand``` vector)
-3. From the original sightings data, find all females that were seen in the year we are examining (```ssub```). (Note this is restrictive; we could expand this to all females assumed alive.)
-4. Pare down the sightings data to just have a vector of individual ```SightingEGNo``` values (```ocand```)
-5. Find a final candidate list of animals seen that year who were not entangled (```fincand```)
+### Summary of Survival
 
 With that list of possible animals, then we can choose one at random, and assemble its health.
 
