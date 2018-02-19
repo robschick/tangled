@@ -42,15 +42,19 @@ tangEvents <- tangleOut %>%
   arrange(EGNo)
 ```
 
-For the paper, we also excluded animals that were ship struck, or had severe prop scars. This list is below:
+For the paper, we also excluded animals that were ship struck, or had severe prop scars. Here I also add in the known dead animals. Whether or not to include/exlcude these is a point of discussion. 
 
 ```{r}
 exclude <- c(1004, 1006, 1014, 1045, 1128, 1223, 1267, 1308, 1504, 1623, 1907, 1909, 2143, 2150, 2220, 2250, 2404, 2425, 2450, 2617, 2820, 3508, 3522, 3853)
+
+knownDead <- deadTable$SightingEGNo
 tangSub <- tangEvents %>% 
-  filter(!(EGNo %in% exclude))
+  filter(!(EGNo %in% exclude)) %>% 
+  filter(!(EGNo %in% knownDead))
 
 tangleOutSub <- tangleOut %>% 
-  filter(!(EGNo %in% exclude))
+  filter(!(EGNo %in% exclude)) %>% 
+  filter(!(EGNo %in% knownDead))
 ```
 
 
