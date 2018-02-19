@@ -95,10 +95,10 @@ getSurv <- function(EGNo, tangSub){
   idx <- which(ID == EGNo)
   svec <- 1 - cumsum(deathyr[idx, ] / ng) 
   svec[1:firstSight[idx]] <- NA
-  w1 <- myName[myName == tangSub[i, 'ewindmonyr']]
+  w1 <- which(myName == as.character(tangSub[i, 'ewindmonyr']))
   w2 <- max(which(deathyr[idx, ] > 0))
   theta <- svec[w1:w2]
-  theta
+  list(theta = theta, swind = w1, ewind = w2)
 }
 
 getSurvvar <- function(theta){
@@ -106,21 +106,39 @@ getSurvvar <- function(theta){
   testVar
 }
 
+tangSub$sidx <- NA
+tangSub$eidx <- NA
 tangSub$svals <- NA
 tangSub$svar <- NA
+
 for(i in 1:nrow(tangSub)){
-  tangSub$svals[i] <- list(getSurv(tangSub$EGNo[i], tangSub))
-  tangSub$svar[i] <- list(getSurvvar(unlist(tangSub$svals[i])))
+  tmp <- getSurv(tangSub$EGNo[i], tangSub)
+  
+  tangSub$sidx[i]  <- tmp$swind
+  tangSub$eidx[i]  <- tmp$ewind
+  tangSub$svals[i] <- list(tmp$theta)
+  tangSub$svar[i]  <- list(getSurvvar(unlist(tangSub$svals[i])))
 }
 ```
 
-So what does that yield? Two new columns that have the monthly survival probability following the end of entanglement, and the variance around that estimate. n.b. these are what was used to make the previous plot. 
-
+So what does that yield? Four new columns: Two that have the indices that define the start and end of the entanglment/survival window; two that have the monthly survival probability following the end of entanglement, and the variance around that estimate. 
 
 ## Reference Animal
-Ok, with that built for the entangled animals, we want to sample the reference animals against which we'll compare survival. In practice that means all animals who are alive for the whole duration of the window we defined for each individual entanglement window and who are themselves not entangled during that same interval. We'll then summarize the mean survival of all those animals for each of the months during the entanglement survival window. 
+Ok, with that built for the entangled animals, we want to sample the reference animals against which we'll compare survival. In practice that means all animals who are:
 
-For example, let's say we have a an 8-month entanglement window when the survival probability declines from 1 to 0. During each of these 8 months, we'll calculate the difference in survival between the entangled animal and the reference class. Each of the entangled animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category. Note that we will only compare females to females, and males to males; that is for an entangled female, the reference class will be comprised solely of females.
+1. alive for the whole duration of the window we defined for each individual entanglement window _and_ 
+2. who are themselves not entangled during that same interval. 
+
+We'll then summarize the mean survival of all those animals for each of the months during the entanglement survival window. Finally to build up the distribution of differences we'll sample from two binomials and take the differences. Mathematically, 
+
+\[
+Y_1 \sim Bin(\theta_{ent})\\
+Y_2 \sim Bin(\theta_{ref})\\
+Z = ln\left( \frac{Y_1}{Y_2}\right)
+
+\]
+
+For example, let's say we have a an 8-month entanglement window when the survival probability declines from 1 to 0. During each of these 8 months, we'll calculate the difference in survival between the entangled animal  ($\theta_{ent}$) and the reference class  ($\theta_{ref}$). Each of the entangled animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category, e.g ($Z_{Female, Severe}$). Note that we will only compare females to females, and males to males; that is for an entangled female, the reference class will be comprised solely of females.
 
 ```{r}
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data-raw/eg_203_ng_50000_BIG_25000_BIG_25000.rdata")
