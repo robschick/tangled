@@ -258,7 +258,7 @@ for (i in seq_along(tangSub$EGNo)){
   }
   yrefMat[[i]] <- colMeans(refparams, na.rm = TRUE)
   
-  # Plot
+  # Plot average survival for reference animals
   # plot(yrefMat[[i]], type = 'l', ylim = c(0, 1))
   # theta <- yrefMat[[i]] * (1 - yrefMat[[i]])
   # lines(yrefMat[[i]] + theta, lty = 2)
@@ -271,103 +271,28 @@ for (i in seq_along(tangSub$EGNo)){
 ```
 
 
-### Distribution of Differences
-Once we've sampled from the posterior for each animal, then we have to examine the differences.
+## Distribution of Differences
+Let's look at survival.
+
+### Impacts of Entanglement on Survival
+
 
 ```{r}
-hdiff <- himpMat - hrefMat
-hsurvsum <- rowMeans(hdiff)
-hist(hsurvsum, breaks = 30, main = 'Difference Between Impacted and Healthy Animal', xlab = 'Health Units')
-```
-
-### Which is the Best Reference Animal
-One of the issues the above analysis raises, is how do we know that this is a good animal to compare against? What if we chose a different animal, that for whatever reason led to a skewed result. I'll try to investigate that by comparing the health of this impacted animals against a range of candidates to see what the results look like. Se we can repeat the above calculation, but now do it for all candidate animals, not just this one reference.
-
-```{r}
-hdiffList <- vector('list', length(fincand))
-ndraw <- 1:1000
-
-for (j in seq_along(fincand)) {
-  cID <- fincand[j]
-  cidx <- which(ID == cID)
-
-  hmomMean <- healthmean[cidx, startW:endW]
-  if(any(is.na(hmomMean))) next
-  hmomSD <- healthsd[cidx, startW:endW]
-  hrefMat <- matrix(NA, max(ndraw), ncol = length(hmomMean))
-
-  for (i in seq_along(ndraw)){
-    hrefMat[i, ] <- rnorm(length(hmomMean), hmomMean, hmomSD)
-  }
-
-  hdiffList[[j]] <- data.frame(refAn = cID, meanDiff = rowMeans(himpMat - hrefMat))
-}
-  
-```
-
-We need to create a data frame to make it a bit easier to plot.
-
-```{r}
-hdiffList2 = hdiffList[-which(sapply(hdiffList, is.null))]
-hdiffdf <- do.call(rbind.data.frame, hdiffList2)
-```
-
-With that built up, let's plot it.
-
-```{r}
-library(ggplot2)
-pall <- ggplot(hdiffdf, aes(meanDiff))+
-  geom_density()+
-  labs(title = 'All Animals Averaged Together')
-pall
-
-p <- ggplot(hdiffdf, aes(meanDiff, group = refAn))+
-  geom_density()+
-  labs(title = 'All Animals Plotted Separately')
-p
-```
-
-
-
-## Impacts of Entanglement on Survival
-Ok, with survival the idea is similar -- we take an impacted animal and look at its survival curve in relationship to a randomly sampled reference individual. There are several different ways to do this. We'll start here by looking at probability of survival for the impacted animal during the entanglement event and compare that to a randomly selected animal. (Here, I'll use a different impacted animal from above because 1014 is an observed dead animal - hence no uncertainty in death.) We then build up the distribution of differences in survival and plot them. Again, as before, the selection of the reference case bears careful consideration. One first set of candidates could be the animals that were never entangled, but there could be year/animal mismatches here once we start sampling more. By this I mean with so few animals that bear no scars, we could end up with year and month combinations where we have an impacted animal, but no reference animal.
-
-Let's look at the posterior, which provides an estimated month the animal died in, and then we can use that to summarize survival.
-
-```{r}
-anID <- 1130
-idx <- which(ID == anID)
-deathyr[idx, 360:375] # this snippet shows the candidate months of death
-round(deathyr[idx, 360:375] / ng, 4)
-svec <- 1 - cumsum(deathyr[idx, ] / ng) 
-svec[1:firstSight[idx]] <- 0
-# plot(svec)
-
-test <- round(svec[360:375], 4)
-testVar <- test * (1 - test)
-plot(test, type = 'l', ylab = 'Survival Probability', xlab = 'Months Following Last Entanglement')
-lines(test + testVar, lty = 2)
-lines(test - testVar, lty = 2)
-```
-
-That represents the survival with uncertainty for one animal between the time of the last entanglement and when survival probability goes to 0. We need to sample from this posterior 1,000 times to build up the distribution of survival probabilities. And then take the difference between that and the survival probabilities of the reference animals. First the entangled whale:
-
-```{r}
-probs <- test
-survMat <- matrix(NA, nrow = 1000, ncol = length(probs))
+entprobs <- tangSub$svals[[1]]
+refprobs <- yrefMat[[1]]
+survMat <- matrix(NA, nrow = 1000, ncol = length(entprobs))
+cansurvMat <- matrix(NA, nrow = 1000, ncol = length(refprobs))
 
 for(i in 1:nrow(survMat)) {
-  survMat[i, ] <- rbinom(prob = probs, n = length(probs), size = 1)
+  survMat[i, ]    <- rbinom(prob = entprobs, n = length(entprobs), size = 1)
+  cansurvMat[i, ] <- rbinom(prob = refprobs, n = length(refprobs), size = 1)
 }
 
-# pvec <- apply(survMat, 2, mean)
 ```
 
-Next, we find the reference animmals, and as above, build up the survival probabilities. Then we can subtract them to get the distribution of differences. For reference, we'll start with the candidates that we identified above. We need to get the correct date/times selected as well to make sure the comparisons are valid. By this I mean that if our window for the entangled animal is January through July of 2000, then we need to select these times for candidate whales.
+Now we examine the differences for this animal:
 
-```{r candidatePsurv}
-canSurv <- matrix(data = NA, nrow = 1000, ncol = fincand)
-
-
+```{r}
+sdiff <- data.frame(refAn = tangSub$EGNo[1], meanDiff = rowMeans(survMat - cansurvMat))
 ```
 
