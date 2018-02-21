@@ -244,19 +244,25 @@ for (i in seq_along(tangSub$EGNo)){
     theta <- svec[range1]
     refparams[j, ] <- theta
     
-    # quick plot check for one animal
-    pdat <- data.frame(t(refparams))
-    colnames(pdat) <- refAns
-    pdat$time <- seq_along(range1)
-    library(ggplot2)
-    library(reshape2)
-    meltdf <- melt(pdat, id = "time")
-    ggplot(meltdf, aes(x = time, y = value, group = variable, color = variable)) + 
-      geom_line()+
-      scale_color_discrete(aes(color = variable))+
-      facet_wrap(~ variable)
+    # # quick plot check for one animal
+    # pdat <- data.frame(t(refparams))
+    # colnames(pdat) <- refAns
+    # pdat$time <- seq_along(range1)
+    # library(ggplot2)
+    # library(reshape2)
+    # meltdf <- melt(pdat, id = "time")
+    # ggplot(meltdf, aes(x = time, y = value, group = variable, color = variable)) +
+    #   geom_line()+
+    #   scale_color_discrete(aes(color = variable))+
+    #   facet_wrap(~ variable)
   }
   yrefMat[[i]] <- colMeans(refparams, na.rm = TRUE)
+  
+  # Plot
+  # plot(yrefMat[[i]], type = 'l', ylim = c(0, 1))
+  # theta <- yrefMat[[i]] * (1 - yrefMat[[i]])
+  # lines(yrefMat[[i]] + theta, lty = 2)
+  # lines(yrefMat[[i]] - theta, lty = 2)
 }
 
 
