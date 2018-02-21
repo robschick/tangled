@@ -168,6 +168,7 @@ With those established, then we need to remove any of the reference animals from
 cand <- vector('list', max(seq_along(tangSub$EGNo)))
 possAn <- ID[!(ID %in% unique(tangleOutSub$EGNo))]
 possAn <- possAn[!(possAn %in% exclude)]
+possAn <- possAn[!(possAn %in% knownDead)]
 possAnF <- possAn[gender[match(possAn, ID)] == 'F']
 possAnM <- possAn[gender[match(possAn, ID)] == 'M']
 
@@ -242,9 +243,23 @@ for (i in seq_along(tangSub$EGNo)){
     svec[1:firstSight[idx]] <- NA
     theta <- svec[range1]
     refparams[j, ] <- theta
+    
+    # quick plot check for one animal
+    pdat <- data.frame(t(refparams))
+    colnames(pdat) <- refAns
+    pdat$time <- seq_along(range1)
+    library(ggplot2)
+    library(reshape2)
+    meltdf <- melt(pdat, id = "time")
+    ggplot(meltdf, aes(x = time, y = value, group = variable, color = variable)) + 
+      geom_line()+
+      scale_color_discrete(aes(color = variable))+
+      facet_wrap(~ variable)
   }
   yrefMat[[i]] <- colMeans(refparams, na.rm = TRUE)
 }
+
+
 
 
 ```
