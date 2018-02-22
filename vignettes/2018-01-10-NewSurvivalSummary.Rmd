@@ -241,20 +241,23 @@ for (i in seq_along(tangSub$EGNo)){
   refparams <- matrix(NA, nrow = length(refAns), ncol = length(range1))
   
   for (j in seq_along(refAns)){
+    
     idx <- which(ID == refAns[j])
     svec <- 1 - cumsum(deathyr[idx, ] / ng) 
     svec[1:firstSight[idx]] <- NA
     theta <- svec[range1]
+    theta[theta == 0] <- NA
     refparams[j, ] <- theta
     
-    
   }
+  
   if(i == 1) {
     plotdat <- refparams
     plotrefan <- refAns
     plotrange <- range1
     plotyref <- colMeans(refparams, na.rm = TRUE)
   }
+  
   yrefMat[[i]] <- colMeans(refparams, na.rm = TRUE)
   
   # # plot out each animal for reference
