@@ -305,10 +305,9 @@ lines(plotyref - theta, lty = 2)
 
 
 ## Distribution of Differences
-Let's look at survival.
+Now we've summarized and extracted individual survival probability for each _last_ entanglement. We've also determined the reference animals and summarized their survival. With these data structures assembled, we can now determine $Z$.
 
-### Impacts of Entanglement on Survival
-
+We'll demonstrate the algorithm for one individual. Here we sample from $Y_e$ and $Y_c$ where the $e$ and $c$ subscripts refer to the entangled animals and the candidate, or reference, animals. In the model from Schick et al. 2013, survival was distributed as a Binomial. To account for the uncertainty in survival, we sample from the posterior using the probabilities for the entangled and the reference animal:
 
 ```{r}
 entprobs <- tangSub$svals[[1]]
@@ -323,9 +322,35 @@ for(i in 1:nrow(survMat)) {
 
 ```
 
-Now we examine the differences for this animal:
+Now we examine the differences ($Z$) for this animal:
 
 ```{r}
 sdiff <- data.frame(refAn = tangSub$EGNo[1], meanDiff = rowMeans(survMat - cansurvMat))
+hist(sdiff, breaks = 30, col = 'cornsilk', border = 'lightgrey')
 ```
+
+That's for one animal, but now we need to summarize all of the events by gender and by entanglement severity.
+
+```{r}
+for(i in seq_along(tangSub$EGNo)){
+  entprobs <- tangSub$svals[[i]]
+  refprobs <- yrefMat[[i]]
+  survMat <- matrix(NA, nrow = 1000, ncol = length(entprobs))
+  cansurvMat <- matrix(NA, nrow = 1000, ncol = length(refprobs))
+
+  for(j in 1:nrow(survMat)) {
+    survMat[j, ]    <- rbinom(prob = entprobs, n = length(entprobs), size = 1)
+    cansurvMat[j, ] <- rbinom(prob = refprobs, n = length(refprobs), size = 1)
+  }
+
+  sdiff <- data.frame(refAn = tangSub$EGNo[i], meanDiff = rowMeans(survMat - cansurvMat), 
+                      gender = tangSub$EGNo[i], gearStatus = tangSub$EGNo[i], injuryClass = tangSub$EGNo[i])
+
+}
+
+
+
+
+```
+
 
