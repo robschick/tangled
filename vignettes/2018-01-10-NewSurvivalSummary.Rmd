@@ -230,6 +230,9 @@ For each animal's last entanglement, we can now build up a data structure contai
 
 ```{r}
 library(matrixStats)
+library(ggplot2)
+library(reshape2)
+
 tangSub <- data.frame(tangSub)
 yrefMat <- vector('list', length(cand))
 for (i in seq_along(tangSub$EGNo)){
@@ -244,30 +247,60 @@ for (i in seq_along(tangSub$EGNo)){
     theta <- svec[range1]
     refparams[j, ] <- theta
     
-    # # quick plot check for one animal
-    # pdat <- data.frame(t(refparams))
-    # colnames(pdat) <- refAns
-    # pdat$time <- seq_along(range1)
-    # library(ggplot2)
-    # library(reshape2)
-    # meltdf <- melt(pdat, id = "time")
-    # ggplot(meltdf, aes(x = time, y = value, group = variable, color = variable)) +
-    #   geom_line()+
-    #   scale_color_discrete(aes(color = variable))+
-    #   facet_wrap(~ variable)
+    
+  }
+  if(i == 1) {
+    plotdat <- refparams
+    plotrefan <- refAns
+    plotrange <- range1
+    plotyref <- colMeans(refparams, na.rm = TRUE)
   }
   yrefMat[[i]] <- colMeans(refparams, na.rm = TRUE)
   
-  # Plot average survival for reference animals
-  # plot(yrefMat[[i]], type = 'l', ylim = c(0, 1))
-  # theta <- yrefMat[[i]] * (1 - yrefMat[[i]])
-  # lines(yrefMat[[i]] + theta, lty = 2)
-  # lines(yrefMat[[i]] - theta, lty = 2)
+  # plot out each animal for reference
+  pdat <- data.frame(t(refparams))
+  colnames(pdat) <- refAns
+  pdat$time <- seq_along(range1)
+
+  meltdf <- melt(pdat, id = "time")
+  
+  p <- ggplot(meltdf, aes(x = time, y = value)) +
+    geom_line()+
+    facet_wrap(~ variable)+
+    labs(x = 'Months Since End of Last Entanglement', y = 'Probability of Survival')+
+    ggtitle('Survival of Reference Animals', subtitle = paste0('For Entangled Whale: ', refAns[j]))
+  
+  pdf(file = 'E:/rob/Documents/research/projects/rightWhaleEntanglement/documents/images/candEnt-vs-refEnt.pdf', width = 10, height = 6.1)
+    print(p)
+  dev.off()
+
 }
 
+```
+
+Before we proceed with assembling the distribution(s) of differences, let's look at the survival one candidate animal.
+
+```{r}
+pdat <- data.frame(t(plotdat))
+colnames(pdat) <- plotrefan
+pdat$time <- seq_along(plotrange)
 
 
+meltdf <- melt(pdat, id = "time")
+ggplot(meltdf, aes(x = time, y = value)) +
+    geom_line()+
+    facet_wrap(~ variable)+
+    labs(x = 'Months Since End of Last Entanglement', y = 'Probability of Survival')+
+    ggtitle('Survival of Reference Animals', subtitle = paste0('For Entangled Whale: ', tangSub$EGNo[i]))
+```
 
+And we can summarize the survival for this reference group as well:
+
+```{r}
+plot(plotyref, type = 'l', ylim = c(0, 1), xlab = 'Months Since Entanglement', ylab = 'Mean Probability of Survival\n Among Reference Animals')
+theta <- plotyref * (1 - plotyref)
+lines(plotyref + theta, lty = 2)
+lines(plotyref - theta, lty = 2)
 ```
 
 
