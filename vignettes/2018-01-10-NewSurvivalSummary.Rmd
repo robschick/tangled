@@ -257,22 +257,22 @@ for (i in seq_along(tangSub$EGNo)){
   }
   yrefMat[[i]] <- colMeans(refparams, na.rm = TRUE)
   
-  # plot out each animal for reference
-  pdat <- data.frame(t(refparams))
-  colnames(pdat) <- refAns
-  pdat$time <- seq_along(range1)
-
-  meltdf <- melt(pdat, id = "time")
-  
-  p <- ggplot(meltdf, aes(x = time, y = value)) +
-    geom_line()+
-    facet_wrap(~ variable)+
-    labs(x = 'Months Since End of Last Entanglement', y = 'Probability of Survival')+
-    ggtitle('Survival of Reference Animals', subtitle = paste0('For Entangled Whale: ', refAns[j]))
-  
-  pdf(file = 'E:/rob/Documents/research/projects/rightWhaleEntanglement/documents/images/candEnt-vs-refEnt.pdf', width = 10, height = 6.1)
-    print(p)
-  dev.off()
+  # # plot out each animal for reference
+  # pdat <- data.frame(t(refparams))
+  # colnames(pdat) <- refAns
+  # pdat$time <- seq_along(range1)
+  # 
+  # meltdf <- melt(pdat, id = "time")
+  # 
+  # p <- ggplot(meltdf, aes(x = time, y = value)) +
+  #   geom_line()+
+  #   facet_wrap(~ variable)+
+  #   labs(x = 'Months Since End of Last Entanglement', y = 'Probability of Survival')+
+  #   ggtitle('Survival of Reference Animals', subtitle = paste0('For Entangled Whale: ', refAns[j]))
+  # 
+  # pdf(file = 'E:/rob/Documents/research/projects/rightWhaleEntanglement/documents/images/candEnt-vs-refEnt.pdf', width = 10, height = 6.1)
+  #   print(p)
+  # dev.off()
 
 }
 
@@ -313,7 +313,7 @@ We'll demonstrate the algorithm for one individual. Here we sample from $Y_e$ an
 entprobs <- tangSub$svals[[1]]
 refprobs <- yrefMat[[1]]
 survMat <- matrix(NA, nrow = 1000, ncol = length(entprobs))
-cansurvMat <- matrix(NA, nrow = 1000, ncol = length(refprobs))
+cansurvMat <- matrix(NA, nrow = 1000, ncol = length(entprobs))
 
 for(i in 1:nrow(survMat)) {
   survMat[i, ]    <- rbinom(prob = entprobs, n = length(entprobs), size = 1)
@@ -322,19 +322,22 @@ for(i in 1:nrow(survMat)) {
 
 ```
 
-Now we examine the differences ($Z$) for this animal:
+Now we examine the differences ($Z$) for this animal, which shows an approximately :
 
 ```{r}
-sdiff <- data.frame(refAn = tangSub$EGNo[1], meanDiff = rowMeans(survMat - cansurvMat))
-hist(sdiff, breaks = 30, col = 'cornsilk', border = 'lightgrey')
+sdiff <- data.frame(refAn = tangSub$EGNo[1], meanDiff = survMat - cansurvMat)
+hist(sdiff$meanDiff, breaks = 20, col = 'cornsilk', border = 'lightgrey', xlab = "Difference in Survival Probability", main = '')
 ```
 
 That's for one animal, but now we need to summarize all of the events by gender and by entanglement severity.
 
 ```{r}
+diffList <- vector('list', nrow(tangSub))
+
 for(i in seq_along(tangSub$EGNo)){
   entprobs <- tangSub$svals[[i]]
   refprobs <- yrefMat[[i]]
+  
   survMat <- matrix(NA, nrow = 1000, ncol = length(entprobs))
   cansurvMat <- matrix(NA, nrow = 1000, ncol = length(refprobs))
 
@@ -342,15 +345,26 @@ for(i in seq_along(tangSub$EGNo)){
     survMat[j, ]    <- rbinom(prob = entprobs, n = length(entprobs), size = 1)
     cansurvMat[j, ] <- rbinom(prob = refprobs, n = length(refprobs), size = 1)
   }
-
-  sdiff <- data.frame(refAn = tangSub$EGNo[i], meanDiff = rowMeans(survMat - cansurvMat), 
-                      gender = tangSub$EGNo[i], gearStatus = tangSub$EGNo[i], injuryClass = tangSub$EGNo[i])
+  
+  gidx <- gender[which(ID == tangSub$EGNo[i])]
+  sdiff <- data.frame(refAn = tangSub$EGNo[i], meanDiff = colMeans(survMat) - colMeans(cansurvMat), 
+                      gender = gidx, gearStatus = tangSub$gear[i], injuryClass = tangSub$gearInj[i],
+                      severity = tangSub$Severity[i])
+  
+  diffList[[i]] <- sdiff
 
 }
 
-
-
+survDf <- do.call(rbind.data.frame, diffList)
 
 ```
 
+Ok, let's take a look at it.
+
+```{r}
+p <- ggplot(survDf, aes(meanDiff))+
+  geom_histogram()+
+  facet_grid(severity ~ gender, scales = 'free_y')
+p
+```
 
