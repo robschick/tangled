@@ -178,7 +178,12 @@ possAnM <- possAn[gender[match(possAn, ID)] == 'M']
 for(i in seq_along(tangSub$EGNo)) {
   
   # to find range of entangled animal's survival window:
-  entRng <- as.integer(tangSub[i, 'sidx']):as.integer(tangSub[i, 'eidx'])   
+  if (as.integer(tangSub[i, 'eidx']) > nt){
+    entRng <- as.integer(tangSub[i, 'sidx']):nt
+  } else {
+    entRng <- as.integer(tangSub[i, 'sidx']):as.integer(tangSub[i, 'eidx'])
+  }
+  
   candGen <- gender[which(ID == as.integer(tangSub[i, "EGNo"]))]
   candSub <- numeric(0)
   
@@ -240,7 +245,13 @@ library(reshape2)
 tangSub <- data.frame(tangSub)
 yrefMat <- vector('list', length(cand))
 for (i in seq_along(tangSub$EGNo)){
-  range1 <- tangSub[i, 'sidx']:tangSub[i, 'eidx']
+  
+  if (as.integer(tangSub[i, 'eidx']) > nt){
+    range1 <- tangSub[i, 'sidx']:nt
+  } else {
+    range1 <- tangSub[i, 'sidx']:tangSub[i, 'eidx']
+  }
+  
   refAns <- cand[[i]]
   refparams <- matrix(NA, nrow = length(refAns), ncol = length(range1))
   
@@ -250,7 +261,7 @@ for (i in seq_along(tangSub$EGNo)){
     svec <- 1 - cumsum(deathyr[idx, ] / ng) 
     svec[1:firstSight[idx]] <- NA
     theta <- svec[range1]
-    theta[theta == 0] <- NA
+    theta[theta == 0] <- NA #should I do this?
     refparams[j, ] <- theta
     
   }
@@ -383,9 +394,17 @@ survDf <- do.call(rbind.data.frame, diffList)
 Ok, let's take a look at it.
 
 ```{r}
-p <- ggplot(survDf, aes(meanDiff))+
+p <- ggplot(survDf, aes(meanDiff, color = factor(refAn)))+
   geom_histogram()+
   facet_grid(severity ~ gender, scales = 'free_y')
 p
+```
+
+Maybe it would be interesting to group by individual to see the means. I'm trying to get a handle on who the 0 values are.
+
+```{r}
+library(dplyr)
+survDf %>% group_by(severity, gender) %>% 
+  summarise(mean = mean(meanDiff, na.rm = TRUE), var = var(meanDiff, na.rm = TRUE))
 ```
 
