@@ -2,7 +2,7 @@
 title: "Updated Method for Analyzing Survival in Entangled Right Whales"
 author: "Rob Schick"
 date: "February 11, 2018"
-output: word_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -14,24 +14,26 @@ library(tidyr)
 library(purrr)
 ```
 
-The purpose of this document is to provide an initial overview of the suggested changes for analyzing the survival output from the right whale model. Our goal is to summarize survival by injury -- in order of increasing severity:
+The purpose of this document is to provide an initial overview of the suggested changes for analyzing the survival output from the right whale model. Our goal is to summarize survival by injury type:
 
-1. Severe with gear
-2. Moderate with gear
-3. Severe without gear
-4. Minor with gear
-5. Moderate without gear
-6. Minor without gear
+1. Minor
+2. Moderate
+3. Severe
 
-...and ideally to do this for both males and females. For now, we won't investigate the effects of age..
+...and to do this for both males and females. 
 
-Though we had previously done this using the the Kaplan-Meier apprach, Jim now feels that is the incorrect metric because you have to know who survived. I had previously implemented this using the right censoring approach, but he doesn't want to go that route. Instead, what he proposes is to build up comparisons between the posterior estimate of survival probability for survival of the entangled animal - following the end of the last event, and compare it to the mean survival probability of reference animals during the period from the end of the entanglement until the survival probability goes to 0.
+The algorithm for making these comparisons would look something like this.
 
-The algorithm would look something like this.
+1. We start by extracting the last entanglement event from an individual animal
+2. Calculate the survival probability from the end of entanglement window until presumed death ($\theta_{ind}$)
+3. Using that same time window define a set of candidate reference animals
+4. Find mean survival probability for those animals ($\theta_{ref}$)
+5. Sample for individual survival of the entangled animal from $Y_{ind} \sim Binom(\theta_{ind})$; find the mean
+6. Repeat step 5 for the reference individuals, i.e. sample for survival of the reference animals from $Y_{ref} \sim Binom(\theta_{ref})$; find the mean
+7. Find $Z$ which is the distribution of differences ($E[Y_{ind}] - E[Y_{ref}]$)
+8. Plot $Z$ for each injury type and gender
 
-1. We start by extracting the last entanglement event from this animal
-2. From that we gather the time information corresponding to the end of the window
-3. Calculate the survival probability from the end of entanglement window until presumed death
+Below the steps are written out in detail with R code
 
 We start by assembling and viewing a data frame of all of the last entanglement event for each animal:
 
@@ -42,12 +44,14 @@ tangEvents <- tangleOut %>%
   arrange(EGNo)
 ```
 
-For the paper, we also excluded animals that were ship struck, or had severe prop scars. Here I also add in the known dead animals. Whether or not to include/exlcude these is a point of discussion. 
+For the paper, we also excluded animals that were ship-struck, or had severe prop scars. Here I also remove the known dead animals. (Whether or not to include/exlcude these is a point of discussion.)
 
 ```{r}
-exclude <- c(1004, 1006, 1014, 1045, 1128, 1223, 1267, 1308, 1504, 1623, 1907, 1909, 2143, 2150, 2220, 2250, 2404, 2425, 2450, 2617, 2820, 3508, 3522, 3853)
-
+exclude <- c(1004, 1006, 1014, 1045, 1128, 1223, 1267, 1308, 1504, 1623, 
+             1907, 1909, 2143, 2150, 2220, 2250, 2404, 2425, 2450, 2617, 
+             2820, 3508, 3522, 3853)
 knownDead <- deadTable$SightingEGNo
+
 tangSub <- tangEvents %>% 
   filter(!(EGNo %in% exclude)) %>% 
   filter(!(EGNo %in% knownDead))
@@ -59,7 +63,7 @@ tangleOutSub <- tangleOut %>%
 
 
 ## Entangled Animal
-We'll start with the first animal to illustrate the algorithm; once complete we'll run it for all animals. 
+Here's one animal's data
 
 ```{r}
 event1 <- tangSub[1, ]
@@ -128,26 +132,25 @@ for(i in 1:nrow(tangSub)){
 }
 ```
 
-So what does that yield? Four new columns: Two that have the indices that define the start and end of the entanglment/survival window; two that have the monthly survival probability following the end of entanglement, and the variance around that estimate. 
+So what does that yield? Four new columns: Two that have the indices that define the start and end of the entanglment/survival window; one that has the monthly survival probability following the end of entanglement, and one that has the variance around that estimate. 
 
 ## Reference Animal
-Ok, with that built for the entangled animals, we want to sample the reference animals against which we'll compare survival. In practice that means all animals who are:
+Now we want to sample the reference animals against which we'll compare survival. We define an animal as belonging to the 'reference' set if they are:
 
 1. alive for the whole duration of the window we defined for each individual entanglement window _and_ 
 2. who are themselves not entangled during that same interval. 
 
 We'll then summarize the mean survival of all those animals for each of the months during the entanglement survival window. Finally to build up the distribution of differences $Z$ we'll sample from two binomials and take the differences. Mathematically, 
 
-\[
-Y_1 \sim Bin(\theta_{ent})\\
+$$
+Y_1 \sim Bin(\theta_{ind})\\
 Y_2 \sim Bin(\theta_{ref})\\
-Z = ln\left( \frac{Y_1}{Y_2}\right)
+Z = ln\left( \frac{E[Y_1]}{E[Y_2]}\right)
+$$
 
-\]
+For example, let's say we have a an 8-month entanglement window when the survival probability declines from 1 to 0. During each of these 8 months, we'll calculate the difference in survival between the entangled animal  ($\theta_{ind}$) and the reference class  ($\theta_{ref}$). Each of the entangled animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category, e.g ($Z_{Female, Severe}$). Note that we will only compare females to females, and males to males; that is for an entangled female, the reference class will be comprised solely of females.
 
-For example, let's say we have a an 8-month entanglement window when the survival probability declines from 1 to 0. During each of these 8 months, we'll calculate the difference in survival between the entangled animal  ($\theta_{ent}$) and the reference class  ($\theta_{ref}$). Each of the entangled animals will have metadata that indicates injury and gender. By building up the distribution of differences we will be able to quantify the impact of entanglement on survival by category, e.g ($Z_{Female, Severe}$). Note that we will only compare females to females, and males to males; that is for an entangled female, the reference class will be comprised solely of females.
-
-The idea is that we want to define our reference class by first figuring out which animals were entangled during the same time frame as our entangled animal. We will exclude this animal as a possible reference. (Note that because each individual's entanglement window is different, the reference class is going to be unique to each animal.) To find the entire entanglement reference window for each animal we start by defining ranges during which the animals were entangled. Also note that we're using a conservative start date for the possible range. This is following discussion in Boston in February 2018 about when the window should start. Here we use the first possible date, as opposed to the windows we agreed upon for the paper.
+We define our reference class by first figuring out which animals were entangled during the same time frame as our entangled animal. We will exclude this animal as a possible reference. (Note that because each individual's entanglement window is different, the reference class is going to be unique to each animal.) To find the entire entanglement reference window for each animal we start by defining ranges during which the animals were entangled. Also note that we're using a conservative start date for the possible range. This is following discussion in Boston in February 2018 about when the window should start. Here we use the first possible date, as opposed to the windows we agreed upon for the paper.
 
 The logic in the next block is that we define indices for the start and stop of the window. Then we loop over rows, and store the range between those start/stop times as a list column.
 
@@ -162,7 +165,7 @@ for(i in seq_along(tangleOutSub$EGNo)){
 }
 ```
 
-With those established, then we need to remove any of the reference animals from the candidate list if there is an intersection between the entangled animal and the reference animals. To do this, we have a nested loop that compares each individual event to all possible, and only stores the IDs of the candidate animals that do not intersect in time. The outer loop (i) loops over each of the entangled animals' final entanglement; the inner (j) loop compares the range from the ith animal to all possible reference animals.
+With those established, then we need to remove any of the reference animals from the candidate list if there is an intersection between the entangled animal and the reference animals. To do this, we have a nested loop that compares each individual event to all possible, and only stores the IDs of the candidate animals that do not intersect in time. The outer loop (i) loops over each of the entangled animals' final entanglement; the inner (j, k) loops compare the range from the ith animal to all possible reference animals.
 
 ```{r}
 cand <- vector('list', max(seq_along(tangSub$EGNo)))
@@ -192,7 +195,8 @@ for(i in seq_along(tangSub$EGNo)) {
     
   }
   
-  # So we can find possible reference animals who have never been entangled &
+  # So we can find possible reference animals 
+  # who have never been entangled &
   # alive during the relevant time
   psub <- numeric(0)
   
@@ -258,7 +262,9 @@ for (i in seq_along(tangSub$EGNo)){
     plotyref <- colMeans(refparams, na.rm = TRUE)
   }
   
-  yrefMat[[i]] <- colMeans(refparams, na.rm = TRUE)
+  dat <- colMeans(refparams, na.rm = TRUE)
+  dat[is.na(dat)] <- mean(dat, na.rm = TRUE)
+  yrefMat[[i]] <- dat
   
   # # plot out each animal for reference
   # pdat <- data.frame(t(refparams))
@@ -270,8 +276,10 @@ for (i in seq_along(tangSub$EGNo)){
   # p <- ggplot(meltdf, aes(x = time, y = value)) +
   #   geom_line()+
   #   facet_wrap(~ variable)+
-  #   labs(x = 'Months Since End of Last Entanglement', y = 'Probability of Survival')+
-  #   ggtitle('Survival of Reference Animals', subtitle = paste0('For Entangled Whale: ', refAns[j]))
+  #   labs(x = 'Months Since End of Last Entanglement', 
+  #        y = 'Probability of Survival')+
+  #   ggtitle('Survival of Reference Animals', 
+  #            subtitle = paste0('For Entangled Whale: ', refAns[j]))
   # 
   # pdf(file = 'E:/rob/Documents/research/projects/rightWhaleEntanglement/documents/images/candEnt-vs-refEnt.pdf', width = 10, height = 6.1)
   #   print(p)
@@ -293,14 +301,18 @@ meltdf <- melt(pdat, id = "time")
 ggplot(meltdf, aes(x = time, y = value)) +
     geom_line()+
     facet_wrap(~ variable)+
-    labs(x = 'Months Since End of Last Entanglement', y = 'Probability of Survival')+
-    ggtitle('Survival of Reference Animals', subtitle = paste0('For Entangled Whale: ', tangSub$EGNo[i]))
+    labs(x = 'Months Since End of Last Entanglement', 
+         y = 'Probability of Survival')+
+    ggtitle('Survival of Reference Animals', 
+            subtitle = paste0('For Entangled Whale: ', tangSub$EGNo[i]))
 ```
 
 And we can summarize the survival for this reference group as well:
 
 ```{r}
-plot(plotyref, type = 'l', ylim = c(0, 1), xlab = 'Months Since Entanglement', ylab = 'Mean Probability of Survival\n Among Reference Animals')
+plot(plotyref, type = 'l', ylim = c(0, 1), 
+     xlab = 'Months Since Entanglement', 
+     ylab = 'P(Surv) Among Reference Animals')
 theta <- plotyref * (1 - plotyref)
 lines(plotyref + theta, lty = 2)
 lines(plotyref - theta, lty = 2)
@@ -310,11 +322,12 @@ lines(plotyref - theta, lty = 2)
 ## Distribution of Differences
 Now we've summarized and extracted individual survival probability for each _last_ entanglement. We've also determined the reference animals and summarized their survival. With these data structures assembled, we can now determine $Z$.
 
-We'll demonstrate the algorithm for one individual. Here we sample from $Y_e$ and $Y_c$ where the $e$ and $c$ subscripts refer to the entangled animals and the candidate, or reference, animals. In the model from Schick et al. 2013, survival was distributed as a Binomial. To account for the uncertainty in survival, we sample from the posterior using the probabilities for the entangled and the reference animal:
+We'll demonstrate the algorithm for one individual. Here we sample from $Y_{ind}$ and $Y_{ref}$ where the $ind$ and $ref$ subscripts refer to the entangled animals and the candidate, or reference, animals. In the model from Schick et al. 2013, survival was distributed as a Binomial. To account for the uncertainty in survival, we sample from the posterior using the probabilities for the entangled and the reference animal:
 
 ```{r}
-entprobs <- tangSub$svals[[1]]
-refprobs <- yrefMat[[1]]
+entprobs <- tangSub$svals[[1]] # survival probs of the individual
+refprobs <- yrefMat[[1]] # survival probs of the reference class
+
 survMat <- matrix(NA, nrow = 1000, ncol = length(entprobs))
 cansurvMat <- matrix(NA, nrow = 1000, ncol = length(entprobs))
 
@@ -325,11 +338,13 @@ for(i in 1:nrow(survMat)) {
 
 ```
 
-Now we examine the differences ($Z$) for this animal, which shows an approximately :
+Now we examine the differences ($Z$) for this animal:
 
 ```{r}
-sdiff <- data.frame(refAn = tangSub$EGNo[1], meanDiff = survMat - cansurvMat)
-hist(sdiff$meanDiff, breaks = 20, col = 'cornsilk', border = 'lightgrey', xlab = "Difference in Survival Probability", main = '')
+sdiff <- data.frame(refAn = tangSub$EGNo[1], 
+                    meanDiff = rowMeans(survMat) - rowMeans(cansurvMat))
+hist(sdiff$meanDiff, breaks = 10, col = 'cornsilk', border = 'lightgrey', 
+     xlab = "Difference in Survival Probability", main = '')
 ```
 
 That's for one animal, but now we need to summarize all of the events by gender and by entanglement severity.
@@ -340,6 +355,7 @@ diffList <- vector('list', nrow(tangSub))
 for(i in seq_along(tangSub$EGNo)){
   entprobs <- tangSub$svals[[i]]
   refprobs <- yrefMat[[i]]
+  if(any(is.na(refprobs))) break()
   
   survMat <- matrix(NA, nrow = 1000, ncol = length(entprobs))
   cansurvMat <- matrix(NA, nrow = 1000, ncol = length(refprobs))
@@ -350,8 +366,10 @@ for(i in seq_along(tangSub$EGNo)){
   }
   
   gidx <- gender[which(ID == tangSub$EGNo[i])]
-  sdiff <- data.frame(refAn = tangSub$EGNo[i], meanDiff = colMeans(survMat) - colMeans(cansurvMat), 
-                      gender = gidx, gearStatus = tangSub$gear[i], injuryClass = tangSub$gearInj[i],
+  sdiff <- data.frame(refAn = tangSub$EGNo[i], 
+                      meanDiff = rowMeans(survMat) - rowMeans(cansurvMat), 
+                      gender = gidx, gearStatus = tangSub$gear[i], 
+                      injuryClass = tangSub$gearInj[i],
                       severity = tangSub$Severity[i])
   
   diffList[[i]] <- sdiff
