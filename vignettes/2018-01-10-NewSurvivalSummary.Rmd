@@ -2,7 +2,9 @@
 title: "Updated Method for Analyzing Survival in Entangled Right Whales"
 author: "Rob Schick"
 date: "February 11, 2018"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -261,7 +263,7 @@ for (i in seq_along(tangSub$EGNo)){
     svec <- 1 - cumsum(deathyr[idx, ] / ng) 
     svec[1:firstSight[idx]] <- NA
     theta <- svec[range1]
-    theta[theta == 0] <- NA #should I do this?
+    # theta[theta == 0] <- NA #should I do this?
     refparams[j, ] <- theta
     
   }
@@ -277,25 +279,6 @@ for (i in seq_along(tangSub$EGNo)){
   dat[is.na(dat)] <- mean(dat, na.rm = TRUE)
   yrefMat[[i]] <- dat
   
-  # # plot out each animal for reference
-  # pdat <- data.frame(t(refparams))
-  # colnames(pdat) <- refAns
-  # pdat$time <- seq_along(range1)
-  # 
-  # meltdf <- melt(pdat, id = "time")
-  # 
-  # p <- ggplot(meltdf, aes(x = time, y = value)) +
-  #   geom_line()+
-  #   facet_wrap(~ variable)+
-  #   labs(x = 'Months Since End of Last Entanglement', 
-  #        y = 'Probability of Survival')+
-  #   ggtitle('Survival of Reference Animals', 
-  #            subtitle = paste0('For Entangled Whale: ', refAns[j]))
-  # 
-  # pdf(file = 'E:/rob/Documents/research/projects/rightWhaleEntanglement/documents/images/candEnt-vs-refEnt.pdf', width = 10, height = 6.1)
-  #   print(p)
-  # dev.off()
-
 }
 
 ```
