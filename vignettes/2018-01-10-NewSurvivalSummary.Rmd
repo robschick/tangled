@@ -136,6 +136,7 @@ for(i in 1:nrow(tangSub)){
 
 So what does that yield? Four new columns: Two that have the indices that define the start and end of the entanglment/survival window; one that has the monthly survival probability following the end of entanglement, and one that has the variance around that estimate. 
 
+
 ## Reference Animal
 Now we want to sample the reference animals against which we'll compare survival. We define an animal as belonging to the 'reference' set if they are:
 
@@ -237,7 +238,7 @@ To recap, each element of the ```cand``` list object is a set of possible candid
 Now we have the data indices we need, and can proceed to building up $Z$,
 
 ### Summary of Survival
-For each animal's last entanglement, we can now build up a data structure containing the two $Y$ distributions.
+For each animal's last entanglement, we can now build up a data structure containing the $Y$ distribution for the reference animals.
 
 ```{r}
 library(matrixStats)
@@ -263,7 +264,6 @@ for (i in seq_along(tangSub$EGNo)){
     svec <- 1 - cumsum(deathyr[idx, ] / ng) 
     svec[1:firstSight[idx]] <- NA
     theta <- svec[range1]
-    # theta[theta == 0] <- NA #should I do this?
     refparams[j, ] <- theta
     
   }
@@ -275,7 +275,7 @@ for (i in seq_along(tangSub$EGNo)){
     plotyref <- colMeans(refparams, na.rm = TRUE)
   }
   
-  dat <- colMeans(refparams, na.rm = TRUE)
+  dat <- colMeans(refparams, na.rm = TRUE) # check if this the right dimension # 
   dat[is.na(dat)] <- mean(dat, na.rm = TRUE)
   yrefMat[[i]] <- dat
   
@@ -336,7 +336,8 @@ Now we examine the differences ($Z$) for this animal:
 
 ```{r}
 sdiff <- data.frame(refAn = tangSub$EGNo[1], 
-                    meanDiff = rowMeans(survMat) - rowMeans(cansurvMat))
+                    meanDiff = rowMeans(survMat) - rowMeans(cansurvMat)) # is this dimensioning right
+
 hist(sdiff$meanDiff, breaks = 10, col = 'cornsilk', border = 'lightgrey', 
      xlab = "Difference in Survival Probability", main = '')
 ```
