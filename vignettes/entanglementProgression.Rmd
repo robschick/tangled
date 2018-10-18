@@ -26,7 +26,7 @@ First we're going to loop over animals to assemble an ordinal state vector for e
 To illustrate, let's start with just 50 animals. Each of these animals has experienced more than 1 event (we need that to illustrate progression).
 
 ```{r}
-sampVal <- 50
+sampVal <- 450
 canAn <- tangleOut %>% 
   filter(EventNo > 1) %>% 
   select(EGNo) %>% 
@@ -108,5 +108,31 @@ for (i in 1:ncol(health)){
     mutate(time = i)
   dfAll <- rbind(dfAll, dfSummary)
 }
+```
+
+Ok, with it assembled, let's try and plot it out.
+
+```{r}
+library(RColorBrewer)
+mypal <- brewer.pal(3, 'Reds')
+unentangled <- dfAll %>% filter(fate == 4)
+minor <- dfAll %>% filter(fate == 3)
+moderate <- dfAll %>% filter(fate == 2)
+severe <- dfAll %>% filter(fate == 1)
+plot(unentangled$time, unentangled$mean, type = 'l', ylim = c(0, 100))
+lines(unentangled$time, unentangled$mean + unentangled$sd, lty = 2)
+lines(unentangled$time, unentangled$mean - unentangled$sd, lty = 2)
+
+lines(minor$time, minor$mean, lty = 1, col = mypal[1], lwd = 2)
+# lines(minor$time, minor$mean + minor$sd, lty = 2, col = mypal[1])
+# lines(minor$time, minor$mean - minor$sd, lty = 2, col = mypal[1])
+
+lines(moderate$time, moderate$mean, lty = 1, col = mypal[2], lwd = 2)
+# lines(moderate$time, moderate$mean + moderate$sd, lty = 2, col = mypal[2])
+# lines(moderate$time, moderate$mean - moderate$sd, lty = 2, col = mypal[2])
+
+lines(severe$time, severe$mean, lty = 1, col = mypal[3], lwd = 2)
+# lines(severe$time, severe$mean + severe$sd, lty = 2, col = mypal[3])
+# lines(severe$time, severe$mean - severe$sd, lty = 2, col = mypal[3])
 ```
 
