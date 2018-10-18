@@ -10,9 +10,16 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
+rm(list = ls())
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 load("../data/tangleOut.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/firstSight.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/lastSight.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/ID.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/entvec.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthmean.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/myName.rda")
 ```
 
 First we're going to loop over animals to assemble an ordinal state vector for each month. The idea here is that the animal starts 'clear' or unentangled. Upon becoming entangled, its status gets updated to the overall entanglement status. The key is that as time progresses, the animal only stays in its worst class, and doesn't recover. We'll have 5 ordinal classes:
@@ -56,10 +63,7 @@ Now let's loop over individuals, and within individuals, entanglement events, to
 
 ```{r}
 library(lubridate)
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/firstSight.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/lastSight.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/ID.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/entvec.rda")
+
 
 for (i in 1:length(unique(tangled$EGNo))){
   eg <- unique(tangled$EGNo)[i]
@@ -92,7 +96,7 @@ for(i in 2:nrow(fate)){
 At this point we have approx 50 candidate animals, and we want to plot the health of these groups over time, where groups are defined by the fate value. Probably easiest if I subset the matrix of health values to be the same size as the candidate animals.
 
 ```{r}
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthmean.rda")
+
 health <- healthmean[noquote(rownames(healthmean)) %in% canAn, ]
 ```
 
