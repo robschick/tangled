@@ -32,7 +32,7 @@ First we're going to loop over animals to assemble an ordinal state vector for e
 
 To illustrate, let's start with just 50 animals. Each of these animals has experienced more than 1 event (we need that to illustrate progression).
 
-```{r}
+```{r, eval = FALSE}
 sampVal <- 450
 canAn <- tangleOut %>% 
   filter(EventNo > 1) %>% 
@@ -46,6 +46,7 @@ canAn <- unique(canAn)
 We use that vector to pare down the larger data frame:
 
 ```{r}
+canAn <- ID
 tangled <- tangleOut %>% 
   filter(tangleOut$EGNo %in% canAn) %>% 
   arrange(EGNo)
@@ -105,11 +106,12 @@ My first idea is to loop over columns, and tally the number of animals in each c
 ```{r}
 dfAll <- numeric(0)
 for (i in 1:ncol(health)){
-  df <- data.frame(id = canAn, health = health[, i], fate = fate[, i])
+  df <- data.frame(id = canAn, health = health[, i], fate = fate[, i], dateTime = dateVec[i])
   dfSummary <- df %>% 
     group_by(fate) %>% 
     summarize(mean = mean(health, na.rm = TRUE), sd = sd(health, na.rm = TRUE)) %>% 
-    mutate(time = i)
+    mutate(time = i) %>% 
+    mutate(dateTime = dateVec[i])
   dfAll <- rbind(dfAll, dfSummary)
 }
 ```
@@ -123,20 +125,22 @@ unentangled <- dfAll %>% filter(fate == 4)
 minor <- dfAll %>% filter(fate == 3)
 moderate <- dfAll %>% filter(fate == 2)
 severe <- dfAll %>% filter(fate == 1)
-plot(unentangled$time, unentangled$mean, type = 'l', ylim = c(0, 100))
-lines(unentangled$time, unentangled$mean + unentangled$sd, lty = 2)
-lines(unentangled$time, unentangled$mean - unentangled$sd, lty = 2)
+plot(unentangled$dateTime, unentangled$mean, type = 'l', ylim = c(0, 100), xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")),
+     xlab = 'Date',  ylab = "Estimated Health Score")
+lines(unentangled$dateTime, unentangled$mean + unentangled$sd, lty = 2)
+lines(unentangled$dateTime, unentangled$mean - unentangled$sd, lty = 2)
 
-lines(minor$time, minor$mean, lty = 1, col = mypal[1], lwd = 2)
-# lines(minor$time, minor$mean + minor$sd, lty = 2, col = mypal[1])
-# lines(minor$time, minor$mean - minor$sd, lty = 2, col = mypal[1])
+lines(minor$dateTime, minor$mean, lty = 1, col = mypal[1], lwd = 2)
+# lines(minor$dateTime, minor$mean + minor$sd, lty = 2, col = mypal[1])
+# lines(minor$dateTime, minor$mean - minor$sd, lty = 2, col = mypal[1])
 
-lines(moderate$time, moderate$mean, lty = 1, col = mypal[2], lwd = 2)
-# lines(moderate$time, moderate$mean + moderate$sd, lty = 2, col = mypal[2])
-# lines(moderate$time, moderate$mean - moderate$sd, lty = 2, col = mypal[2])
+lines(moderate$dateTime, moderate$mean, lty = 1, col = mypal[2], lwd = 2)
+# lines(moderate$dateTime, moderate$mean + moderate$sd, lty = 2, col = mypal[2])
+# lines(moderate$dateTime, moderate$mean - moderate$sd, lty = 2, col = mypal[2])
 
-lines(severe$time, severe$mean, lty = 1, col = mypal[3], lwd = 2)
-# lines(severe$time, severe$mean + severe$sd, lty = 2, col = mypal[3])
-# lines(severe$time, severe$mean - severe$sd, lty = 2, col = mypal[3])
+lines(severe$dateTime, severe$mean, lty = 1, col = mypal[3], lwd = 2)
+# lines(severe$dateTime, severe$mean + severe$sd, lty = 2, col = mypal[3])
+# lines(severe$dateTime, severe$mean - severe$sd, lty = 2, col = mypal[3])
+legend( "bottomright", col = c('black', mypal), legend = c("Unentangled", 'Minor', "Moderate", 'Severe'), lty = 1, lwd = 2)
 ```
 
