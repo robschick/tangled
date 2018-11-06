@@ -22,7 +22,17 @@ load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthm
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/myName.rda")
 ```
 
-First we're going to loop over animals to assemble an ordinal state vector for each month. The idea here is that the animal starts 'clear' or unentangled. Upon becoming entangled, its status gets updated to the overall entanglement status. The key is that as time progresses, the animal only stays in its worst class, and doesn't recover. We'll have 5 ordinal classes:
+## Introduction
+The goal of this writeup is to document the steps we've taken to make a new plot to be included in the Knowlton et al. paper. The goal of this analysis and figure is to uncover and highlight a) the progression of animals over time from a clean state to an entangled state, and b) to document if/how animals in a particular state affect the overall population health. Recall the figure from Rolland et al. (2016) that showed the median health of animals in different classes over time:
+
+XXX - insert fig here XXX
+
+We had assembled those figures to find out what each group contributes to our overall understanding of health. For example, which group's health was worst in the late 1990's?
+
+In the paper, we've shown how survival declines with entanglement. Here our goal is to try and sort out the contribution of entangled animals to the overall health. We will assess this contribution by entanglement class: minor, moderate, and severe. 
+
+## Methods
+The approximate workflow is as follows. For each animal in the population, for each month in the analysis window, assign an entanglement state that corresponds to the injury class. The idea here is that the animal starts 'clear' or unentangled. Upon becoming entangled, its status gets updated to the overall entanglement status. The key is that as time progresses, the animal only stays in its worst class, and doesn't recover. We'll have 5 ordinal classes:
 
 * Class 4 - Unentangled
 * Class 3 - Minor Entanglement
@@ -30,34 +40,22 @@ First we're going to loop over animals to assemble an ordinal state vector for e
 * Class 1 - Severe Entanglement
 * Class 0 - Known Dead
 
-To illustrate, let's start with just 50 animals. Each of these animals has experienced more than 1 event (we need that to illustrate progression).
+For example, an animal starts in class 4. Once it becomes entangled with a minor entanglement its state is a 3. While we have been careful to define the temporal extent of the entanglement windows in the paper, here we are explicitly assuming the animal is permanently in state 3. However, should the animal experience a moderate entanglement at some future point, its state will drop to 2 and remain there, even if its health recovers. This idea is one possible way to look at the cumulative impact of entanglement burden.
 
-```{r, eval = FALSE}
-sampVal <- 450
-canAn <- tangleOut %>% 
-  filter(EventNo > 1) %>% 
-  select(EGNo) %>% 
-  sample_n(sampVal) %>% 
-  pull()
-canAn <- unique(canAn)
-```
+### Data Processing
+We have the posterior estimates of health for all animals, the entanglement windows that describe each event for each animal, and the matrix of state vectors just described. With these, we can assemble the data required for plotting. 
 
-
-We use that vector to pare down the larger data frame:
+Here are the entanglement injury data:
 
 ```{r}
-canAn <- ID
-tangled <- tangleOut %>% 
-  filter(tangleOut$EGNo %in% canAn) %>% 
-  arrange(EGNo)
-tangled
+head(tangled)
 ```
 
-With the raw data, we can now build up a data structure. I'm going to start with a matrix structure, though maybe I should have this as a list given the different starting and ending dates? TBD. We populate this with 4's under the assumption that all animals start unentangled. We may vary this to NA to deal with the proper alignment to when animals are not yet born
+With the raw data, we can now build up a data structure. We populate this with 4's under the assumption that all animals start unentangled. We may vary this to NA to deal with the proper alignment to when animals are not yet born
 
 ```{r}
 dateVec <- seq.Date(as.Date("1970/01/01"), as.Date("2016/12/01"), by = 'month')
-fate <- matrix(4, nrow = length(canAn), ncol = length(dateVec))
+fate <- matrix(4, nrow = length(ID), ncol = length(dateVec))
 ```
 
 Now let's loop over individuals, and within individuals, entanglement events, to fill in this state matrix.
@@ -98,7 +96,7 @@ At this point we have approx 50 candidate animals, and we want to plot the healt
 
 ```{r}
 
-health <- healthmean[noquote(rownames(healthmean)) %in% canAn, ]
+health <- healthmean[noquote(rownames(healthmean)) %in% ID, ]
 ```
 
 My first idea is to loop over columns, and tally the number of animals in each class from fate, and then intersect fate with health to get the summary statistics from each grouping.
@@ -106,7 +104,7 @@ My first idea is to loop over columns, and tally the number of animals in each c
 ```{r}
 dfAll <- numeric(0)
 for (i in 1:ncol(health)){
-  df <- data.frame(id = canAn, health = health[, i], fate = fate[, i], dateTime = dateVec[i])
+  df <- data.frame(id = ID, health = health[, i], fate = fate[, i], dateTime = dateVec[i])
   dfSummary <- df %>% 
     group_by(fate) %>% 
     summarize(mean = mean(health, na.rm = TRUE), sd = sd(health, na.rm = TRUE)) %>% 
@@ -125,7 +123,9 @@ unentangled <- dfAll %>% filter(fate == 4)
 minor <- dfAll %>% filter(fate == 3)
 moderate <- dfAll %>% filter(fate == 2)
 severe <- dfAll %>% filter(fate == 1)
-plot(unentangled$dateTime, unentangled$mean, type = 'l', ylim = c(0, 100), xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")),
+
+plot(unentangled$dateTime, unentangled$mean, type = 'l', ylim = c(0, 100), 
+     xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")),
      xlab = 'Date',  ylab = "Estimated Health Score")
 lines(unentangled$dateTime, unentangled$mean + unentangled$sd, lty = 2)
 lines(unentangled$dateTime, unentangled$mean - unentangled$sd, lty = 2)
