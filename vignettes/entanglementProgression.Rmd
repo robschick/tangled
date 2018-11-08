@@ -134,11 +134,11 @@ minor <- dfAll %>% filter(fate == 3)
 moderate <- dfAll %>% filter(fate == 2)
 severe <- dfAll %>% filter(fate == 1)
 
-plot(unentangled$dateTime, unentangled$mean, type = 'l', ylim = c(0, 100), 
+plot(unentangled$dateTime, unentangled$mean, type = 'l', lwd = 2, ylim = c(0, 100), 
      xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")),
      xlab = 'Date',  ylab = "Estimated Health Score")
-lines(unentangled$dateTime, unentangled$mean + unentangled$sd, lty = 2)
-lines(unentangled$dateTime, unentangled$mean - unentangled$sd, lty = 2)
+lines(unentangled$dateTime, unentangled$mean + unentangled$sd, col = "#00000050")
+lines(unentangled$dateTime, unentangled$mean - unentangled$sd, col = "#00000050")
 
 lines(minor$dateTime, minor$mean, lty = 1, col = mypal[1], lwd = 2)
 # lines(minor$dateTime, minor$mean + minor$sd, lty = 2, col = mypal[1])
@@ -152,5 +152,38 @@ lines(severe$dateTime, severe$mean, lty = 1, col = mypal[3], lwd = 2)
 # lines(severe$dateTime, severe$mean + severe$sd, lty = 2, col = mypal[3])
 # lines(severe$dateTime, severe$mean - severe$sd, lty = 2, col = mypal[3])
 legend( "bottomright", col = c('black', mypal), legend = c("Unentangled", 'Minor', "Moderate", 'Severe'), lty = 1, lwd = 2)
+```
+
+The above needs additional data for context -- namely how many whales are in each state at each time. Let's add that below. First we tally it and then convert it to a normalized matrix that shows the percentage of animals in each class.
+
+```{r}
+tallyList <- lapply(split(fate, col(fate)), table)
+
+tmat <- matrix(NA, nrow = 4, ncol(fate))
+for(i in 1:ncol(fate)){
+  vdat <- as.vector(unlist(tallyList[[i]]))
+  vidx <- noquote(names(unlist(tallyList[[i]])))
+  tmat[match(vidx, 1:4), i] <- vdat
+}
+tpct <- 100 * (tmat / colSums(tmat, na.rm = TRUE))
+```
+
+With that assembled we can plot the raw numbers:
+
+```{r}
+plot(dateVec, tmat[4, ], ylim = c(0, 700), type = 'l', xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")), xlab = 'Date/Time', ylab = 'Number of Animals')
+lines(dateVec, tmat[1, ], ylim = c(0, 700), col = mypal[3])
+lines(dateVec, tmat[2, ], ylim = c(0, 700), col = mypal[2])
+lines(dateVec, tmat[3, ], ylim = c(0, 700), col = mypal[1])
+legend( "topright", col = c('black', mypal), legend = c("Unentangled", 'Minor', "Moderate", 'Severe'), lty = 1, lwd = 2)
+```
+
+and the normalized values:
+```{r}
+plot(dateVec, tpct[4, ], ylim = c(0, 100), type = 'l', xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")), xlab = 'Date/Time', ylab = '% of Animals', las = 1)
+lines(dateVec, tpct[1, ], col = mypal[3])
+lines(dateVec, tpct[2, ], col = mypal[2])
+lines(dateVec, tpct[3, ], col = mypal[1])
+legend( "topright", col = c('black', mypal), legend = c("Unentangled", 'Minor', "Moderate", 'Severe'), lty = 1, lwd = 2)
 ```
 
