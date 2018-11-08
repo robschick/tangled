@@ -48,10 +48,11 @@ We have the posterior estimates of health for all animals, the entanglement wind
 Here are the entanglement injury data:
 
 ```{r}
+tangled <- tangleOut
 head(tangled)
 ```
 
-With the raw data, we can now build up a data structure. We populate this with 4's under the assumption that all animals start unentangled. We may vary this to NA to deal with the proper alignment to when animals are not yet born
+With the raw data, we can now build up a data structure. We populate this with 4's under the assumption that all animals start unentangled. 
 
 ```{r}
 dateVec <- seq.Date(as.Date("1970/01/01"), as.Date("2016/12/01"), by = 'month')
@@ -63,11 +64,11 @@ Now let's loop over individuals, and within individuals, entanglement events, to
 ```{r}
 library(lubridate)
 
-
 for (i in 1:length(unique(tangled$EGNo))){
   eg <- unique(tangled$EGNo)[i]
   dsub <- filter(tangled, EGNo == eg) %>% 
-    select(EventNo, Severity, gearInj, StartDateWindow, EndDateWindow)
+    select(EventNo, Severity, gearInj, StartDateWindow, EndDateWindow) %>% 
+    arrange(StartDateWindow)
   
   for(j in 1:nrow(dsub)){
     startPos <- which.min(abs(dateVec - as.Date(dsub$StartDateWindow[j])))
@@ -81,25 +82,33 @@ for (i in 1:length(unique(tangled$EGNo))){
 }
 ```
 
+A few things to note in the code. We start by looping over individuals based on their EGNo. We subset the entanglement data to just have the one of more events for each individual animal. When we subset, we pull out the information on the individual event, severity, time of start/stop, etc. We then loop over these individual events to find the start position of the event. We then calculate the severity, lumping by category, i.e. minor - with gear (```valStart == 4```) and minor without gear ```valStart == 6``` get collapsed to a minor (3). 
+
+From this start position until the end of the modeling time (```ncol(fate)```), we then set the states equal to the lumped severity category. If a later entanglement event has a lower category, i.e. it's a worse entanglement, then the fate gets updated from the start of that event until the end of modeling time.
+
 And then we plot it:
 
 ```{r}
-library(ggplot2)
-plot(dateVec, fate[1, ], type = 'l', ylim = c(0, 4))
+plot(dateVec, fate[1, ], type = 'l', ylim = c(0, 4), col = "#00000050")
 for(i in 2:nrow(fate)){
-  lines(dateVec, fate[i, ])
+  lines(dateVec, fate[i, ], col = "#00000050")
 }
 ```
 
 # Pull Out Health
-At this point we have approx 50 candidate animals, and we want to plot the health of these groups over time, where groups are defined by the fate value. Probably easiest if I subset the matrix of health values to be the same size as the candidate animals.
+That's the state/fate vectors setup for each individual animal, and now we want to use those in conjunction with the health data to gauge how health of different classes of animals changes.
+
+First we establish a data matrix of the posterior estimates of health.
 
 ```{r}
-
 health <- healthmean[noquote(rownames(healthmean)) %in% ID, ]
 ```
 
-My first idea is to loop over columns, and tally the number of animals in each class from fate, and then intersect fate with health to get the summary statistics from each grouping.
+To get the fate data married with the health data, we:
+
+1. loop over the columns in that health matrix (n.g. that each column corresponds to a specific month)
+2. tally the number of animals in each class from ```fate```
+3. intersect ```fate``` with ```health``` to get the summary statistics (mean, sd) from each grouping at each time
 
 ```{r}
 dfAll <- numeric(0)
@@ -107,7 +116,8 @@ for (i in 1:ncol(health)){
   df <- data.frame(id = ID, health = health[, i], fate = fate[, i], dateTime = dateVec[i])
   dfSummary <- df %>% 
     group_by(fate) %>% 
-    summarize(mean = mean(health, na.rm = TRUE), sd = sd(health, na.rm = TRUE)) %>% 
+    summarize(mean = mean(health, na.rm = TRUE), 
+              sd = sd(health, na.rm = TRUE)) %>% 
     mutate(time = i) %>% 
     mutate(dateTime = dateVec[i])
   dfAll <- rbind(dfAll, dfSummary)
