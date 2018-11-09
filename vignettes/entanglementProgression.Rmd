@@ -41,7 +41,7 @@ The approximate workflow is as follows. For each animal in the population, for e
 * Class 3 - Minor Entanglement
 * Class 2 - Moderate Entanglement
 * Class 1 - Severe Entanglement
-* Class 0 - Known Dead
+* Class 0 - Known Dead (though we include this conceptually, it's not been populated yet)
 
 For example, an animal starts in class 4. Once it becomes entangled with a minor entanglement its state is a 3. While we have been careful to define the temporal extent of the entanglement windows in the paper, here we are explicitly assuming the animal is permanently in state 3. However, should the animal experience a moderate entanglement at some future point, its state will drop to 2 and remain there, even if its health recovers. This idea is one possible way to look at the cumulative impact of entanglement burden.
 
@@ -93,36 +93,36 @@ for (i in 1:length(unique(tangled$EGNo))){
 }
 ```
 
-A few things to note in the code. We start by looping over individuals based on their EGNo. We subset the entanglement data to just have the one of more events for each individual animal. When we subset, we pull out the information on the individual event, severity, time of start/stop, etc. We then loop over these individual events to find the start position of the event. We then calculate the severity, lumping by category, i.e. minor - with gear (```valStart == 4```) and minor without gear ```valStart == 6``` get collapsed to a minor (3). 
+A few things to note in the code. We start by looping over individuals based on their EGNo. We subset the entanglement data to just have the one of more events for each individual animal. When we subset, we pull out the information on the individual event, severity, time of start/stop, etc. 
+
+Then, for any female, we find the month of her first calf, and using some indexing, we set all her health values to NA following her first calf. **AMY** we should discuss if this is exactly what we want. The way I've written this code, it removes the health of entangled reproductively active females from all categories - not just the unentangled one. 
+
+We then loop over these individual events to find the start position of the event. We then calculate the severity, lumping by category, i.e. minor - with gear (```valStart == 4```) and minor without gear ```valStart == 6``` get collapsed to a minor (3). 
 
 From this start position until the end of the modeling time (```ncol(fate)```), we then set the states equal to the lumped severity category. If a later entanglement event has a lower category, i.e. it's a worse entanglement, then the fate gets updated from the start of that event until the end of modeling time.
 
 And then we plot it:
 
 ```{r}
-plot(dateVec, fate[1, ], type = 'l', ylim = c(0, 4), col = "#00000050")
+plot(dateVec, fate[1, ], type = 'l', ylim = c(0, 4), col = "#00000050", ylab = 'Entanglement State', las = 1, xlab = 'Year')
 for(i in 2:nrow(fate)){
   lines(dateVec, fate[i, ], col = "#00000050")
 }
 ```
 
 # Pull Out Health
-That's the state/fate vectors setup for each individual animal, and now we want to use those in conjunction with the health data to gauge how health of different classes of animals changes.
-
-First we establish a data matrix of the posterior estimates of health.
-
-```{r}
-health <- healthmean[noquote(rownames(healthmean)) %in% ID, ]
-```
+That's the state/fate vectors complete for each individual animal, and now we want to use those in conjunction with the health data to gauge how health of different classes of animals changes.
 
 To get the fate data married with the health data, we:
 
-1. loop over the columns in that health matrix (n.g. that each column corresponds to a specific month)
+1. loop over the columns in that health matrix (n.b. that each column corresponds to a specific month)
 2. tally the number of animals in each class from ```fate```
 3. intersect ```fate``` with ```health``` to get the summary statistics (mean, sd) from each grouping at each time
 
 ```{r}
 dfAll <- numeric(0)
+health <- healthmean[noquote(rownames(healthmean)) %in% ID, ]
+
 for (i in 1:ncol(health)){
   df <- data.frame(id = ID, health = health[, i], fate = fate[, i], dateTime = dateVec[i])
   dfSummary <- df %>% 
