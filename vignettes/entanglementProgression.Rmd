@@ -73,14 +73,6 @@ for (i in 1:length(unique(tangled$EGNo))){
     select(EventNo, Severity, gearInj, StartDateWindow, EndDateWindow, firstCalfidx) %>% 
     arrange(StartDateWindow)
   
-  # Update Health to exclude health of repro females
-  if(!any(is.na(dsub$firstCalfidx))){
-    anidx <- match(eg, noquote(rownames(healthmean)))
-    timeAfter <- min(dsub$firstCalfidx):ncol(healthmean)
-    healthmean[anidx, timeAfter] <- NA    
-  }
-
-  
   for(j in 1:nrow(dsub)){
     startPos <- which.min(abs(dateVec - as.Date(dsub$StartDateWindow[j])))
     valStart <- dsub$gearInj[j]
@@ -89,13 +81,28 @@ for (i in 1:length(unique(tangled$EGNo))){
     if(valStart %in% c(3, 1)) val <- 1
     fate[i, startPos:ncol(fate)] <- val
   }
+
+  # Update Health to exclude health of repro females 
+  # from first calf (t1) to
+  # remaining time in unentangled state (t2)
+  if(!any(is.na(dsub$firstCalfidx))){
+    anidx <- match(eg, noquote(rownames(healthmean)))
+    t1 <- min(dsub$firstCalfidx)
+    t2 <- max(which(fate[i, ] == 4))
+    
+    if(t1 < t2){
+      timeAfter <- t1:t2
+      healthmean[anidx, timeAfter] <- NA
+    }
+    
+  }
   
 }
 ```
 
 A few things to note in the code. We start by looping over individuals based on their EGNo. We subset the entanglement data to just have the one of more events for each individual animal. When we subset, we pull out the information on the individual event, severity, time of start/stop, etc. 
 
-Then, for any female, we find the month of her first calf, and using some indexing, we set all her health values to NA following her first calf. **AMY** we should discuss if this is exactly what we want. The way I've written this code, it removes the health of entangled reproductively active females from all categories - not just the unentangled one. 
+Then, for any female, we find the month of her first calf, and using some indexing, we set all her health values to NA for the time following her first calf up until the time she encounters her first entanglement. This ensures that the "unentangled" state does not include natural variation from health in reproductive females. 
 
 We then loop over these individual events to find the start position of the event. We then calculate the severity, lumping by category, i.e. minor - with gear (```valStart == 4```) and minor without gear ```valStart == 6``` get collapsed to a minor (3). 
 
