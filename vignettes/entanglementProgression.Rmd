@@ -71,9 +71,12 @@ for (i in 1:length(unique(tangled$EGNo))){
     arrange(StartDateWindow)
   
   # Update Health to exclude health of repro females
-  anidx <- match(eg, head(noquote(rownames(healthmean))))
-  timeAfter <- min(dsub$firstCalfidx):ncol(healthmean)
-  healthmean[anidx, timeAfter] <- NA
+  if(!is.na(dsub$firstCalfidx)){
+    anidx <- match(eg, head(noquote(rownames(healthmean))))
+    timeAfter <- min(dsub$firstCalfidx):ncol(healthmean)
+    healthmean[anidx, timeAfter] <- NA    
+  }
+
   
   for(j in 1:nrow(dsub)){
     startPos <- which.min(abs(dateVec - as.Date(dsub$StartDateWindow[j])))
