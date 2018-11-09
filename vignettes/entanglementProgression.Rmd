@@ -12,6 +12,7 @@ vignette: >
 ```{r setup, include=FALSE}
 rm(list = ls())
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=8, fig.height=5) 
 library(dplyr)
 load("../data/tangleOut.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/firstSight.rda")
@@ -25,7 +26,9 @@ load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/myName.
 ## Introduction
 The goal of this writeup is to document the steps we've taken to make a new plot to be included in the Knowlton et al. paper. The goal of this analysis and figure is to uncover and highlight a) the progression of animals over time from a clean state to an entangled state, and b) to document if/how animals in a particular state affect the overall population health. Recall the figure from Rolland et al. (2016) that showed the median health of animals in different classes over time:
 
-XXX - insert fig here XXX
+
+
+![](E:/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images/rollandFig4.png)
 
 We had assembled those figures to find out what each group contributes to our overall understanding of health. For example, which group's health was worst in the late 1990's?
 
@@ -71,8 +74,8 @@ for (i in 1:length(unique(tangled$EGNo))){
     arrange(StartDateWindow)
   
   # Update Health to exclude health of repro females
-  if(!is.na(dsub$firstCalfidx)){
-    anidx <- match(eg, head(noquote(rownames(healthmean))))
+  if(!any(is.na(dsub$firstCalfidx))){
+    anidx <- match(eg, noquote(rownames(healthmean)))
     timeAfter <- min(dsub$firstCalfidx):ncol(healthmean)
     healthmean[anidx, timeAfter] <- NA    
   }
@@ -179,19 +182,28 @@ tpct <- 100 * (tmat / colSums(tmat, na.rm = TRUE))
 With that assembled we can plot the raw numbers:
 
 ```{r}
-plot(dateVec, tmat[4, ], ylim = c(0, 700), type = 'l', xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")), xlab = 'Date/Time', ylab = 'Number of Animals')
-lines(dateVec, tmat[1, ], ylim = c(0, 700), col = mypal[3])
-lines(dateVec, tmat[2, ], ylim = c(0, 700), col = mypal[2])
-lines(dateVec, tmat[3, ], ylim = c(0, 700), col = mypal[1])
+plot(dateVec, tmat[4, ], ylim = c(0, 700), type = 'l', panel.first = 
+       c(abline(h = seq(0, 700, 100), lty = 3, col = 'grey') 
+        ,abline(v = as.Date(c("1980-01-01", "1985-01-01", "1990-01-01", "1995-01-01", "2000-01-01", "2005-01-01", "2010-01-01")), 
+                lty = 3, col = 'grey')),
+     xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")), 
+     xlab = 'Date/Time', ylab = 'Number of Animals', las = 1, lwd = 2)
+lines(dateVec, tmat[1, ], ylim = c(0, 700), col = mypal[3], lwd = 2)
+lines(dateVec, tmat[2, ], ylim = c(0, 700), col = mypal[2], lwd = 2)
+lines(dateVec, tmat[3, ], ylim = c(0, 700), col = mypal[1], lwd = 2)
 legend( "topright", col = c('black', mypal), legend = c("Unentangled", 'Minor', "Moderate", 'Severe'), lty = 1, lwd = 2)
 ```
 
 and the normalized values:
 ```{r}
-plot(dateVec, tpct[4, ], ylim = c(0, 100), type = 'l', xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")), xlab = 'Date/Time', ylab = '% of Animals', las = 1)
-lines(dateVec, tpct[1, ], col = mypal[3])
-lines(dateVec, tpct[2, ], col = mypal[2])
-lines(dateVec, tpct[3, ], col = mypal[1])
+plot(dateVec, tpct[4, ], ylim = c(0, 100), type = 'l', panel.first = 
+       c(abline(h = seq(0, 100, 10), lty = 3, col = 'grey') 
+        ,abline(v = as.Date(c("1980-01-01", "1985-01-01", "1990-01-01", "1995-01-01", "2000-01-01", "2005-01-01", "2010-01-01")), 
+                lty = 3, col = 'grey')),xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")), 
+     xlab = 'Date/Time', ylab = '% of Animals', las = 1, lwd = 2)
+lines(dateVec, tpct[1, ], col = mypal[3], lwd = 2)
+lines(dateVec, tpct[2, ], col = mypal[2], lwd = 2)
+lines(dateVec, tpct[3, ], col = mypal[1], lwd = 2)
 legend( "topright", col = c('black', mypal), legend = c("Unentangled", 'Minor', "Moderate", 'Severe'), lty = 1, lwd = 2)
 ```
 
