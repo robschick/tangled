@@ -3,6 +3,7 @@ title: "Progression of Entanglement Status"
 author: "Rob Schick, PhD"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
+keep_md: TRUE
 vignette: >
   %\VignetteIndexEntry{Progression of Entanglement Status}
   %\VignetteEngine{knitr::rmarkdown}
@@ -102,11 +103,11 @@ for (i in 1:length(unique(tangled$EGNo))){
 
 A few things to note in the code. We start by looping over individuals based on their EGNo. We subset the entanglement data to just have the one of more events for each individual animal. When we subset, we pull out the information on the individual event, severity, time of start/stop, etc. 
 
-Then, for any female, we find the month of her first calf, and using some indexing, we set all her health values to NA for the time following her first calf up until the time she encounters her first entanglement. This ensures that the "unentangled" state does not include natural variation from health in reproductive females. 
-
 We then loop over these individual events to find the start position of the event. We then calculate the severity, lumping by category, i.e. minor - with gear (```valStart == 4```) and minor without gear ```valStart == 6``` get collapsed to a minor (3). 
 
 From this start position until the end of the modeling time (```ncol(fate)```), we then set the states equal to the lumped severity category. If a later entanglement event has a lower category, i.e. it's a worse entanglement, then the fate gets updated from the start of that event until the end of modeling time.
+
+The two nested ```if()``` statements make sure we do not count reproductively active females in the reference category. To do this, for any female we find the month of her first calf, and using some indexing, we set all her health values to NA for the time following her first calf up until the time she encounters her first entanglement. This ensures that the "unentangled" state does not include natural variation from health in reproductive females. Note that when doing this updating of the health, I first check that the first calf (```t1```) comes before the first entanglement (```t2```). If yes, then the health for this period, reproductively active but not _yet_ entangled, is not included in the unentangled reference class.
 
 And then we plot it:
 
@@ -117,12 +118,12 @@ for(i in 2:nrow(fate)){
 }
 ```
 
-# Pull Out Health
-That's the state/fate vectors complete for each individual animal, and now we want to use those in conjunction with the health data to gauge how health of different classes of animals changes.
+## Sample and Plot Health
+With the state/fate vectors complete for each individual animal, we use those in conjunction with the health data to gauge how health of different classes of animals changes.
 
 To get the fate data married with the health data, we:
 
-1. loop over the columns in that health matrix (n.b. that each column corresponds to a specific month)
+1. loop over the columns in that health matrix (n.b. that each row corresponds to an animal, each column corresponds to a specific month)
 2. tally the number of animals in each class from ```fate```
 3. intersect ```fate``` with ```health``` to get the summary statistics (mean, sd) from each grouping at each time
 
