@@ -10,12 +10,15 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
 rm(list = ls())
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(fig.width=8, fig.height=5) 
 library(dplyr)
+library(lubridate)
+library(RColorBrewer)
 load("../data/tangleOut.rda")
+load("../data/tangleAll.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/firstSight.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/lastSight.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/ID.rda")
@@ -53,8 +56,19 @@ Here are the entanglement injury data:
 
 ```{r}
 tangled <- tangleOut
-head(tangled)
+tangled %>% 
+  select(EGNo, EventNo, StartDateWindow, EndDateWindow, Severity, gear)
 ```
+
+Note that the above table differs slightly from before in that I've specifically asked to show the start and end times of the windows that we use in the paper. These are the ones that are pared down based on the rules we derived; they are much shorter in duration than the entire possible window.
+
+In terms of the number of distinct animals in these data, we have:
+
+```{r}
+n_distinct(tangled$EGNo)
+```
+
+**Update:** The reason this value is smaller than expected is that in the paper, we only used entanglement events across the window. There are some number of events that lack a start date. 
 
 With the raw data, we can now build up a data structure. We populate this with 4's under the assumption that all animals start unentangled. 
 
@@ -63,11 +77,11 @@ dateVec <- seq.Date(as.Date("1970/01/01"), as.Date("2016/12/01"), by = 'month')
 fate <- matrix(4, nrow = length(ID), ncol = length(dateVec))
 ```
 
-Now let's loop over individuals, and within individuals, entanglement events, to fill in this state matrix.
+Now let's loop over individuals, and within individuals, entanglement events, to fill in this state matrix. 
+
+**UPDATE** This changes slightly from the last document in that, I'm now starting the change at ```EndDateWindow``` instead of ```StartDateWindow```. I don't anticipate a major change, but we're exploring it anyway.
 
 ```{r}
-library(lubridate)
-
 for (i in 1:length(unique(tangled$EGNo))){
   eg <- unique(tangled$EGNo)[i]
   dsub <- filter(tangled, EGNo == eg) %>% 
@@ -75,7 +89,7 @@ for (i in 1:length(unique(tangled$EGNo))){
     arrange(StartDateWindow)
   
   for(j in 1:nrow(dsub)){
-    startPos <- which.min(abs(dateVec - as.Date(dsub$StartDateWindow[j])))
+    startPos <- which.min(abs(dateVec - as.Date(dsub$EndDateWindow[j])))
     valStart <- dsub$gearInj[j]
     if(valStart %in% c(6, 4)) val <- 3
     if(valStart %in% c(5, 2)) val <- 2
@@ -103,11 +117,11 @@ for (i in 1:length(unique(tangled$EGNo))){
 
 A few things to note in the code. We start by looping over individuals based on their EGNo. We subset the entanglement data to just have the one of more events for each individual animal. When we subset, we pull out the information on the individual event, severity, time of start/stop, etc. 
 
-We then loop over these individual events to find the start position of the event. We then calculate the severity, lumping by category, i.e. minor - with gear (```valStart == 4```) and minor without gear ```valStart == 6``` get collapsed to a minor (3). 
+We then loop over these individual events to find the ~~start~~ **end** position of the event. We then calculate the severity, lumping by category, i.e. minor - with gear (```valStart == 4```) and minor without gear ```valStart == 6``` get collapsed to a minor (3). 
 
-From this start position until the end of the modeling time (```ncol(fate)```), we then set the states equal to the lumped severity category. If a later entanglement event has a lower category, i.e. it's a worse entanglement, then the fate gets updated from the start of that event until the end of modeling time.
+From this start position until the end of the modeling time (```ncol(fate)```), we then set the states equal to the lumped severity category. If a later entanglement event has a lower category, i.e. it's a worse entanglement, then the fate gets updated from the start of _that_ event until the end of modeling time.
 
-The two nested ```if()``` statements make sure we do not count reproductively active females in the reference category. To do this, for any female we find the month of her first calf, and using some indexing, we set all her health values to NA for the time following her first calf up until the time she encounters her first entanglement. This ensures that the "unentangled" state does not include natural variation from health in reproductive females. Note that when doing this updating of the health, I first check that the first calf (```t1```) comes before the first entanglement (```t2```). If yes, then the health for this period, reproductively active but not _yet_ entangled, is not included in the unentangled reference class.
+The two nested ```if()``` statements make sure we do not count reproductively active females in the reference category. To do this, for any female we find the month of her first calf, and, using some indexing, we set all her health values to NA for the time following her first calf up until the time she encounters her first entanglement. This ensures that the "unentangled" state does not include natural variation from health in reproductive females. Note that when doing this updating of the health, I first check that the first calf (```t1```) comes before the first entanglement (```t2```). If yes, then the health for this period -- reproductively active but not _yet_ entangled -- is not included in the unentangled reference class.
 
 And then we plot it:
 
@@ -146,7 +160,6 @@ for (i in 1:ncol(health)){
 Ok, with it assembled, let's try and plot it out.
 
 ```{r}
-library(RColorBrewer)
 mypal <- brewer.pal(3, 'Reds')
 unentangled <- dfAll %>% filter(fate == 4)
 minor <- dfAll %>% filter(fate == 3)
