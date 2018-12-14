@@ -3,7 +3,6 @@ title: "Progression of Entanglement Status"
 author: "Rob Schick, PhD"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-keep_md: TRUE
 vignette: >
   %\VignetteIndexEntry{Progression of Entanglement Status}
   %\VignetteEngine{knitr::rmarkdown}
@@ -84,6 +83,7 @@ Now let's loop over individuals, and within individuals, entanglement events, to
 ```{r}
 for (i in 1:length(unique(tangled$EGNo))){
   eg <- unique(tangled$EGNo)[i]
+  anidx <- which(ID == eg)
   dsub <- filter(tangled, EGNo == eg) %>% 
     select(EventNo, Severity, gearInj, StartDateWindow, EndDateWindow, firstCalfidx) %>% 
     arrange(StartDateWindow)
@@ -94,16 +94,16 @@ for (i in 1:length(unique(tangled$EGNo))){
     if(valStart %in% c(6, 4)) val <- 3
     if(valStart %in% c(5, 2)) val <- 2
     if(valStart %in% c(3, 1)) val <- 1
-    fate[i, startPos:ncol(fate)] <- val
+    fate[anidx, startPos:ncol(fate)] <- val
   }
 
   # Update Health to exclude health of repro females 
   # from first calf (t1) to
   # remaining time in unentangled state (t2)
   if(!any(is.na(dsub$firstCalfidx))){
-    anidx <- match(eg, noquote(rownames(healthmean)))
+    
     t1 <- min(dsub$firstCalfidx)
-    t2 <- max(which(fate[i, ] == 4))
+    t2 <- max(which(fate[anidx, ] == 4))
     
     if(t1 < t2){
       timeAfter <- t1:t2
@@ -150,10 +150,11 @@ for (i in 1:ncol(health)){
   dfSummary <- df %>% 
     group_by(fate) %>% 
     summarize(mean = mean(health, na.rm = TRUE), 
-              sd = sd(health, na.rm = TRUE)) %>% 
-    mutate(time = i) %>% 
+              sd = sd(health, na.rm = TRUE),
+              num_an = n()) %>% 
+    mutate(time = i) %>%
     mutate(dateTime = dateVec[i])
-  dfAll <- rbind(dfAll, dfSummary)
+  dfAll <- bind_rows(dfAll, dfSummary)
 }
 ```
 
