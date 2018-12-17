@@ -177,7 +177,7 @@ for (i in 1:length(unique(tangled$EGNo))){
 
 A few things to note in the code. We start by looping over individuals based on their EGNo. We subset the entanglement data to just have the one or more events for each individual animal. When we subset (the ```dsub``` data frame), we pull out the information on the individual events, severity, time of start/stop, etc. 
 
-We then loop over these individual events to find the ~~start~~ **end** position of the event. We then calculate the severity, lumping by category, i.e. minor - with gear (```valStart == 4```) and minor without gear ```valStart == 6``` get collapsed to a minor fate (3). 
+We then loop over these individual events to find the ~~start~~ **end** position of the event. We then calculate the severity, lumping by category, i.e. minor - with gear (```valStart == 4```) and minor without gear (```valStart == 6```) get collapsed to a minor fate with a value of 3. 
 
 From this position in time until the end of the modeling time (```ncol(fate)```), we then set the states equal to the lumped severity category. If a later entanglement event has a lower category, i.e. it's a worse entanglement, then the fate gets updated from the start of _that_ event until the end of modeling time.
 
@@ -194,7 +194,7 @@ for(i in 2:nrow(fate)){
 }
 ```
 
-I'm not sure what all to make analytically out of this plot, but one thing we might want to compare and/or examine further is the rate of change from state to state over the years to see how it lines up with the breaking strength information. For example, it seems like there was a big increase in minor to moderate status in the late 1990's, and a bit increase in moderate to severe in the early 00's. 
+I'm not sure what all to make analytically out of this plot, but one thing we might want to compare and/or examine further is the rate of change from state to state over the years to see how it lines up with the breaking strength information. For example, it seems like there was a big increase in minor to moderate status in the late 1990's, and a bit of an increase in moderate to severe in the early 00's. 
 
 ## Sample and Plot Health
 With the fate vectors complete for each individual animal, we use those in conjunction with the health data, i.e. the posterior estimates of individual health, to gauge how health of different classes of entangled animals changes.
@@ -231,7 +231,12 @@ minor <- dfAll %>% filter(fate == 3)
 moderate <- dfAll %>% filter(fate == 2)
 severe <- dfAll %>% filter(fate == 1)
 
-plot(unentangled$dateTime, unentangled$median, type = 'l', lwd = 2, ylim = c(0, 100), 
+plot(unentangled$dateTime, unentangled$median, type = 'l', lwd = 2, ylim = c(0, 100),
+     panel.first = 
+       c(abline(h = seq(0, 100, 10), lty = 3, col = 'grey'), 
+         abline(v = as.Date(c("1980-01-01", "1985-01-01", "1990-01-01", "1995-01-01", 
+                              "2000-01-01", "2005-01-01", "2010-01-01")), 
+                lty = 3, col = 'grey')), 
      xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")),
      xlab = 'Date',  ylab = "Estimated Health Score")
 lines(unentangled$dateTime, unentangled$median + unentangled$sd, col = "#00000050")
