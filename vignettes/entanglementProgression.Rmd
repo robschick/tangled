@@ -24,6 +24,8 @@ load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/ID.rda"
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/entvec.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthmean.rda")
 load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/myName.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/deathyr.rda")
+load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/dcut.rda")
 ```
 
 ## Introduction
@@ -140,6 +142,8 @@ Now let's loop over individuals, and within individuals, entanglement events, to
 
 **UPDATE** This changes slightly from the last document in that, I'm now starting the change at ```EndDateWindow``` instead of ```StartDateWindow```. I don't anticipate a major change. I've also corrected how I update the indexing on the ```fate``` matrix. 
 
+**UPDATE January 07, 2019** We'll add the imputed and known deaths into this matrix now. This will be consistent with the survival curve analysis in the paper, and it will also make the health calculations a bit more correct - in the sense that after the month of most probable death, we'll assume all health values are NA.
+
 ```{r}
 for (i in 1:length(unique(tangled$EGNo))){
   eg <- unique(tangled$EGNo)[i]
@@ -172,6 +176,13 @@ for (i in 1:length(unique(tangled$EGNo))){
     
   }
   
+  # Update to include death states
+  didx <- which.max(deathyr[anidx, ])
+  if(didx < dcut) {
+    fate[anidx, didx:ncol(fate)] <- 0  
+  }
+  
+  
 }
 ```
 
@@ -192,6 +203,7 @@ plot(dateVec, fate[1, ], type = 'l', ylim = c(0, 4), col = "#00000050", ylab = '
 for(i in 2:nrow(fate)){
   lines(dateVec, fate[i, ], col = "#00000050")
 }
+abline(v = dateVec[dcut], col = 'red')
 ```
 
 I'm not sure what all to make analytically out of this plot, but one thing we might want to compare and/or examine further is the rate of change from state to state over the years to see how it lines up with the breaking strength information. For example, it seems like there was a big increase in minor to moderate status in the late 1990's, and a bit of an increase in moderate to severe in the early 00's. 
@@ -237,7 +249,7 @@ plot(unentangled$dateTime, unentangled$median, type = 'l', lwd = 2, ylim = c(0, 
          abline(v = as.Date(c("1980-01-01", "1985-01-01", "1990-01-01", "1995-01-01", 
                               "2000-01-01", "2005-01-01", "2010-01-01")), 
                 lty = 3, col = 'grey')), 
-     xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")),
+     xlim = c(as.Date('1980-01-01'), as.Date("2012-07-01")),
      xlab = 'Date',  ylab = "Estimated Health Score")
 lines(unentangled$dateTime, unentangled$median + unentangled$sd, col = "#00000050")
 lines(unentangled$dateTime, unentangled$median - unentangled$sd, col = "#00000050")
@@ -277,7 +289,7 @@ plot(dateVec, tmat[4, ], ylim = c(0, 700), type = 'l', panel.first =
        c(abline(h = seq(0, 700, 100), lty = 3, col = 'grey') 
         ,abline(v = as.Date(c("1980-01-01", "1985-01-01", "1990-01-01", "1995-01-01", "2000-01-01", "2005-01-01", "2010-01-01")), 
                 lty = 3, col = 'grey')),
-     xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")), 
+     xlim = c(as.Date('1980-01-01'), as.Date("2012-07-01")), 
      xlab = 'Date/Time', ylab = 'Number of Animals', las = 1, lwd = 2)
 lines(dateVec, tmat[1, ], ylim = c(0, 700), col = mypal[3], lwd = 2)
 lines(dateVec, tmat[2, ], ylim = c(0, 700), col = mypal[2], lwd = 2)
@@ -290,7 +302,7 @@ and the normalized values:
 plot(dateVec, tpct[4, ], ylim = c(0, 100), type = 'l', panel.first = 
        c(abline(h = seq(0, 100, 10), lty = 3, col = 'grey') 
         ,abline(v = as.Date(c("1980-01-01", "1985-01-01", "1990-01-01", "1995-01-01", "2000-01-01", "2005-01-01", "2010-01-01")), 
-                lty = 3, col = 'grey')),xlim = c(as.Date('1980-01-01'), as.Date("2014-07-01")), 
+                lty = 3, col = 'grey')),xlim = c(as.Date('1980-01-01'), as.Date("2012-07-01")), 
      xlab = 'Date/Time', ylab = '% of Animals', las = 1, lwd = 2)
 lines(dateVec, tpct[1, ], col = mypal[3], lwd = 2)
 lines(dateVec, tpct[2, ], col = mypal[2], lwd = 2)
@@ -298,3 +310,4 @@ lines(dateVec, tpct[3, ], col = mypal[1], lwd = 2)
 legend( "topright", col = c('black', mypal), legend = c("Unentangled", 'Minor', "Moderate", 'Severe'), lty = 1, lwd = 2)
 ```
 
+**UPDATE** We want to look at the spread of individual health values around the severe curve - especially in the early 2000's to get a feel for what is causing the spread. So I'm going to just plot the severe curve, but also add in the scores from each individual to show the variation.
