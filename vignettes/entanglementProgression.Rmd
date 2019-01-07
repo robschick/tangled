@@ -203,7 +203,7 @@ plot(dateVec, fate[1, ], type = 'l', ylim = c(0, 4), col = "#00000050", ylab = '
 for(i in 2:nrow(fate)){
   lines(dateVec, fate[i, ], col = "#00000050")
 }
-abline(v = dateVec[dcut], col = 'red')
+# abline(v = dateVec[dcut], col = 'red')
 ```
 
 I'm not sure what all to make analytically out of this plot, but one thing we might want to compare and/or examine further is the rate of change from state to state over the years to see how it lines up with the breaking strength information. For example, it seems like there was a big increase in minor to moderate status in the late 1990's, and a bit of an increase in moderate to severe in the early 00's. 
@@ -272,14 +272,13 @@ The above needs additional data for context -- namely how many whales are in eac
 
 ```{r}
 fateEnt <- fate
-fateEnt[fateEnt == 0] <- NA
 tallyList <- lapply(split(fateEnt, col(fateEnt)), table)
 
-tmat <- matrix(NA, nrow = 4, ncol(fateEnt))
+tmat <- matrix(0, nrow = 5, ncol(fateEnt))
 for(i in 1:ncol(fateEnt)){
   vdat <- as.vector(unlist(tallyList[[i]]))
   vidx <- noquote(names(unlist(tallyList[[i]])))
-  tmat[match(vidx, 1:4), i] <- vdat
+  tmat[match(vidx, 0:4), i] <- vdat
 }
 tpct <- 100 * (tmat / colSums(tmat, na.rm = TRUE))
 ```
@@ -287,28 +286,28 @@ tpct <- 100 * (tmat / colSums(tmat, na.rm = TRUE))
 With that assembled we can plot the raw numbers:
 
 ```{r}
-plot(dateVec, tmat[4, ], ylim = c(0, 700), type = 'l', panel.first = 
+plot(dateVec, tmat[5, ], ylim = c(0, 700), type = 'l', panel.first = 
        c(abline(h = seq(0, 700, 100), lty = 3, col = 'grey') 
         ,abline(v = as.Date(c("1980-01-01", "1985-01-01", "1990-01-01", "1995-01-01", "2000-01-01", "2005-01-01", "2010-01-01")), 
                 lty = 3, col = 'grey')),
      xlim = c(as.Date('1980-01-01'), as.Date("2012-07-01")), 
      xlab = 'Date/Time', ylab = 'Number of Animals', las = 1, lwd = 2)
-lines(dateVec, tmat[1, ], ylim = c(0, 700), col = mypal[3], lwd = 2)
-lines(dateVec, tmat[2, ], ylim = c(0, 700), col = mypal[2], lwd = 2)
-lines(dateVec, tmat[3, ], ylim = c(0, 700), col = mypal[1], lwd = 2)
+lines(dateVec, tmat[2, ], ylim = c(0, 700), col = mypal[3], lwd = 2)
+lines(dateVec, tmat[3, ], ylim = c(0, 700), col = mypal[2], lwd = 2)
+lines(dateVec, tmat[4, ], ylim = c(0, 700), col = mypal[1], lwd = 2)
 legend( "topright", col = c('black', mypal), legend = c("Unentangled", 'Minor', "Moderate", 'Severe'), lty = 1, lwd = 2)
 ```
 
 and the normalized values:
 ```{r}
-plot(dateVec, tpct[4, ], ylim = c(0, 100), type = 'l', panel.first = 
+plot(dateVec, tpct[5, ], ylim = c(0, 100), type = 'l', panel.first = 
        c(abline(h = seq(0, 100, 10), lty = 3, col = 'grey') 
         ,abline(v = as.Date(c("1980-01-01", "1985-01-01", "1990-01-01", "1995-01-01", "2000-01-01", "2005-01-01", "2010-01-01")), 
                 lty = 3, col = 'grey')),xlim = c(as.Date('1980-01-01'), as.Date("2012-07-01")), 
      xlab = 'Date/Time', ylab = '% of Animals', las = 1, lwd = 2)
-lines(dateVec, tpct[1, ], col = mypal[3], lwd = 2)
-lines(dateVec, tpct[2, ], col = mypal[2], lwd = 2)
-lines(dateVec, tpct[3, ], col = mypal[1], lwd = 2)
+lines(dateVec, tpct[2, ], col = mypal[3], lwd = 2)
+lines(dateVec, tpct[3, ], col = mypal[2], lwd = 2)
+lines(dateVec, tpct[4, ], col = mypal[1], lwd = 2)
 legend( "topright", col = c('black', mypal), legend = c("Unentangled", 'Minor', "Moderate", 'Severe'), lty = 1, lwd = 2)
 ```
 
