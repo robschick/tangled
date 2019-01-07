@@ -271,10 +271,12 @@ legend( "bottomright", col = c('black', mypal), legend = c("Unentangled", 'Minor
 The above needs additional data for context -- namely how many whales are in each state at each time. Let's add that below. First we tally it and then convert it to a normalized matrix that shows the percentage of animals in each class.
 
 ```{r}
-tallyList <- lapply(split(fate, col(fate)), table)
+fateEnt <- fate
+fateEnt[fateEnt == 0] <- NA
+tallyList <- lapply(split(fateEnt, col(fateEnt)), table)
 
-tmat <- matrix(NA, nrow = 4, ncol(fate))
-for(i in 1:ncol(fate)){
+tmat <- matrix(NA, nrow = 4, ncol(fateEnt))
+for(i in 1:ncol(fateEnt)){
   vdat <- as.vector(unlist(tallyList[[i]]))
   vidx <- noquote(names(unlist(tallyList[[i]])))
   tmat[match(vidx, 1:4), i] <- vdat
@@ -311,3 +313,36 @@ legend( "topright", col = c('black', mypal), legend = c("Unentangled", 'Minor', 
 ```
 
 **UPDATE** We want to look at the spread of individual health values around the severe curve - especially in the early 2000's to get a feel for what is causing the spread. So I'm going to just plot the severe curve, but also add in the scores from each individual to show the variation.
+
+```{r}
+dfAll <- numeric(0)
+health <- healthmean[noquote(rownames(healthmean)) %in% ID, ]
+
+for (i in 1:ncol(health)){
+  df <- data.frame(id = ID, health = health[, i], fate = fate[, i], dateTime = dateVec[i])
+  dfSummary <- df %>% 
+    filter(fate == 1) %>% 
+    mutate(time = i)
+  dfAll <- bind_rows(dfAll, dfSummary)
+}
+```
+
+Ok, then we need to plot it out with the severe data as a line, and the individual whales as points around that line. This is going to be a mess:
+
+```{r}
+plot(unentangled$dateTime, unentangled$median, type = 'l', lwd = 2, ylim = c(0, 100),
+     panel.first = c(abline(h = seq(0, 100, 10), lty = 3, col = 'grey'), 
+         abline(v = as.Date(c("1990-01-01", "1995-01-01", 
+                              "2000-01-01", "2005-01-01", "2010-01-01")), 
+                lty = 3, col = 'grey')), 
+     xlim = c(as.Date('1990-01-01'), as.Date("2012-07-01")),
+     xlab = 'Date',  ylab = "Estimated Health Score")
+lines(unentangled$dateTime, unentangled$median + unentangled$sd, col = "#00000050")
+lines(unentangled$dateTime, unentangled$median - unentangled$sd, col = "#00000050")
+lines(severe$dateTime, severe$median, lty = 1, col = mypal[3], lwd = 2)
+points(dfAll$dateTime, dfAll$health)
+```
+
+So just a quick take on that, especially for the period in the early 2000's. In that first few years (2000-2002) we only have two severely entangled whales, and one of them dies (February 2001), so the health jumps up since the one animal was doing ok (and would actually carry on being ok for many years). In June of 2001, we have another severe entanglement, and that animal's health is poor, so the average health jumps from 78 down to 63. In November 2001, we have a 3rd severely entangled whale whose health is also poor, and we see a jump from 63 down to 51.
+
+I think the code is doing what we want it to do, but we have a situation whereby there are only a few animals with severe entanglements, so their averages are jumping around al over the place. 
