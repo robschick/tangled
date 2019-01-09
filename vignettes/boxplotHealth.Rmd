@@ -44,7 +44,7 @@ library(magrittr)
 
 ```{r}
 
-tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro)
+tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE)
 dfLong <- rbind(tmp$dfLongRepro, tmp$dfLongNonRepro)
 ```
 
