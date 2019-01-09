@@ -8,7 +8,7 @@ library(readr)
 rm(list=ls())
 source(file='R/makeTangle.R')
 source(file = 'R/cleanMerge.R')
-library(egSightsData)
+# library(egSightsData)
 load(file="data/calfTable.rdata")
 days <- months(6)
 
@@ -20,7 +20,7 @@ estStart$StartDate <- as.Date(estStart$StartDate, format = '%d/%m/%Y')
 estStart$EndDate <- as.Date(estStart$EndDate, format = '%d/%m/%Y')
 
 idx <- which(is.na(tangle$StartDate)) # Find animals without a valid start date
-for (id in seq_along(idx)) {
+for (id in idx) {
   tangle[id, 'StartDate'] <- estStart[which(estStart$EntanglementId == as.numeric(tangle[id, 'EntanglementId'])), 'StartDate']
 }
 idx <- which(!is.na(tangle$StartDate)) # Keep animals with a valid start date
