@@ -2,9 +2,11 @@
 title: "Updated Method for Analyzing Survival in Entangled Right Whales"
 author: "Rob Schick"
 date: "February 11, 2018"
-output:
-  html_document:
-    df_print: paged
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Extraction Window}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}

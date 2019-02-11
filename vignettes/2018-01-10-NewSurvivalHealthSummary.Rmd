@@ -2,7 +2,11 @@
 title: "New Method for Analyzing Health and Survival"
 author: "Rob Schick"
 date: "January 10, 2018"
-output: html_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Extraction Window}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
