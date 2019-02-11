@@ -4,17 +4,17 @@ library(stringr)
 library(gdata)
 library(plyr)
 library(readr)
+library(here)
 # Entanglement Data Prep for Post-Model Window Overlays
 rm(list=ls())
-source(file='R/makeTangle.R')
+source(file = 'R/makeTangle.R')
 source(file = 'R/cleanMerge.R')
-# library(egSightsData)
-load(file="data/calfTable.rdata")
+load(file = "data/calfTable.rdata")
 days <- months(6)
 
 # next chunk is to bring in the entanglement table and pare it down
-tangleAll <- makeTangle()
-tangle    <- makeTangle()
+load(here("data/tangleAll.rda"))
+tangle <- tangleAll
 estStart  <- read_csv(file = 'data-raw/EntglEstimatedStartDates.csv')
 estStart$StartDate <- as.Date(estStart$StartDate, format = '%d/%m/%Y')
 estStart$EndDate <- as.Date(estStart$EndDate, format = '%d/%m/%Y')
@@ -23,8 +23,10 @@ idx <- which(is.na(tangle$StartDate)) # Find animals without a valid start date
 for (id in idx) {
   tangle[id, 'StartDate'] <- estStart[which(estStart$EntanglementId == as.numeric(tangle[id, 'EntanglementId'])), 'StartDate']
 }
-idx <- which(!is.na(tangle$StartDate)) # Keep animals with a valid start date
-tangle <- tangle[idx, ]
+# For animals that lack a start date, we simple subtract 3 months from the EndDate 
+idx <- which(is.na(tangle$StartDate)) 
+tangle$StartDate[idx] <- tangle$EndDate[idx] %m-% months(3)
+
 
 tangle$ID <- seq_along(1:nrow(tangle)) #
 tangID    <- tangle$ID
@@ -33,12 +35,13 @@ tangle$wingt6mo <- tangle$EndDate - tangle$StartDate > days
 # Now we want to add the gear carrying information
 etime <- read_csv(file = 'data-raw/TimingEntanglementReformatDate.csv')
 
+sights <- read_rds('data-raw/sights.rds')
 startYr <- 1970
-stopYr  <- max(sights[,'SightingYear'],na.rm=T)
+stopYr  <- max(sights[,'SightingYear'], na.rm = T)
 yrvec  <- startYr:stopYr
 nyr    <- length(yrvec)
-monYr  <- cbind( rep(c(1:12),nyr),rep(yrvec,each=12) )
-myName <- paste(monYr[,1],monYr[,2],sep='-')
+monYr  <- cbind( rep(c(1:12), nyr), rep(yrvec, each = 12) )
+myName <- paste(monYr[, 1], monYr[, 2], sep = '-')
 # nt     <- nrow(monYr) 
 tvec <- tangle$EntanglementComment
 tdx  <- str_match(tvec, 'GEAR')
@@ -65,7 +68,8 @@ idx6 <- which(tndat$EndDate - tndat$StartDate >= 2 * (365.25/12) & tndat$EndDate
 tndat$StartDateWindow[idx6] <- tndat$EndDate[idx6] %m-% months(2)
 
 # The merge call will bring in the gear carrying times from etime.
-# Note that I'm doing two merges because some animals in etime have NA for EventNo, which causes them to be lost in a merge based on both EGNo and EventNo
+# Note that I'm doing two merges because some animals in etime have NA for EventNo, 
+# which causes them to be lost in a merge based on both EGNo and EventNo
 m1 <- merge(tdat, etime,  by = c('EGNo', 'EventNo'))
 m1 <- dplyr::select(m1, -AmyEdits)
 idx <- which(is.na(etime$EventNo))
@@ -73,7 +77,7 @@ etimeNA <- etime[idx,]
 m2 <- merge(tdat, etimeNA,  by = c('EGNo'))
 m2 <- subset(m2, select = -EventNo.y)
 colnames(m2)[colnames(m2) == 'EventNo.x'] <- 'EventNo'
-m2 <- m2[,c(1,3,2,4:20)]
+m2 <- m2[, c(1, 3, 2, 4:20)]
 tangleOut <- rbind(m1, m2) # Finally we bind these two data frames together
 
 
@@ -130,7 +134,8 @@ tangleOutAll <- tangleOut # doing this for later on comparison checking, i.e. if
 
 
 # pare down the columns for merging the gear and non-gear whales
-cidx <- c("EGNo", "EventNo", "StartDate", "EndDate", "Severity", "gear", 'LastDatewGear',   'LineGone', "EndDateWindow", "StartDateWindow")
+cidx <- c("EGNo", "EventNo", "StartDate", "EndDate", "Severity", "gear", 'LastDatewGear', 
+          'LineGone', "EndDateWindow", "StartDateWindow")
 tndat$LastDatewGear <- as.Date('1600-01-01', '%Y-%m-%d')
 tndat$LineGone <- as.Date('1600-01-01', '%Y-%m-%d')
 ngearsub <- tndat[, which(colnames(tndat) %in% cidx)]
@@ -245,8 +250,8 @@ tangNonRepro <- tangleOut[-which(tangleOut$afterCalf1 == TRUE), ]
 
 # Save the data into rdata files
 # save(tangleAll, tangleOut, tangRepro, tangNonRepro, file="data/egAmyEntData.rdata")
-devtools::use_data(tangleAll, overwrite = TRUE)
-devtools::use_data(tangleOut, overwrite = TRUE)
-devtools::use_data(tangRepro, overwrite = TRUE)
-devtools::use_data(tangNonRepro, overwrite = TRUE)
+usethis::use_data(tangleAll, overwrite = TRUE)
+usethis::use_data(tangleOut, overwrite = TRUE)
+usethis::use_data(tangRepro, overwrite = TRUE)
+usethis::use_data(tangNonRepro, overwrite = TRUE)
 
