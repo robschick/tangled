@@ -104,11 +104,12 @@ lines(theta - testVar, lty = 2)
 Let's iterate over animal-specific events and compile a data frame with rows for each entangled individual. Since the time windows will change for each event, I'll keep the survival probabilities in a list column.
 
 ```{r}
-getSurv <- function(EGNo, tangSub){
+getSurv <- function(EGNo, tangSub, i){
   idx <- which(ID == EGNo)
   svec <- 1 - cumsum(deathyr[idx, ] / ng) 
   svec[1:firstSight[idx]] <- NA
   w1 <- which(myName == as.character(tangSub[i, 'ewindmonyr']))
+  if(w1 > lastSight[idx]){w1 <- lastSight[idx] - 1}
   w2 <- max(which(deathyr[idx, ] > 0))
   theta <- svec[w1:w2]
   list(theta = theta, swind = w1, ewind = w2)
@@ -125,7 +126,7 @@ tangSub$svals <- NA
 tangSub$svar <- NA
 
 for(i in 1:nrow(tangSub)){
-  tmp <- getSurv(tangSub$EGNo[i], tangSub)
+  tmp <- getSurv(tangSub$EGNo[i], tangSub, i)
   
   tangSub$sidx[i]  <- tmp$swind
   tangSub$eidx[i]  <- tmp$ewind
@@ -135,6 +136,32 @@ for(i in 1:nrow(tangSub)){
 ```
 
 So what does that yield? Four new columns: Two that have the indices that define the start and end of the entanglment/survival window; one that has the monthly survival probability following the end of entanglement, and one that has the variance around that estimate. 
+
+## Survival Plots Summarized by Entanglement Injury
+The idea here is to remake the the KM curves, but directly from the posterior.
+
+```{r}
+tangSev <- subset(tangSub, Severity == 'severe')
+tangSev$gender <- gender[match(tangSev$EGNo, ID)]
+nmonths <- 36
+survDat <- matrix(0, nrow = nrow(tangSev), ncol = nmonths)
+for(i in 1:nrow(tangSev)){
+  svec <- tangSev$svals[[i]]
+  if(length(svec) > nmonths){svec <- svec[1:nmonths]}
+  survDat[i, 1:length(svec)] <- svec
+}
+sevSurv <- colMeans(survDat)
+```
+And then we can plot it:
+
+```{r}
+sevVar <- sevSurv * (1 - sevSurv)
+plot(sevSurv, type = 'l', ylab = 'Survival Probability', 
+     xlab = 'Months Following End of Entanglement',
+     main = 'Severely Entangled Whales', ylim = c(0, 1))
+lines(sevSurv + sevVar, lty = 2)
+lines(sevSurv - sevVar, lty = 2)
+```
 
 
 ## Reference Animal
