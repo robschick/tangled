@@ -268,9 +268,9 @@ p <- grid.arrange(gA, gB, gC, gD, gE, gF,
              heights = c(0.3, 0.2, 0.5, 0.5))
 
 ggsave(plot = p, filename = 'extractionWindow.pdf',
-       path = 'E:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images', device = 'pdf', width = 9, height = 6, units = 'in')
+       path = 'E:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images\\', device = 'pdf', width = 9, height = 6, units = 'in')
 ggsave(plot = p, filename = 'extractionWindow.png',
-       path = 'E:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+       path = 'E:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images\\', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
 
 
