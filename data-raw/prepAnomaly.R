@@ -60,8 +60,8 @@ calves <- readr::read_csv(here::here('data-raw', '2019-04-08_All-calving-events.
 
 tgl$StartDate <- as.Date(tgl$StartDate, format = '%m/%d/%Y')
 tgl$EndDate <- as.Date(tgl$EndDate, format = '%m/%d/%Y')
-tangled <- tbl_df(tgl)
-calves <- tbl_df(calves)
+tangled <- dplyr::tbl_df(tgl)
+calves <- dplyr::tbl_df(calves)
 
 usethis::use_data(tangled, overwrite = TRUE)
 usethis::use_data(deadTable, overwrite = TRUE)
