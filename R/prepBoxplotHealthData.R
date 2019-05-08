@@ -24,7 +24,7 @@
 #' }
 prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
   
-  tmp <- returnUnimpactedHealth()
+  tmp <- returnUnimpactedHealth(anomFlag = anomFlag)
   nonrepvec <- tmp$nonrep
   repvec <- tmp$rep  
   useAnom <- anomFlag
