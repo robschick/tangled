@@ -15,7 +15,7 @@ prepSlopeHealthDataAnnotation <- function(dfout){
   
   dfn <- dfout %>% 
     group_by(gearInj) %>% 
-    summarise(n = n_distinct(egno))
+    summarise(n = n())
   dfn
 
 }
