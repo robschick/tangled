@@ -39,7 +39,6 @@ usethis::use_data(anom, overwrite = TRUE)
 anomSP <- returnhealthAnom(healthmeanSP)
 usethis::use_data(anomSP, overwrite = TRUE)
 
-
 # Ancillary support info:
 usethis::use_data(ng, overwrite = TRUE)
 usethis::use_data(gender, overwrite = TRUE)
@@ -53,4 +52,19 @@ usethis::use_data(lastSight, overwrite = TRUE)
 entvec <- c('Minor - No Gear' = 6, 'Moderate - No Gear' = 5, 'Minor - Gear' = 4, 
             'Severe - No Gear' = 3, 'Moderate - Gear' = 2, 'Severe - Gear' = 1)
 usethis::use_data(entvec, overwrite = TRUE)
+
+# Information about: Entanglement, Calves and Observed Deaths 
+tgl <- readr::read_csv(here::here('data-raw', '2019-04-03_Tbl-Whale-Entanglement.csv'))
+deadTable <- readr::read_csv(here::here('data-raw', '2019-04-08_All-dead-events_non-ID-removed.csv'))
+calves <- readr::read_csv(here::here('data-raw', '2019-04-08_All-calving-events.csv'))
+
+tgl$StartDate <- as.Date(tgl$StartDate, format = '%m/%d/%Y')
+tgl$EndDate <- as.Date(tgl$EndDate, format = '%m/%d/%Y')
+tangled <- tbl_df(tgl)
+calves <- tbl_df(calves)
+
+usethis::use_data(tangled, overwrite = TRUE)
+usethis::use_data(deadTable, overwrite = TRUE)
+usethis::use_data(calves, overwrite = TRUE)
+
 rm(list = ls())
