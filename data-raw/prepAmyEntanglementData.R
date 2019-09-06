@@ -7,23 +7,25 @@ library(readr)
 library(here)
 # Entanglement Data Prep for Post-Model Window Overlays
 rm(list=ls())
-# source(file = 'R/makeTangle.R')
-# source(file = 'R/cleanMerge.R')
-load(file = "data/calfTable.rdata")
+source(file = 'R/makeTangle.R')
+source(file = 'R/cleanMerge.R')
+# load(file = "data/calfTable.rdata") # because this is now in as calves
 days <- months(6)
 
 # next chunk is to bring in the entanglement table and pare it down
-load(here("data/tangleAll.rda"))
+# load(here("data/tangleAll.rda"))
 tangle <- tangleAll
 estStart  <- read_csv(file = 'data-raw/EntglEstimatedStartDates.csv')
 estStart$StartDate <- as.Date(estStart$StartDate, format = '%d/%m/%Y')
 estStart$EndDate <- as.Date(estStart$EndDate, format = '%d/%m/%Y')
 
+# This is for the young animals that Amy fills in the (missing) start date
+# based on their birth year
 idx <- which(is.na(tangle$StartDate)) # Find animals without a valid start date
 for (id in idx) {
   tangle[id, 'StartDate'] <- estStart[which(estStart$EntanglementId == as.numeric(tangle[id, 'EntanglementId'])), 'StartDate']
 }
-# For animals that lack a start date, we simple subtract 3 months from the EndDate 
+# For the remaining animals that lack a start date, we simple subtract 3 months from the EndDate 
 idx <- which(is.na(tangle$StartDate)) 
 tangle$StartDate[idx] <- tangle$EndDate[idx] %m-% months(3)
 
