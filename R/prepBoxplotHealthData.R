@@ -56,6 +56,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
     # i <- 32 #, EGNo == 1130 is a good test animal; i <- 390 is another (EGNo = 1102) (Both for Non-Repro)
     # i = 3 # EGNo == 1014 for Repro
     ind <- tSub$EGNo[i]
+    if(ind == 1045) next()
     eventNo <- tSub$EventNo[i]
     if(!ind %in% ID){next()}
     htest <- healthmean[which(ID == ind),]
