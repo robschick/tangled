@@ -75,9 +75,9 @@ knitr::kable(dfb)
 ```{r, fig.width=8, fig.height=6}
 p <- plotHealthThreshold(dfb, bsize = 12)
 p
-ggsave(plot = p, filename = 'healthThold.pdf', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'pdf', width = 9, height = 6, units = 'in')
+ggsave(plot = p, filename = 'healthThold.pdf', path = 'D:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images\\', device = 'pdf', width = 9, height = 6, units = 'in')
 pweb <- plotHealthThreshold(dfb, bsize = 16)
-ggsave(plot = pweb, filename = 'healthThold.png', path = '/Users/rob/Dropbox/Papers/KnowltonEtAl_Entanglement/images/', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
+ggsave(plot = pweb, filename = 'healthThold.png', path = 'D:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images\\', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
 ```
 
 ## Statistical Analysis of the differences
