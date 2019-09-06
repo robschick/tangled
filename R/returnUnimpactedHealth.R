@@ -82,6 +82,7 @@ returnUnimpactedHealth <- function(anomFlag = TRUE){
   # set unimpacted times &  set post-severe times
   for (i in 1:nrow(tangleOut)) {
     ind <- tangleOut$EGNo[i]
+    if(ind == 1045) next()
     sidx <- match(tangleOut$smonyr[i], myName)
     eidx <- match(tangleOut$emonyr[i], myName)
     nonrepHealth[which(row.names(nonrepHealth) == ind), sidx:nt] <- NA
