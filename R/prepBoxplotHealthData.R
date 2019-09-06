@@ -49,7 +49,9 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
                     eventNo = rep(NA, times = nrow(tSub)),
                     nMonths = rep(NA, times = nrow(tSub)),
                     hAnom = rep(NA, times = nrow(tSub)),
-                    gearInj = rep(NA, times = nrow(tSub)))
+                    gearInj = rep(NA, times = nrow(tSub)),
+                    startDate = rep(NA, times = nrow(tSub)),
+                    endDate = rep(NA, times = nrow(tSub)))
   idFac <- factor(unique(tSub$EGNo))
 
   for(i in 1:length(tSub$EGNo)){
@@ -67,7 +69,9 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
     # also for the date of first severe entanglement & the the 12 month recovery date
     evnum <- nrow(ti)
     s <- match(t(tSub[i, 'swindmonyr']), myName)  
+    sDate <- tSub[i, 'swindmonyr']
     e <- match(t(tSub[i, 'ewindmonyr']), myName)
+    eDate <- tSub[i, 'ewindmonyr']
     sev <- match(t(tSub[i, 'fsevmonyr']), myName)
     sev <- sev[is.finite(sev)]
     gstat <- tSub[i, 'gearInj']
@@ -78,6 +82,8 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
     dfSum[i, 'hAnom'] <- median(hind, na.rm = TRUE)
     dfSum[i, 'gearInj'] <- gstat
     dfSum[i, 'nMonths'] <- length(s:e)
+    dfSum[i, 'startDate'] <- sDate
+    dfSum[i, 'endDate'] <- eDate
   }
 
   dfSum$gearnogear <- 0
@@ -99,6 +105,8 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
                        nMonths = 0,
                        hAnom = uvec,
                        gearInj = 0, 
+                       startDate = '01-0000',
+                       endDate = '01-0000',
                        gearnogear = 0,
                        variable = 'unimpacted')
     dfLong <- rbind(dfSum, dfuvec)
@@ -109,6 +117,8 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
                         nMonths = 0,
                         hAnom = uvec,
                         gearInj = 0, 
+                        startDate = '01-0000',
+                        endDate = '01-0000',
                         gearnogear = 0,
                         variable = 'unimpacted')
     dfLong <- rbind(dfSum, dfurvec)
