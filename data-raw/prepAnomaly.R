@@ -1,5 +1,5 @@
 rm(list = ls())
-load(file = 'data-raw/eg-221_gibbs-output.rdata')
+load(file = 'data-raw/OLD_eg_203_ng_50000_BIG_25000_BIG_25000.rdata')
 
 # # Population level median health
 # source('R/returnPophealth.R')
