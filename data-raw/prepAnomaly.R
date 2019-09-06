@@ -9,6 +9,8 @@ load(file = 'data-raw/OLD_eg_203_ng_50000_BIG_25000_BIG_25000.rdata')
 # Individual health
 source(file = 'R/getDeaths.R')
 deathMed <- getDeaths(deathyr, medProb = TRUE)
+usethis::use_data(sumh, overwrite = TRUE)
+usethis::use_data(sumh2, overwrite = TRUE)
 healthmeanSP <- healthmean <- sumh / g
 for(i in 1:nrow(healthmean)){
   
