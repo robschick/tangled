@@ -30,7 +30,7 @@ returnUnimpactedHealth <- function(anomFlag = TRUE){
       }
     }
   } else {
-    healthmean <- sumh / g
+    healthmean <- sumh / ng
     for(i in 1:nrow(healthmean)){
       healthmean[i, 1:(firstSight[i] - 1)] <- NA
       if (death[i] < nt) {
