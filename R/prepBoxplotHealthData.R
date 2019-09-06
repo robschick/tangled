@@ -69,9 +69,9 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
     # also for the date of first severe entanglement & the the 12 month recovery date
     evnum <- nrow(ti)
     s <- match(t(tSub[i, 'swindmonyr']), myName)  
-    sDate <- tSub[i, 'swindmonyr']
+    sDate <- tSub[i, 'StartDateWindow', drop = TRUE]
     e <- match(t(tSub[i, 'ewindmonyr']), myName)
-    eDate <- tSub[i, 'ewindmonyr']
+    eDate <- tSub[i, 'EndDateWindow', drop = TRUE]
     sev <- match(t(tSub[i, 'fsevmonyr']), myName)
     sev <- sev[is.finite(sev)]
     gstat <- tSub[i, 'gearInj']
@@ -82,8 +82,8 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = TRUE){
     dfSum[i, 'hAnom'] <- median(hind, na.rm = TRUE)
     dfSum[i, 'gearInj'] <- gstat
     dfSum[i, 'nMonths'] <- length(s:e)
-    dfSum[i, 'startDate'] <- sDate
-    dfSum[i, 'endDate'] <- eDate
+    dfSum[i, 'startDate'] <- lubridate::year(sDate)
+    dfSum[i, 'endDate'] <- lubridate::year(eDate)
   }
 
   dfSum$gearnogear <- 0
