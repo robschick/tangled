@@ -26,7 +26,17 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
   
   tmp <- returnUnimpactedHealth(anomFlag = anomFlag)
   nonrepvec <- tmp$nonrep
-  repvec <- tmp$rep  
+  repvec <- tmp$rep
+  
+  nonrepvec1980 <- tmp$nonrep1980
+  repvec1980 <- tmp$rep1980
+  
+  nonrepvec1990 <- tmp$nonrep1990
+  repvec1990 <- tmp$rep1990
+  
+  nonrepvec2000 <- tmp$rep2000
+  repvec2000 <- tmp$nonrep2000
+  
   useAnom <- anomFlag
 
   for(z in 1:2){
@@ -109,7 +119,44 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                        endDate = '01-0000',
                        gearnogear = 0,
                        variable = 'unimpacted')
-    dfLong <- rbind(dfSum, dfuvec)
+    
+    # 1980
+    uvec1980 <- repvec1980
+    dfuvec1980 <- data.frame(egno = 9999,
+                         eventNo = 0,
+                         nMonths = 0,
+                         hAnom = uvec1980,
+                         gearInj = 0, 
+                         startDate = '01-1980',
+                         endDate = '12-1989',
+                         gearnogear = 0,
+                         variable = 'unimpacted')
+    
+    # 1990
+    uvec1990 <- repvec1990
+    dfuvec1990 <- data.frame(egno = 9999,
+                             eventNo = 0,
+                             nMonths = 0,
+                             hAnom = uvec1990,
+                             gearInj = 0, 
+                             startDate = '01-1990',
+                             endDate = '12-1999',
+                             gearnogear = 0,
+                             variable = 'unimpacted')
+    
+    # 2000
+    uvec2000 <- repvec2000
+    dfuvec2000 <- data.frame(egno = 9999,
+                             eventNo = 0,
+                             nMonths = 0,
+                             hAnom = uvec2000,
+                             gearInj = 0, 
+                             startDate = '01-2000',
+                             endDate = '12-2009',
+                             gearnogear = 0,
+                             variable = 'unimpacted')
+    
+    dfLong <- rbind(dfSum, dfuvec, dfuvec1980, dfuvec1990, dfuvec2000)
   } else {
     uvec <- nonrepvec
     dfurvec <- data.frame(egno = 9999,
@@ -121,7 +168,44 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                         endDate = '01-0000',
                         gearnogear = 0,
                         variable = 'unimpacted')
-    dfLong <- rbind(dfSum, dfurvec)
+    
+    # 1980
+    uvec1980 <- nonrepvec1980
+    dfurvec1980 <- data.frame(egno = 9999,
+                          eventNo = 0,
+                          nMonths = 0,
+                          hAnom = uvec1980,
+                          gearInj = 0, 
+                          startDate = '01-1980',
+                          endDate = '12-1989',
+                          gearnogear = 0,
+                          variable = 'unimpacted')
+    
+    # 1990
+    uvec1990 <- nonrepvec1990
+    dfurvec1990 <- data.frame(egno = 9999,
+                              eventNo = 0,
+                              nMonths = 0,
+                              hAnom = uvec1990,
+                              gearInj = 0, 
+                              startDate = '01-1990',
+                              endDate = '12-1999',
+                              gearnogear = 0,
+                              variable = 'unimpacted')
+    
+    # 2000
+    uvec2000 <- nonrepvec2000
+    dfurvec2000 <- data.frame(egno = 9999,
+                              eventNo = 0,
+                              nMonths = 0,
+                              hAnom = uvec2000,
+                              gearInj = 0, 
+                              startDate = '01-2000',
+                              endDate = '12-2009',
+                              gearnogear = 0,
+                              variable = 'unimpacted')
+    
+    dfLong <- rbind(dfSum, dfurvec, dfurvec1980, dfurvec1990, dfurvec2000)
   }
 
   dfLong$group <- 1
