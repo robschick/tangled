@@ -39,13 +39,14 @@ library(tangled)
 library(ggplot2)
 library(dplyr)
 library(magrittr)
+library(stringr)
 ```
 
 
 ```{r}
 
 tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE)
-dfLong <- rbind(tmp$dfLongRepro, tmp$dfLongNonRepro)
+dfLong <- rbind(tmp$dfLongRepro, tmp$dfLongNonRepro) 
 ```
 
 At the end of this looping the new data look like this:
@@ -67,6 +68,37 @@ dfLong %>%
   summarise(numEvents = n())
 ```
 
+## Grouping by Decade
+Goal here is to make the data groupings along the lines of the Meyer-Gutbrod paper that looks at the 80's, 90's, and 00's, i.e. prior to the big shift in distribution
+
+```{r}
+dfLong <- dfLong %>% 
+  mutate(decade = case_when(startDate >= 1980 & endDate < 1990  ~ "1980",
+                            startDate >= 1990 & endDate < 2000  ~ "1990",
+                            startDate >= 2000 & endDate < 2010  ~ "2000"),
+         severity = case_when(gearInj == 6 ~ 'minor',
+                              gearInj == 4 ~ 'minor',
+                              gearInj == 5 ~ 'moderate',
+                              gearInj == 2 ~ 'moderate',
+                              gearInj == 3 ~ 'severe',
+                              gearInj == 1 ~ 'severe',
+                              gearInj == 0 ~ "Unimpacted")
+         )
+  
+```
+
+And then we want to summarize these by decade to get a feel for how much data we have in each group
+
+```{r}
+dfLong %>% 
+  filter(!is.na(decade)) %>% 
+  group_by(decade, status, gearInj) %>% 
+  summarise(numEvents = n())
+
+ggplot(subset(dfLong, gearInj > 0 & !is.na(decade)))+
+  geom_bar(aes(gearInj))+
+  facet_grid(status ~ decade)
+```
 
 ## The Revised Plot
 Ok, so then let's make the plot:

@@ -18,14 +18,14 @@ library(lubridate)
 library(RColorBrewer)
 load("../data/tangleOut.rda")
 load("../data/tangleAll.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/firstSight.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/lastSight.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/ID.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/entvec.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/healthmean.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/myName.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/deathyr.rda")
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/dcut.rda")
+load("../data/firstSight.rda")
+load("../data/lastSight.rda")
+load("../data/ID.rda")
+load("../data/entvec.rda")
+load("../data/healthmean.rda")
+load("../data/myName.rda")
+load("../data/deathyr.rda")
+load("../data/dcut.rda")
 ```
 
 ## Introduction
@@ -33,7 +33,7 @@ The goal of this writeup is to document the steps we've taken to make a new plot
 
 
 
-![](E:/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images/rollandFig4.png)
+![](D:/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images/rollandFig4.png)
 
 We had assembled those figures to find out what each group contributes to our overall understanding of health. For example, which group's health was worst in the late 1990's?
 
@@ -96,7 +96,7 @@ tangleAll <- tangleAll %>%
 Next we add in the first calf index for the reproductively active females. 
 
 ```{r}
-load("E:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/calfTable.rdata")
+load("D:/rob/Documents/research/projects/rightWhaleEntanglement/src/data/calfTable.rdata")
 startYr <- 1970
 stopYr  <- 2016
 yrvec  <- startYr:stopYr
@@ -222,7 +222,7 @@ dfAll <- numeric(0)
 health <- healthmean[noquote(rownames(healthmean)) %in% ID, ]
 
 for (i in 1:ncol(health)){
-  df <- data.frame(id = ID, health = health[, i], fate = fate[, i], dateTime = dateVec[i])
+  df <- data.frame(id = ID[i], health = health[, i], fate = fate[, i], dateTime = dateVec[i])
   dfSummary <- df %>% 
     group_by(fate) %>% 
     summarize(median = median(health, na.rm = TRUE), 
