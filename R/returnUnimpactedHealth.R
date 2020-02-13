@@ -92,8 +92,37 @@ returnUnimpactedHealth <- function(anomFlag = TRUE){
     }
   }
 
+  # update for bringing in health by decade:
+  s1980 <- which(myName == "1-1980")
+  s1990 <- which(myName == "1-1990")
+  s2000 <- which(myName == "1-2000")
+  s2010 <- which(myName == "1-2010")
+  
+  hrep1980 <- repHealth[, s1980:(s1990 - 1)]
+  hnonrep1980 <- nonrepHealth[, s1980:(s1990 - 1)]
+  
+  hrep1990 <- repHealth[, s1990:(s2000 - 1)]
+  hnonrep1990 <- nonrepHealth[, s1990:(s2000 - 1)]
+  
+  hrep2000 <- repHealth[, s2000:(s2010 - 1)]
+  hnonrep2000 <- nonrepHealth[, s2000:(s2010 - 1)]
+  
+  
   repvec <- as.vector(repHealth)[!is.na(as.vector(repHealth))]
   nonrepvec <- as.vector(nonrepHealth)[!is.na(as.vector(nonrepHealth))]
-  list(nonrep = nonrepvec, rep = repvec)
+
+  repvec1980 <- as.vector(hrep1980)[!is.na(as.vector(hrep1980))]
+  nonrepvec1980 <- as.vector(hnonrep1980)[!is.na(as.vector(hnonrep1980))]
+  
+  repvec1990 <- as.vector(hrep1990)[!is.na(as.vector(hrep1990))]
+  nonrepvec1990 <- as.vector(hnonrep1990)[!is.na(as.vector(hnonrep1990))]
+  
+  repvec2000 <- as.vector(hrep2000)[!is.na(as.vector(hrep2000))]
+  nonrepvec2000 <- as.vector(hnonrep2000)[!is.na(as.vector(hnonrep2000))]
+  
+  list(nonrep = nonrepvec, rep = repvec,
+       rep1980 = repvec1980, nonrep1980 = nonrepvec1980,
+       rep1990 = repvec1990, nonrep1990 = nonrepvec1990,
+       rep2000 = repvec2000, nonrep2000 = nonrepvec2000)
 
 }
