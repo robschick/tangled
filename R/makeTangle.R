@@ -10,17 +10,6 @@ makeTangle <- function() {
   library(stringr)
   library(lubridate)
   
-  # I'm setting up the intervals during which the event must
-  # have occurred. Here's how Amy Knowlton defines them (Email
-  # dated 7/11/2011): Ah yes, these terms start and end date
-  # are confusing and don’t really mean what they suggest.
-  # Start date is actually the date the animal was seen and
-  # known not to have entanglement scars.  End date is the
-  # first date the animal was detected with new entanglement
-  # scars (or carrying gear).  So by subtracting start date
-  # from end date, this gives you the timeframe within which
-  # the entanglement interaction must have occurred.
-  
   tangled$StartDate <- ymd(tangled$StartDate)
   tangled$EndDate <- ymd(tangled$EndDate)
   
