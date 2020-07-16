@@ -42,12 +42,12 @@ plotBoxplotHealth <- function(dfLong, bsize, cval = 4){
   plabel <- c(621, 163, plabel) # this adds in the 'all demographic' and then the 'reproductive'
   
   p <- ggplot(dfLong, aes(x = factor(gearInj, levels = c(0, 6, 4, 5, 2, 3, 1)), y = hAnom)) +
-    geom_hline(aes(yintercept = 0), colour = 'grey50')+
+    # geom_hline(aes(yintercept = 0), colour = 'grey50')+
     geom_boxplot(aes(fill = factor(status), group = paste(factor(gearInj), status)), outlier.shape=NA, notch = FALSE)+
     annotate('text', x = c(0 + 0.82, 0 + 1.18, 1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18,
-                           1 + 3.82, 1 + 4.18, 1 + 4.82, 1 + 5.18, 1 + 5.82, 1 + 6.18), y = 80, 
+                           1 + 3.82, 1 + 4.18, 1 + 4.82, 1 + 5.18, 1 + 5.82, 1 + 6.18), y = 91, 
              label = plabel, cex = cval)+
-    labs(y = 'Deviation From Population Health', x = 'Entanglement Impact Category', fill = 'Reproductive Status')+
+    labs(y = 'Population Health', x = 'Entanglement Impact Category', fill = 'Reproductive Status')+
     scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 
                                 'Moderate\nNo Gear','Moderate\nGear', 
                                 'Severe\nNo Gear', 'Severe\nGear'))+
