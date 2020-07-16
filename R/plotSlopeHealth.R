@@ -11,25 +11,24 @@
 #' \dontrun{
 #' plotSlopeHealth(dfout, dfn, dfMed, dfAsuml, aval)
 #' }
-plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml, aval = 0.5){
-
+plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml, aval = 0.1){
+  
+  dfn$sevLab <- c('Severe', 'Moderate', 'Severe', 'Minor', 'Moderate', 'Minor')
+  dfn$gearLab <- c('Gear', 'Gear', 'No Gear', 'Gear', 'No Gear', 'No Gear')
+  dfn$label <- c('n = 33', 'n = 27', 'n = 13',
+                 'n = 21', 'n = 123', 'n = 597')
+  
   p <- ggplot(data = dfout)+
-    geom_segment(aes(y = startAnom, yend = endAnom, x = 0, xend = 1), colour = alpha('black', aval)) +
-    geom_segment(aes(y = endAnom, yend = recAnom, x = 1, xend = 2), colour = alpha('black', aval))+
+    geom_segment(aes(y = startHealth, yend = endHealth, x = 0, xend = 1), colour = alpha('black', aval)) +
+    geom_segment(aes(y = endHealth, yend = recHealth, x = 1, xend = 2), colour = alpha('black', aval))+
     geom_path(data = dfMed, aes(y = value, x = x), lwd = 1.5) +
-    annotate('text', x = 0, y = -75, size = 5, hjust = 0,
-           label = c(paste('n = ', dfn[which(dfn$gearInj == 6), 'n'], sep = ''),   # minor NO gear
-                     paste('n = ', dfn[which(dfn$gearInj == 5), 'n'], sep = ''),   # moderate NO gear
-                     paste('n = ', dfn[which(dfn$gearInj == 3), 'n'], sep = ''),   # severe NO gear
-                     paste('n = ', dfn[which(dfn$gearInj == 4), 'n'], sep = ''),   # minor gear
-                     paste('n = ', dfn[which(dfn$gearInj == 2), 'n'], sep = ''),   # moderate gear
-                     paste('n = ', dfn[which(dfn$gearInj == 1), 'n'], sep = '')))+ # severe gear
-    scale_x_continuous(breaks = c(0, 1, 2),
-                     labels = c( "P", "S or G", 'L'))+
     facet_grid(gearLab ~ sevLab)+
+    geom_text(aes(x = 0, y = 5, label = label, hjust = 0), data= dfn)+
+    scale_x_continuous(breaks = c(0, 1, 2),
+                       labels = c( "P", "S or G", 'L'))+
     theme_bw()+
     theme(panel.grid.minor.x = element_blank())+
-    labs(x = '', y = 'Health Deviation')
+    labs(x = '', y = 'Estimated Health')
 
   # p2 <- ggplot(dfAsuml, aes(x = fullLab, y = value, fill = variable)) +
   #   geom_bar(stat = 'identity', position = 'dodge')+

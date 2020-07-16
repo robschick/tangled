@@ -17,7 +17,7 @@
 #' \dontrun{
 #' returnUnimpactedHealth()
 #' }
-returnUnimpactedHealth <- function(anomFlag = TRUE){
+returnUnimpactedHealth <- function(anomFlag = FALSE){
 
   useAnom <- anomFlag
   death <- getDeaths(deathyr, medProb = TRUE)

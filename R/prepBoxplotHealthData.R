@@ -20,9 +20,9 @@
 #' @export
 #' @examples 
 #' \dontrun{
-#' prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = TRUE)
+#' prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = TRUE, thold = 67)
 #' }
-prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
+prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, thold = 67){
   
   tmp <- returnUnimpactedHealth(anomFlag = anomFlag)
   nonrepvec <- tmp$nonrep
@@ -59,6 +59,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                     eventNo = rep(NA, times = nrow(tSub)),
                     nMonths = rep(NA, times = nrow(tSub)),
                     hAnom = rep(NA, times = nrow(tSub)),
+                    lthold = rep(NA, times = nrow(tSub)),
                     gearInj = rep(NA, times = nrow(tSub)),
                     startDate = rep(NA, times = nrow(tSub)),
                     endDate = rep(NA, times = nrow(tSub)))
@@ -86,10 +87,12 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
     sev <- sev[is.finite(sev)]
     gstat <- tSub[i, 'gearInj']
     hind <- htest[s:e]
+    lthold <- length(which(hind < thold))
   
     dfSum[i, 'egno'] <- ind
     dfSum[i, 'eventNo'] <- eventNo
     dfSum[i, 'hAnom'] <- median(hind, na.rm = TRUE)
+    dfSum[i, 'lthold'] <- lthold
     dfSum[i, 'gearInj'] <- gstat
     dfSum[i, 'nMonths'] <- length(s:e)
     dfSum[i, 'startDate'] <- lubridate::year(sDate)
@@ -114,6 +117,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                        eventNo = 0,
                        nMonths = 0,
                        hAnom = uvec,
+                       lthold = 9999,
                        gearInj = 0, 
                        startDate = '01-0000',
                        endDate = '01-0000',
@@ -126,6 +130,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                          eventNo = 0,
                          nMonths = 0,
                          hAnom = uvec1980,
+                         lthold = 9999,
                          gearInj = 0, 
                          startDate = 1980,
                          endDate = 1989,
@@ -138,6 +143,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                              eventNo = 0,
                              nMonths = 0,
                              hAnom = uvec1990,
+                             lthold = 9999,
                              gearInj = 0, 
                              startDate = 1990,
                              endDate = 1999,
@@ -150,6 +156,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                              eventNo = 0,
                              nMonths = 0,
                              hAnom = uvec2000,
+                             lthold = 9999,
                              gearInj = 0, 
                              startDate = 2000,
                              endDate = 2009,
@@ -163,6 +170,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                         eventNo = 0,
                         nMonths = 0,
                         hAnom = uvec,
+                        lthold = 9999,
                         gearInj = 0, 
                         startDate = '01-0000',
                         endDate = '01-0000',
@@ -175,6 +183,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                           eventNo = 0,
                           nMonths = 0,
                           hAnom = uvec1980,
+                          lthold = 9999,
                           gearInj = 0, 
                           startDate = 1980,
                           endDate = 1989,
@@ -187,6 +196,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                               eventNo = 0,
                               nMonths = 0,
                               hAnom = uvec1990,
+                              lthold = 9999,
                               gearInj = 0, 
                               startDate = 1990,
                               endDate = 1999,
@@ -199,6 +209,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE){
                               eventNo = 0,
                               nMonths = 0,
                               hAnom = uvec2000,
+                              lthold = 9999,
                               gearInj = 0, 
                               startDate = 2000,
                               endDate = 2009,

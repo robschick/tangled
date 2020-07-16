@@ -37,19 +37,34 @@ library(ggplot2)
 ```{r, fig.cap="Fig 1. Simulated change in health over two periods: 1) during the entanglement window; and 2) from the end of the window to 12 months out", fig.width=6, fig.height=4, echo=FALSE}
 library(RColorBrewer)
 mypal <- brewer.pal(3, 'Dark2')
-plot(c(0, 1, 2), c(10, -40, 10), type = 'n', ylim = c(-50, 30), axes = FALSE, ann = FALSE)
-lines(c(0, 1, 2), c(0, -6, 0))
-lines(c(0, 1, 2), c(0, -35, -25), lty = 2)
+# plot(c(0, 1, 2), c(10, 40, 10), type = 'n', ylim = c(0, 100), axes = FALSE, ann = FALSE)
+# lines(c(0, 1, 2), c(0, -6, 0))
+# lines(c(0, 1, 2), c(0, -35, -25), lty = 2)
+# axis(1, at = c(0, 1, 2), labels = c('Start', 'End', '12 Months'))
+# axis(2, at = seq(-50, 30, 10), las = 1)
+# abline(h = 0, col = "grey80")
+# mtext('Estimated Health Anomaly', side = 2, line = 3)
+# text(1.65, -33.5, 'Severe - Gear', cex = 0.8)
+# text(1.65, -6, 'Minor - No Gear', cex = 0.8)
+# lines(c(0, .995), c(25, 25), col = "#D95F02", lwd = 3)
+# lines(c(1.005, 2), c(25, 25), col = "#1B9E77", lwd = 3)
+# text(0.5, 27, 'Entanglement Timeframe')
+# text(1.5, 27, 'Recovery Timeframe')
+
+# udpated for health, not anomaly
+plot(c(0, 1, 2), c(85, 60, 85), type = 'n', ylim = c(0, 100), axes = FALSE, ann = FALSE)
+lines(c(0, 1, 2), c(85, 85-6, 83))
+lines(c(0, 1, 2), c(85, 85-35, 85-25), lty = 2)
 axis(1, at = c(0, 1, 2), labels = c('Start', 'End', '12 Months'))
-axis(2, at = seq(-50, 30, 10), las = 1)
-abline(h = 0, col = "grey80")
-mtext('Estimated Health Anomaly', side = 2, line = 3)
-text(1.65, -33.5, 'Severe - Gear', cex = 0.8)
-text(1.65, -6, 'Minor - No Gear', cex = 0.8)
-lines(c(0, .995), c(25, 25), col = "#D95F02", lwd = 3)
-lines(c(1.005, 2), c(25, 25), col = "#1B9E77", lwd = 3)
-text(0.5, 27, 'Entanglement Timeframe')
-text(1.5, 27, 'Recovery Timeframe')
+axis(2, at = seq(0, 90, 10), las = 1)
+# abline(h = 0, col = "grey80")
+mtext('Estimated Health', side = 2, line = 3)
+text(1.65, 85-31.5, 'Severe - Gear', cex = 0.8)
+text(1.65, 85-5, 'Minor - No Gear', cex = 0.8)
+lines(c(0, .995), c(90, 90), col = "#D95F02", lwd = 3)
+lines(c(1.005, 2), c(90, 90), col = "#1B9E77", lwd = 3)
+text(0.5, 92.5, 'Entanglement Timeframe')
+text(1.5, 92.5, 'Recovery Timeframe')
 ```
  
 It's also possible (indeed likeley) that the whale with the severe entanglement would not recover as much as the animal with the Minor entanglement. There are two additions we can make to this figure. First, while the slope plot effectively shows the trend, it would be nice to have to magnitude of the change depicted on a side by side bar plot, as shown below:
@@ -67,31 +82,37 @@ barplot(df$health, beside = TRUE, space = c(0, 0, 0.2, 0),
 
 ```{r, echo=FALSE}
 par(mfrow = c(2, 1))
-pdf(file = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images/slopeHealthExplainer.pdf', width = 9, height = 6)
+pdf(file = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images/slopeHealthExplainer.pdf', width = 9, height = 6)
+
+# df <- data.frame(time = rep(0:1, 2), 
+#                  health = c(75 - 68, abs(68 - 74), 75 - 55, abs(55 - 72)), 
+#                  status = rep(c('Minor - No Gear', 'Severe - Gear'), 2))
 
 df <- data.frame(time = rep(0:1, 2), 
-                 health = c(75 - 68, abs(68 - 74), 75 - 55, abs(55 - 72)), 
+                 health = c(80 - 74, abs(74 - 77), 80 - 55, abs(55 - 60)), 
                  status = rep(c('Minor - No Gear', 'Severe - Gear'), 2))
+
 # plot1
 library(RColorBrewer)
 mypal <- brewer.pal(3, 'Dark2')
-plot(c(0, 1, 2), c(75, 60, 74), type = 'n', ylim = c(50, 90), axes = FALSE, ann = FALSE)
-lines(c(0, 1, 2), c(75, 68, 74))
-lines(c(0, 1, 2), c(75, 55, 72), lty = 2)
+# udpated for health, not anomaly
+plot(c(0, 1, 2), c(80, 55, 80), type = 'n', ylim = c(0, 100), axes = FALSE, ann = FALSE)
+lines(c(0, 1, 2), c(80, 80-6, 77))
+lines(c(0, 1, 2), c(80, 80-25, 80-20), lty = 2)
 axis(1, at = c(0, 1, 2), labels = c('Start', 'End', '12 Months'))
-axis(2, at = seq(50, 90, 10), las = 1)
+axis(2, at = seq(0, 90, 10), las = 1)
 mtext('Estimated Health', side = 2, line = 3)
-text(1.65, 60, 'Severe - Gear', cex = 0.8)
-text(0.5, 76, 'Minor - No Gear', cex = 0.8)
-lines(c(0, .995), c(80, 80), col = "#D95F02", lwd = 3)
-lines(c(1.005, 2), c(80, 80), col = "#1B9E77", lwd = 3)
-text(0.5, 82, 'Entanglement Timeframe')
-text(1.5, 82, 'Recovery Timeframe')
+text(1.65, 85-31.5, 'Severe - Gear', cex = 0.8)
+text(1.65, 85-5, 'Minor - No Gear', cex = 0.8)
+lines(c(0, .995), c(90, 90), col = "#D95F02", lwd = 3)
+lines(c(1.005, 2), c(90, 90), col = "#1B9E77", lwd = 3)
+text(0.5, 93, 'Entanglement Timeframe')
+text(1.5, 93, 'Recovery Timeframe')
 #plot 2
 barplot(df$health, beside = TRUE, space = c(0, 0, 0.2, 0), 
         names = c('Minor - No Gear\nDuring', 'Minor - No Gear\nRecovery', 
                   'Severe - Gear\nDuring', 'Severe - Gear\nRecovery'),
-        col = c("#D95F02", "#1B9E77"), ylab = 'Absolute Health Deviation', border = NA)
+        col = c("#D95F02", "#1B9E77"), ylab = 'Absolute Change in Health', border = NA)
 dev.off()
 ```
 
@@ -151,7 +172,7 @@ So let's make it. This is accomplished with one call:
 library(gridExtra)
 pOut <- plotSlopeHealth(dfout, dfn, dfMed, dfAsuml, aval = 0.1)
 pOut
-ggsave(plot = pOut, filename = 'slopeHealth.pdf', path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
-ggsave(plot = pOut, filename = 'slopeHealth.png', path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+ggsave(plot = pOut, filename = 'slopeHealth.pdf', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+ggsave(plot = pOut, filename = 'slopeHealth.png', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
 ```
 

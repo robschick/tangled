@@ -45,7 +45,7 @@ library(stringr)
 
 ```{r}
 
-tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE)
+tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE, thold = 67)
 dfLong <- rbind(tmp$dfLongRepro, tmp$dfLongNonRepro) 
 ```
 
@@ -106,8 +106,8 @@ Ok, so then let's make the plot:
 ```{r, echo=FALSE, fig.width = 8, fig.height=6}
 pOut <- plotBoxplotHealth(dfLong, bsize = 12, cval = 3)
 pOut
-ggsave(plot = pOut, filename = 'boxplotHealth.pdf', path = '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
-ggsave(plot = pOut, filename = 'boxplotHealth.png', path = '/Users/robs/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
+ggsave(plot = pOut, filename = 'boxplotHealth.pdf', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+ggsave(plot = pOut, filename = 'boxplotHealth.png', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
 ```
 
 

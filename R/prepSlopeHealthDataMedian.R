@@ -18,9 +18,9 @@ prepSlopeHealthDataMedian <- function(dfout){
     summarise(sHealth = median(startHealth, na.rm = TRUE), 
               endHealth = median(endHealth, na.rm = TRUE), 
               recHealth = median(recHealth, na.rm = TRUE),
-              sAnom = median(startAnom, na.rm = TRUE), 
-              endAnom = median(endAnom, na.rm = TRUE), 
-              recAnom = median(recAnom, na.rm = TRUE),
+              # sAnom = median(startAnom, na.rm = TRUE), 
+              # endAnom = median(endAnom, na.rm = TRUE), 
+              # recAnom = median(recAnom, na.rm = TRUE),
               fullLab = unique(fullLab),
               sevLab = unique(sevLab),
               gearLab = unique(gearLab))

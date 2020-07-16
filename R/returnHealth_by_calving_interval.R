@@ -34,6 +34,22 @@ returnHealth_by_calving_interval <- function(anomFlag = FALSE){
   # first use calfTable to parse out healthmean into a subset of reproductively active females
   repidx <- match(unique(calfTable$EGNo), ID)
   repHealth <- healthmean[repidx, ]
+  
+  # # Loop over the individuals to set up interval labels
+  # for(egno in unique(calfTable$EGNo)){
+  #   egno <- 1310
+  #   dsub <- calfTable[calfTable$EGNo == egno, ]
+  #   calf_years <- dsub$CalvingYear
+  #   preg_years <- calf_years - 1
+  #   recov_years <- calf_years + 1
+  #   # all_years <- sort(c(preg_years, calf_years, recov_years))
+  #   # diff(calf_years)
+  #   # diff(all_years)
+  #   for(year in dsub$CalvingYear){
+  #     
+  #   }
+  # }
+  
 
   # only get health values during times _after_ first year of calving; use firstCalfidx
   fcalf <- tangRepro[, c('EGNo', 'firstCalfidx')]
