@@ -1,0 +1,139 @@
+---
+title: "Evaluation of Health and Calving Intervals"
+author: "Rob Schick, PhD"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Evaluation of Health and Calving Intervals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The goal of this vignette is to describe health during the entanglement windows to understand if entanglement impacts health and in turn, reproduction. To do this we will calculate if health dropped below the previously published value of 67 during a period of availability and plot the duration of this against the interval. Our assumption is that longer calving intervals are related to length of time that a reproductively active female spends below that threshold, i.e. more time below the health threshold, the longer the interval is likely to be. We will experiment with other covariates as well, e.g. the health value during the entanglement, a 0/1 factor variable if below, the length of the time period below the threshold (if below), and the entanglement category.
+
+We begin by preparing the data.
+
+## Data Preparation
+We have two different data frames that we need to work with: 1) the individual estimates of health that form the core of the model output, and 2) the list of 48 candidate animals for this test.
+
+A reminder that this is the order of the categories:
+
+gearInj | Definition
+-----------|----------
+1 | Severe with gear
+2 | Moderate with gear
+3 | Severe no gear
+4 | Minor with gear
+5 | Moderate no gear
+6 | Minor no gear
+
+We take the `tangRepro` data frame that is created in the `prepAmyEntanglementData.R` script as part of `tangled` package construction. We loop over the events and extract monthly estimates of the health anomaly during the event, as well as a derived variable `lthold` that indicates the number of months (if any) the health estimate was below 67. 
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+
+library(tangled)
+library(ggplot2)
+library(dplyr)
+library(magrittr)
+library(stringr)
+```
+
+
+```{r}
+
+tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE, thold = 67)
+dfLong <- tmp$dfLongRepro
+```
+
+At the end of this looping the new data look like this:
+
+```{r, warning=FALSE, message=FALSE}
+head(dfLong)
+```
+
+We can quickly summarise that to get a feel for how health changes as a function of gear injury type as well as an estimate of how many events are in each category. This simply shows the median health values during the impacted period, as well as the median number of months below a health value of 67.
+
+```{r }
+dfLong %>% 
+  dplyr::filter(variable == 'impacted') %>% 
+  group_by(gearInj) %>% 
+  summarise(anomaly = median(hAnom, na.rm = TRUE),
+            n_months = median(lthold)) %>% 
+  mutate(severity = case_when(gearInj == 6 ~ 'minor',
+                              gearInj == 4 ~ 'minor - gear',
+                              gearInj == 5 ~ 'moderate',
+                              gearInj == 2 ~ 'moderate - gear',
+                              gearInj == 3 ~ 'severe',
+                              gearInj == 1 ~ 'severe - gear'))
+```
+
+## 
+
+```{r}
+dfLong %>% 
+  filter(!is.na(decade)) %>% 
+  group_by(decade, status, gearInj) %>% 
+  summarise(numEvents = n())
+
+ggplot(subset(dfLong, gearInj > 0 & !is.na(decade)))+
+  geom_bar(aes(gearInj))+
+  facet_grid(status ~ decade)
+```
+
+## The Revised Plot
+Ok, so then let's make the plot:
+
+```{r, echo=FALSE, fig.width = 8, fig.height=6}
+pOut <- plotBoxplotHealth(dfLong, bsize = 12, cval = 3)
+pOut
+ggsave(plot = pOut, filename = 'boxplotHealth.pdf', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+ggsave(plot = pOut, filename = 'boxplotHealth.png', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
+```
+
+
+## Statistical Analysis of the Differences
+With the data prepared and plotted, we want to determine quantitatively if there are differences between the entanglement classes and in between the reproductive status. To test this we can run a `glm()` and/or a `glmm()` on the dataset using health anomaly as the dependent variable. 
+
+```{r}
+library(multcomp)
+dfglm <- transform(dfLong, gfac = as.factor(gearInj))
+ft1 <- glm(hAnom ~ gfac, data = dfglm)
+summary(ft1)
+summary(glht(ft1, mcp(gfac = "Tukey")))
+```
+
+### Include Reproductive Status
+That shows some clear and significant patterns in the data. However, it doesn't show the comparison of the effects of reproductive status in the analysis. To do that, we'll explore two models: 1) a linear model with both injury and status as fixed effects; and 2) a mixed model with a fixed effect for injury, and then a random effect for reproductive status.
+
+```{r}
+library(broom)
+ft2 <- glm(hAnom ~ gfac + gfac:status, data = dfglm)
+summary(ft2)
+knitr::kable(tidy(ft2), digits = 3)
+```
+
+Ok, that was the `glm` and now we can look at the mixed effects model with a random effect
+
+```{r}
+library(lme4)
+library(sjPlot)
+ft3 <- lmer(hAnom ~ gfac + (1 | status), data = dfglm)
+summary(ft3)
+sjp.lmer(ft3)
+```
+
+## Summary Table
+Need to put together a summary table for the ms of all the events included in this analysis.
+
+```{r}
+df <- dfglm %>% 
+  filter(gearInj != 0) %>% 
+  group_by(gearInj, status) %>% 
+  summarise(Total = n(),
+            Length = mean(nMonths),
+            maxLength = max(nMonths))
+knitr::kable(df, digits = 2)
+
+```
+
