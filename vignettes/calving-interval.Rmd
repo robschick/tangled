@@ -41,7 +41,11 @@ library(gghighlight)
 
 ```{r}
 tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE, thold = 67)
-dfLong <- tmp$dfLongRepro
+dfLong <- tmp$dfLongRepro %>% 
+  mutate(severity = case_when(gearInj %in% c(6, 4) ~ 'minor',
+                              gearInj %in% c(5, 2) ~ 'moderate',
+                              gearInj %in% c(3, 1) ~ 'severe')) %>% 
+  arrange(egno, eventNo)
 ```
 
 At the end of this looping the new data look like this:
@@ -71,14 +75,15 @@ dfLong %>%
 Amy prepared a set of data that 
 
 ```{r}
-cases <- read_csv(here::here('data-raw', '2020-07-16_Calving-interval-analysis_Case-Study.csv')) %>% 
-  select(!starts_with('X'))
+cases <- read_csv(here::here('data-raw', '2020-07-17_Calving-interval-analysis_Case-Study_all-cases.csv')) %>% 
+  select(!starts_with('X')) %>% 
+  arrange(EGNo, CalvingYear)
 ```
 
 I start by joining the two databases
 
 ```{r}
-df_out <- left_join(dfLong, cases, by = c("egno" = "EGNo_1", "eventNo" = "EventNo")) 
+df_out <- full_join(dfLong, cases, by = c("egno" = "EGNo_1", "eventNo" = "EventNo")) 
 ```
 
 Now I need to summarize over the same calving year for each animal
