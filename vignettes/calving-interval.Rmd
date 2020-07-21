@@ -78,8 +78,7 @@ cases <- read_csv(here::here('data-raw', '2020-07-16_Calving-interval-analysis_C
 I start by joining the two databases
 
 ```{r}
-df_out <- left_join(dfLong, cases, by = c("egno" = "EGNo_1", "eventNo" = "EventNo")) %>% 
-  drop_na(CalvingYear)
+df_out <- left_join(dfLong, cases, by = c("egno" = "EGNo_1", "eventNo" = "EventNo")) 
 ```
 
 Now I need to summarize over the same calving year for each animal
