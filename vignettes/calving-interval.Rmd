@@ -1,6 +1,6 @@
 ---
 title: "Evaluation of Health and Calving Intervals"
-author: "Rob Schick, PhD"
+author: "Rob Schick"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -40,7 +40,6 @@ library(gghighlight)
 
 
 ```{r}
-
 tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE, thold = 67)
 dfLong <- tmp$dfLongRepro
 ```
@@ -74,5 +73,37 @@ Amy prepared a set of data that
 ```{r}
 cases <- read_csv(here::here('data-raw', '2020-07-16_Calving-interval-analysis_Case-Study.csv')) %>% 
   select(!starts_with('X'))
+```
+
+I start by joining the two databases
+
+```{r}
+df_out <- left_join(dfLong, cases, by = c("egno" = "EGNo_1", "eventNo" = "EventNo")) %>% 
+  drop_na(CalvingYear)
+```
+
+Now I need to summarize over the same calving year for each animal
+
+```{r}
+df_sum <- df_out %>% 
+  group_by(egno, CalvingYear) %>% 
+  summarize(lthold = sum(lthold),
+            health = mean(hAnom),
+            gearInj = min(gearInj),
+            interval = unique(CalvingInterval)) # to retain the worse event when there are multiple groupings
+```
+
+A quick plot
+
+```{r fig.width=6.5}
+ggplot(data = df_sum, aes(lthold, interval))+
+  geom_jitter() +
+  labs(x = "# of Months Below 67", y = 'Calving Interval (years)')
+```
+
+And an even quicker `lm()` to see what we see
+
+```{r}
+summary(lm(interval ~ lthold, data = df_sum))
 ```
 
