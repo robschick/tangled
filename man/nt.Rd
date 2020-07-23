@@ -4,7 +4,9 @@
 \name{nt}
 \alias{nt}
 \title{Length of the modelling}
-\format{A vector of length 1}
+\format{
+A vector of length 1
+}
 \usage{
 nt
 }
@@ -13,4 +15,3 @@ This is simply calculated with \code{length(myName)} and shows the
 temporal extent of the modelling.
 }
 \keyword{datasets}
-

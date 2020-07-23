@@ -4,8 +4,10 @@
 \name{healthmeanSP}
 \alias{healthmeanSP}
 \title{Estimated health of individual animals for slope plot}
-\format{A matrix of dimensions 696 by 564; each row contains the estimates
-of health for an individual. Each column is a month.}
+\format{
+A matrix of dimensions 696 by 564; each row contains the estimates
+of health for an individual. Each column is a month.
+}
 \usage{
 healthmeanSP
 }
@@ -16,4 +18,3 @@ is that here I don't set to NA the health for times after the estimated
 death.
 }
 \keyword{datasets}
-

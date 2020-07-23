@@ -4,9 +4,11 @@
 \name{healthsd}
 \alias{healthsd}
 \title{Estimated standard deviation health of individual animals}
-\format{A matrix of dimensions 696 by 564; each row contains the estimates
+\format{
+A matrix of dimensions 696 by 564; each row contains the estimates
 of the standard deviation around health for an individual. Each column is a 
-month.}
+month.
+}
 \usage{
 healthsd
 }
@@ -15,4 +17,3 @@ This is a matrix of the standard deviation of individual health estimates
 returned by the model in Schick et al. 2013 PLoS-ONE.
 }
 \keyword{datasets}
-

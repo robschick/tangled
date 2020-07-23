@@ -33,4 +33,3 @@ candidate month.
 \examples{
 getDeaths(deathyr, medProb = TRUE)
 }
-

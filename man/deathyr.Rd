@@ -4,8 +4,10 @@
 \name{deathyr}
 \alias{deathyr}
 \title{Estimated death months of individual animals}
-\format{A matrix of dimensions 696 by 564; each row contains the estimates
-of possible or known death times for an individual. Each column is a month.}
+\format{
+A matrix of dimensions 696 by 564; each row contains the estimates
+of possible or known death times for an individual. Each column is a month.
+}
 \usage{
 deathyr
 }
@@ -14,4 +16,3 @@ This is a matrix that of individual death months estimated by the model
 in Schick et al. 2013 PLoS-ONE.
 }
 \keyword{datasets}
-

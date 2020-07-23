@@ -4,7 +4,8 @@
 \name{deadTable}
 \alias{deadTable}
 \title{Data frame of known deaths of individual right whales}
-\format{A 42 by 8 data frame containing this columns:
+\format{
+A 42 by 8 data frame containing this columns:
 \describe{
    \item{SightingEGNo}{Integer of the unique identifier of the individual whale}
    \item{SightingYear}{integer Year of death}
@@ -14,7 +15,8 @@
    \item{Longitude}{Double Longitude position of observed death}
    \item{AreaCode}{Character noting the macro-scale geographic location of the death}
    \item{RegionCode}{Character noting the micro-scale geographic location of the death}
-}}
+}
+}
 \usage{
 deadTable
 }
@@ -23,4 +25,3 @@ This comes from the New England Aquarium and is used to set the death time
 and places for whales that are known to have died.
 }
 \keyword{datasets}
-

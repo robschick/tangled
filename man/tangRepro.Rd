@@ -4,7 +4,8 @@
 \name{tangRepro}
 \alias{tangRepro}
 \title{Information about entanglement events of reproductively active females}
-\format{A data frame of 113 rows and 22 columns:
+\format{
+A data frame of 113 rows and 22 columns:
 \describe{
  \item{EGNo}{4 number code that identifies individual right whales}
  \item{EventNo}{Integer labelling the consecutive number of each entanglement event}
@@ -28,7 +29,8 @@
 \item{fsevmonyr}{Character version of \code{firstSevere} designed to intersect with \code{myName} to peel off the health values in the matrix of estimated heatlh, e.g. '2-1986'}
 \item{rec12monyr}{Character version of \code{recov12months} designed to intersect with \code{myName} to peel off the health values in the matrix of estimated heatlh, e.g. '2-1986'}
 \item{afterCalf1}{Logical of whether or not the entanglement event is after the first calving event (\code{firstCalf})}
-}}
+}
+}
 \usage{
 tangRepro
 }
@@ -36,4 +38,3 @@ tangRepro
 Whereas \code{tangleOut} contains all the filtered information on the entanglement events, \code{tangRepro} contains the same information for only the reproductively active females.
 }
 \keyword{datasets}
-

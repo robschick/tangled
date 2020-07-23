@@ -25,8 +25,6 @@
 #' }
 #'
 #' @export
-#' @examples 
-#' makeEvents() 
 makeEvents <- function(){
   
   tSub <- tangleOut

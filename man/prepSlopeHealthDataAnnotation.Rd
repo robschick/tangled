@@ -20,4 +20,3 @@ in each of the 6 different entanglement types.
 prepSlopeHealthDataAnnotation(dfout)
 }
 }
-

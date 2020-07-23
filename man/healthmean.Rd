@@ -4,8 +4,10 @@
 \name{healthmean}
 \alias{healthmean}
 \title{Estimated health of individual animals}
-\format{A matrix of dimensions 696 by 564; each row contains the estimates
-of health for an individual. Each column is a month.}
+\format{
+A matrix of dimensions 696 by 564; each row contains the estimates
+of health for an individual. Each column is a month.
+}
 \usage{
 healthmean
 }
@@ -14,4 +16,3 @@ This is a matrix that of individual health estimated by the model
 in Schick et al. 2013 PLoS-ONE.
 }
 \keyword{datasets}
-

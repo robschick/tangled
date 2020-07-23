@@ -4,7 +4,8 @@
 \name{tangNonRepro}
 \alias{tangNonRepro}
 \title{Information about entanglement events of non-reproductively active whales}
-\format{A data frame of 797 rows and 22 columns:
+\format{
+A data frame of 797 rows and 22 columns:
 \describe{
  \item{EGNo}{4 number code that identifies individual right whales}
  \item{EventNo}{Integer labelling the consecutive number of each entanglement event}
@@ -28,7 +29,8 @@
 \item{fsevmonyr}{Character version of \code{firstSevere} designed to intersect with \code{myName} to peel off the health values in the matrix of estimated heatlh, e.g. '2-1986'}
 \item{rec12monyr}{Character version of \code{recov12months} designed to intersect with \code{myName} to peel off the health values in the matrix of estimated heatlh, e.g. '2-1986'}
 \item{afterCalf1}{Logical of whether or not the entanglement event is after the first calving event (\code{firstCalf})}
-}}
+}
+}
 \usage{
 tangNonRepro
 }
@@ -36,4 +38,3 @@ tangNonRepro
 Whereas \code{tangleOut} contains all the filtered information on the entanglement events, \code{tangNonRepro} contains the same information for all the non-reproductively active females. Note that this can include reproductively active females but only for the times \emph{before} they have their first calf. In other words, it contains males of all ages, and females up until they've had a calf. Once they've had a calf, the event gets tallied in \code{tangRepro}
 }
 \keyword{datasets}
-

@@ -19,4 +19,3 @@ of entanglement class and severity
 plotHealthThreshold(dfb, bsize)
 }
 }
-

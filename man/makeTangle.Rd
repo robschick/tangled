@@ -14,4 +14,3 @@ The primary goal of this is to clean up the entanglement data a bit. We do this 
 adding in information in the comments about each event, and coding that into a new
 variable. We also extract the sex from the comments, and the age of the animal.
 }
-

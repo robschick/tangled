@@ -23,7 +23,9 @@ estStart$EndDate <- as.Date(estStart$EndDate, format = '%d/%m/%Y')
 # based on their birth year
 idx <- which(is.na(tangle$StartDate)) # Find animals without a valid start date
 for (id in idx) {
-  tangle[id, 'StartDate'] <- estStart[which(estStart$EntanglementId == as.numeric(tangle[id, 'EntanglementId'])), 'StartDate']
+  new_date <- estStart[which(estStart$EntanglementId == as.numeric(tangle[id, 'EntanglementId'])), 'StartDate']
+  if(nrow(new_date) == 0) next()
+  tangle[id, 'StartDate'] <- new_date
 }
 # For the remaining animals that lack a start date, we simple subtract 3 months from the EndDate 
 idx <- which(is.na(tangle$StartDate)) 
@@ -136,7 +138,7 @@ tangleOutAll <- tangleOut # doing this for later on comparison checking, i.e. if
 
 
 # pare down the columns for merging the gear and non-gear whales
-cidx <- c("EGNo", "EventNo", "StartDate", "EndDate", "Severity", "gear", 'LastDatewGear', 
+cidx <- c("EGNo", "EntanglementId", "EventNo", "StartDate", "EndDate", "Severity", "gear", 'LastDatewGear', 
           'LineGone', "EndDateWindow", "StartDateWindow")
 tndat$LastDatewGear <- as.Date('1600-01-01', '%Y-%m-%d')
 tndat$LineGone <- as.Date('1600-01-01', '%Y-%m-%d')

@@ -24,4 +24,3 @@ part of the graph.
 prepSlopeHealthDataBarplot(dfout)
 }
 }
-

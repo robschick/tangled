@@ -4,7 +4,9 @@
 \name{dcut}
 \alias{dcut}
 \title{Scalar noting when the sightings data are complete through}
-\format{A vector of length 1}
+\format{
+A vector of length 1
+}
 \usage{
 dcut
 }
@@ -14,4 +16,3 @@ and sets the cutoff date for when the modelling 'ends.' The modelling
 doesn't really end here, but this is the threshold we use for censoring
 }
 \keyword{datasets}
-

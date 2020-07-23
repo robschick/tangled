@@ -10,4 +10,3 @@ makeYearmon(timedat)
 Goal of this script is to make proper date-formatted year month
 data from input time data
 }
-

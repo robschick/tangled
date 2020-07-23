@@ -4,7 +4,9 @@
 \name{myName}
 \alias{myName}
 \title{Month-year vector used to mark time in the model}
-\format{A vector of length 696}
+\format{
+A vector of length 696
+}
 \usage{
 myName
 }
@@ -13,4 +15,3 @@ This starts at January 1970, and goes through September, 2016,
 or roughly the temporal extent of modelling. Values are like '1-1970'
 }
 \keyword{datasets}
-

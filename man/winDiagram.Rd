@@ -19,4 +19,3 @@ information - in this case the health anomaly
 winDiagram(anom, tangleOut, myName, egno = 1167)
 }
 }
-

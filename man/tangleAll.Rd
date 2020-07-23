@@ -4,7 +4,8 @@
 \name{tangleAll}
 \alias{tangleAll}
 \title{Information about entanglement events - raw}
-\format{A data frame of 1,194 rows and 12 columns:
+\format{
+A data frame of 1,194 rows and 12 columns:
 \describe{
  \item{EntanglementId}{A unique identifier for the entanglement event in the NEAq DIGITS database}
  \item{EGNo}{4 number code that identifies individual right whales}
@@ -20,7 +21,8 @@
 \item{gear}{Integer variable describing whether or not the animal is carrying gear as part of the entanglement: 0 for no gear; 1 for gear}
 \item{LiveStatus}{Character vector indicating whether the animal is 'ALIVE' or 'DEAD'}
 \item{Gender}{Character descriptor of the animal's sex: "female," "male," or NA}
-}}
+}
+}
 \usage{
 tangleAll
 }
@@ -28,4 +30,3 @@ tangleAll
 Information about entanglement events - raw
 }
 \keyword{datasets}
-

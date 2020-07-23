@@ -4,8 +4,10 @@
 \name{anomSP}
 \alias{anomSP}
 \title{Health anomaly between individual health and population median health not NA after deathtime}
-\format{A matrix of dimensions 696 by 564; each row contains the estimates
-of health anomaly for an individual. Each column is a month.}
+\format{
+A matrix of dimensions 696 by 564; each row contains the estimates
+of health anomaly for an individual. Each column is a month.
+}
 \usage{
 anomSP
 }
@@ -19,4 +21,3 @@ is that here I do \emph{not} set the health to NA after the month
 in which the animal is estimated to have died
 }
 \keyword{datasets}
-

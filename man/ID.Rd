@@ -4,7 +4,9 @@
 \name{ID}
 \alias{ID}
 \title{ID vector of EGNo's for all individual right whales in the data base}
-\format{A vector of length 696}
+\format{
+A vector of length 696
+}
 \usage{
 ID
 }
@@ -14,4 +16,3 @@ Each value in this vector is a unique and unchanging identifier
 of individual right whales
 }
 \keyword{datasets}
-

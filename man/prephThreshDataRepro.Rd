@@ -45,4 +45,3 @@ of months each animal spent below a certain health threshold
 prephThreshDataRepro(healthmean, thold)     
 }
 }
-

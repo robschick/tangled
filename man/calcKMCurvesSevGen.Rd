@@ -4,8 +4,14 @@
 \alias{calcKMCurvesSevGen}
 \title{Return lists to be used in plotting Kaplan-Meier survival curves by gender and entanglement severity}
 \usage{
-calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment,
-  medProb = TRUE)
+calcKMCurvesSevGen(
+  survdf,
+  kdpasurvldf,
+  nboot = 1,
+  dcut,
+  increment,
+  medProb = TRUE
+)
 }
 \arguments{
 \item{\code{survdf}}{is the data frame containing survival data for all
@@ -52,4 +58,3 @@ calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut,
     increment = 12, medProb = TRUE)
 }
 }
-

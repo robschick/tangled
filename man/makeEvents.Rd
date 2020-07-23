@@ -32,7 +32,3 @@ entanglement event for each animal in the database. This is because
 we want to look at survival following these events, and compare the 
 impact of different types of entanglement on the survivorship.
 }
-\examples{
-makeEvents() 
-}
-

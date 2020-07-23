@@ -20,4 +20,3 @@ lines to be used in the plotting of the upper panel of the slope plot
 prepSlopeHealthDataMedian(dfout)
 }
 }
-

@@ -4,7 +4,8 @@
 \name{tangleOut}
 \alias{tangleOut}
 \title{Information about entanglement events - filtered and modified for use in analysis}
-\format{A data frame of 910 rows and 22 columns:
+\format{
+A data frame of 910 rows and 22 columns:
 \describe{
  \item{EGNo}{4 number code that identifies individual right whales}
  \item{EventNo}{Integer labelling the consecutive number of each entanglement event}
@@ -28,7 +29,8 @@
 \item{fsevmonyr}{Character version of \code{firstSevere} designed to intersect with \code{myName} to peel off the health values in the matrix of estimated heatlh, e.g. '2-1986'}
 \item{rec12monyr}{Character version of \code{recov12months} designed to intersect with \code{myName} to peel off the health values in the matrix of estimated heatlh, e.g. '2-1986'}
 \item{afterCalf1}{Logical of whether or not the entanglement event is after the first calving event (\code{firstCalf})}
-}}
+}
+}
 \usage{
 tangleOut
 }
@@ -47,4 +49,3 @@ For any window < 1 month, the window gets lengthened to 1 month. Processing is a
 For any window >= 2 & <3 months, the window gets set to 2 month. Processing is as above.
 }
 \keyword{datasets}
-

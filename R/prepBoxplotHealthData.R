@@ -56,6 +56,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
 
 
   dfSum <- data.frame(egno = rep(NA, times = nrow(tSub)), 
+                      EntanglementId = rep(NA, times = nrow(tSub)),
                     eventNo = rep(NA, times = nrow(tSub)),
                     nMonths = rep(NA, times = nrow(tSub)),
                     hAnom = rep(NA, times = nrow(tSub)),
@@ -69,6 +70,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
     # i <- 32 #, EGNo == 1130 is a good test animal; i <- 390 is another (EGNo = 1102) (Both for Non-Repro)
     # i = 4 # EGNo == 1014 for Repro
     ind <- tSub$EGNo[i]
+    ent_id <- tSub$EntanglementId[i]
     if(ind == 1045) next()
     eventNo <- tSub$EventNo[i]
     if(!ind %in% ID){next()}
@@ -90,6 +92,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
     lthold <- length(which(hind < thold))
   
     dfSum[i, 'egno'] <- ind
+    dfSum[i, 'EntanglementId'] <- ent_id
     dfSum[i, 'eventNo'] <- eventNo
     dfSum[i, 'hAnom'] <- median(hind, na.rm = TRUE)
     dfSum[i, 'lthold'] <- lthold
@@ -114,6 +117,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
   if (repro) {
     uvec <- repvec
     dfuvec <- data.frame(egno = 9999,
+                         EntanglementId = 0,
                        eventNo = 0,
                        nMonths = 0,
                        hAnom = uvec,
@@ -127,6 +131,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
     # 1980
     uvec1980 <- repvec1980
     dfuvec1980 <- data.frame(egno = 9999,
+                             EntanglementId = 0,
                          eventNo = 0,
                          nMonths = 0,
                          hAnom = uvec1980,
@@ -140,6 +145,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
     # 1990
     uvec1990 <- repvec1990
     dfuvec1990 <- data.frame(egno = 9999,
+                             EntanglementId = 0,
                              eventNo = 0,
                              nMonths = 0,
                              hAnom = uvec1990,
@@ -153,6 +159,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
     # 2000
     uvec2000 <- repvec2000
     dfuvec2000 <- data.frame(egno = 9999,
+                             EntanglementId = 0,
                              eventNo = 0,
                              nMonths = 0,
                              hAnom = uvec2000,
@@ -167,6 +174,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
   } else {
     uvec <- nonrepvec
     dfurvec <- data.frame(egno = 9999,
+                          EntanglementId = 0,
                         eventNo = 0,
                         nMonths = 0,
                         hAnom = uvec,
@@ -180,6 +188,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
     # 1980
     uvec1980 <- nonrepvec1980
     dfurvec1980 <- data.frame(egno = 9999,
+                              EntanglementId = 0,
                           eventNo = 0,
                           nMonths = 0,
                           hAnom = uvec1980,
@@ -193,6 +202,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
     # 1990
     uvec1990 <- nonrepvec1990
     dfurvec1990 <- data.frame(egno = 9999,
+                              EntanglementId = 0,
                               eventNo = 0,
                               nMonths = 0,
                               hAnom = uvec1990,
@@ -206,6 +216,7 @@ prepBoxplotHealthData <- function(tangRepro, tangNonRepro, anomFlag = FALSE, tho
     # 2000
     uvec2000 <- nonrepvec2000
     dfurvec2000 <- data.frame(egno = 9999,
+                              EntanglementId = 0,
                               eventNo = 0,
                               nMonths = 0,
                               hAnom = uvec2000,

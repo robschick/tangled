@@ -4,7 +4,9 @@
 \name{calfTable}
 \alias{calfTable}
 \title{Table describing all of the calving events in the right whale population}
-\format{An object of class \code{data.frame} with 518 rows and 4 columns.}
+\format{
+An object of class \code{data.frame} with 518 rows and 4 columns.
+}
 \usage{
 calfTable
 }
@@ -23,4 +25,3 @@ frame as follows:
 }
 }
 \keyword{datasets}
-

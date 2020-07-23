@@ -32,4 +32,3 @@ Return the right whale population level health Anomaly as a data frame
 returnhealthAnom(healthmean)
 }
 }
-

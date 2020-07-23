@@ -24,4 +24,3 @@ compared to the population median
 prepSlopeHealthData()
 }
 }
-

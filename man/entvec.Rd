@@ -4,8 +4,10 @@
 \name{entvec}
 \alias{entvec}
 \title{Entanglement class definitions}
-\format{A named vector, where the names are the character descriptions
-and the vector values are integers}
+\format{
+A named vector, where the names are the character descriptions
+and the vector values are integers
+}
 \usage{
 entvec
 }
@@ -16,4 +18,3 @@ three injury categories: minor, moderate, and severe along with whether
 or not the animal is carrying gear.
 }
 \keyword{datasets}
-

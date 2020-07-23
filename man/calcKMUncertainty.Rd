@@ -3,7 +3,8 @@
 \name{calcKMUncertainty}
 \alias{calcKMUncertainty}
 \title{Data frame of 95\% uncertainty quantiles for survivorship.}
-\format{Each component of the list contains a data frame, which has these 10 columns:
+\format{
+Each component of the list contains a data frame, which has these 10 columns:
 \describe{
    \item{interval}{The time slice for which we are recording survivorship. In this
    case it is a one year interval.}
@@ -19,7 +20,8 @@
    order of badness: minor, moderate, severe.}
    \item{group}{Simply a vector denoting what iteration each slice corresponds 
    to.}
-}}
+}
+}
 \usage{
 calcKMUncertainty(kmlines)
 }
@@ -55,4 +57,3 @@ calcKMUncertainty(kmlines)
 }
 
 }
-

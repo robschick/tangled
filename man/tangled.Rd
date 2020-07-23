@@ -3,7 +3,6 @@
 \docType{package}
 \name{tangled}
 \alias{tangled}
-\alias{tangled-package}
 \title{tangled: a package for analysis and plotting of effects of entanglement on right whales}
 \description{
 The tangled package takes output from the model described in Schick et al. 

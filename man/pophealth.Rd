@@ -4,14 +4,16 @@
 \name{pophealth}
 \alias{pophealth}
 \title{Population level health of right whales}
-\format{A data frame with 564 rows and 4 columns:
+\format{
+A data frame with 564 rows and 4 columns:
 \describe{
 \item{time}{Integer index of the month for the current row}
 \item{popHealth}{Median population level health estimate}
 \item{hsd}{Standard deviation of population level health estimate}
 \item{date}{Date in \code{as.Date()} format of the month corresponding
     to the estimate.}
-}}
+}
+}
 \usage{
 pophealth
 }
@@ -22,4 +24,3 @@ using health information from Adult males, and both male and female
 juveniles.
 }
 \keyword{datasets}
-

@@ -4,7 +4,7 @@
 \alias{prepBoxplotHealthData}
 \title{Prepare data for making the boxplots of health during entanglement}
 \usage{
-prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = TRUE)
+prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE, thold = 67)
 }
 \arguments{
 \item{\code{tangRepro}}{data frame with information on the temporal
@@ -32,7 +32,6 @@ function. This function returns two data frames: \code{dfLongRepro}, and
 }
 \examples{
 \dontrun{
-prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = TRUE)
+prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = TRUE, thold = 67)
 }
 }
-

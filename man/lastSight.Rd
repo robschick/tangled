@@ -4,7 +4,9 @@
 \name{lastSight}
 \alias{lastSight}
 \title{Vector denoting the last month (in integer form) of animal sighting}
-\format{A vector of length 696}
+\format{
+A vector of length 696
+}
 \usage{
 lastSight
 }
@@ -14,4 +16,3 @@ Unlike \code{myName} this takes an integer form, e.g. 110, where
 the code to help extract values from the health and other matrices
 }
 \keyword{datasets}
-

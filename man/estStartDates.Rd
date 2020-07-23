@@ -4,7 +4,8 @@
 \name{estStartDates}
 \alias{estStartDates}
 \title{Information about estimated start data of entanglement events}
-\format{a data frame containing 130 rows and 6 variables:
+\format{
+a data frame containing 130 rows and 6 variables:
 \describe{
  \item{EntanglementId}{A unique identifier for the entanglement event in the NEAq DIGITS database}
  \item{EGNo}{4 number code that identifies individual right whales}
@@ -14,7 +15,8 @@
  \item{EndDate}{A character variable describing the observed last date of the 
  entanglement event}
  \item{EntanglementComment}{Comments from Amy Knowlton about the entanglement events}
-}}
+}
+}
 \usage{
 estStartDates
 }
@@ -26,4 +28,3 @@ data are used to establish the start of "windows" that denote when animals
 are entangled and in turn to intersect those windows with estimates of health.
 }
 \keyword{datasets}
-

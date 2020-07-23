@@ -46,4 +46,3 @@ survivorship for all three death categories
 calckdpaSurvdat(events)
 }
 }
-

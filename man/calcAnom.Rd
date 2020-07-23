@@ -18,4 +18,3 @@ hdiff - the health anomaly
 Goal of this is to take in the individual health data, along with the
 population health data, and calculate the anomaly between the two
 }
-

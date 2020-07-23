@@ -4,7 +4,9 @@
 \name{ng}
 \alias{ng}
 \title{Number of Gibbs steps used in the input rda file}
-\format{A vector of length 1}
+\format{
+A vector of length 1
+}
 \usage{
 ng
 }
@@ -15,4 +17,3 @@ object is useful to get values that make sense for
 subsequent analysis.
 }
 \keyword{datasets}
-

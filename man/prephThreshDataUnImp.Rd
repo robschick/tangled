@@ -40,4 +40,3 @@ these animals
 prephThreshDataUnImp(healthmean, firstSight, lastSight, thold)
 }
 }
-

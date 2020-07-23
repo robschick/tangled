@@ -4,7 +4,7 @@
 \alias{returnUnimpactedHealth}
 \title{Return the health data for unimpacted whales (reproductively active and non-reproductively active)}
 \usage{
-returnUnimpactedHealth()
+returnUnimpactedHealth(anomFlag = FALSE)
 }
 \value{
 A list element containing 2 data frames for health of the 1) 
@@ -26,4 +26,3 @@ in order to make the boxplots
 returnUnimpactedHealth()
 }
 }
-

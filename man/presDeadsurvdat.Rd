@@ -26,7 +26,7 @@ imputed death times.
 This is a function that will build an object to be used in the construction
 of the Kaplan-Meier survival curves for right whales. The idea behind this
 is to loop over each animal that is presumed dead and calculate the
-necessary informaiton for the survival curve plotting.
+necessary informaiton for the survival curve plotting. 
 
 It will take in a new vector of death times (\code{newDeadtimes}), and replace the median
 death times in \code{events} with the newly sampled ones.
@@ -36,4 +36,3 @@ death times in \code{events} with the newly sampled ones.
 presDeadsurvdat(events, dcut, newDeadtimes)
 }
 }
-

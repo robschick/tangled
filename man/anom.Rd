@@ -4,8 +4,10 @@
 \name{anom}
 \alias{anom}
 \title{Health anomaly between individual health and population median health}
-\format{A matrix of dimensions 696 by 564; each row contains the estimates
-of health anomaly for an individual. Each column is a month.}
+\format{
+A matrix of dimensions 696 by 564; each row contains the estimates
+of health anomaly for an individual. Each column is a month.
+}
 \usage{
 anom
 }
@@ -17,4 +19,3 @@ and young and old juveniles), and then subtracting that value
 from the median health of each individual.
 }
 \keyword{datasets}
-

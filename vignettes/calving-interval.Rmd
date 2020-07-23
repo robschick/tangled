@@ -75,26 +75,42 @@ dfLong %>%
 Amy prepared a set of data that 
 
 ```{r}
-cases <- read_csv(here::here('data-raw', '2020-07-17_Calving-interval-analysis_Case-Study_all-cases.csv')) %>% 
+cases <- read_csv(here::here('data-raw', '2020-07-23_Calving-interval-analysis_Case-Study_all-cases.csv')) %>% 
   select(!starts_with('X')) %>% 
   arrange(EGNo, CalvingYear)
+
+cases$StartDate <- parse_date(cases$StartDate, "%d-%b-%y")
+cases$EndDate <- parse_date(cases$EndDate, "%d-%b-%y")
+
+# cases <- cases %>% 
+  # filter(EndDate < as.Date("2017-12-31", "%Y-%m-%d"))
 ```
 
 I start by joining the two databases
 
 ```{r}
-df_out <- right_join(dfLong, cases, by = c("egno" = "EGNo_1", "eventNo" = "EventNo")) 
+# testing
+df_sub <- dfLong %>% filter(egno == 3101)
+cases_sub <- cases %>% filter(EGNo == 3101)
+right_join(df_sub, cases_sub, by = c("egno" = "EGNo_1", "EntanglementId" = "EntanglementID"))
+
+# real
+df_out <- right_join(dfLong, cases, by = c("egno" = "EGNo_1", "EntanglementId" = "EntanglementID")) 
 ```
 
 Now I need to summarize over the same calving year for each animal
 
 ```{r}
 df_sum <- df_out %>% 
+  drop_na(eventNo) %>% 
   group_by(egno, CalvingYear) %>% 
-  summarize(lthold = sum(lthold),
-            health = mean(hAnom),
-            gearInj = min(gearInj),
-            interval = unique(CalvingInterval)) # to retain the worse event when there are multiple groupings
+  summarize(lthold = sum(lthold, na.rm = TRUE),
+            health = mean(hAnom, na.rm = TRUE),
+            gearInj = min(gearInj, na.rm = TRUE), # to retain the worse event when there are multiple groupings
+            interval = unique(CalvingInterval, na.rm = TRUE)) %>% 
+  mutate(severity = case_when(gearInj %in% c(6, 4) ~ 'minor',
+                              gearInj %in% c(5, 2) ~ 'moderate',
+                              gearInj %in% c(3, 1) ~ 'severe'))
 ```
 
 A quick plot
@@ -102,12 +118,13 @@ A quick plot
 ```{r fig.width=6.5}
 ggplot(data = df_sum, aes(lthold, interval))+
   geom_jitter() +
+  facet_grid(~ severity)+
   labs(x = "# of Months Below 67", y = 'Calving Interval (years)')
 ```
 
 And an even quicker `lm()` to see what we see
 
 ```{r}
-summary(lm(interval ~ lthold, data = df_sum))
+summary(lm(interval ~ lthold , data = df_sum))
 ```
 

@@ -4,7 +4,9 @@
 \name{gender}
 \alias{gender}
 \title{Gender of each individual right whale}
-\format{A vector of length 696 comprised of 'M' for males and 'F' for females}
+\format{
+A vector of length 696 comprised of 'M' for males and 'F' for females
+}
 \usage{
 gender
 }
@@ -12,4 +14,3 @@ gender
 Gender of each individual right whale
 }
 \keyword{datasets}
-

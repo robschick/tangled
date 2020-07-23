@@ -4,7 +4,7 @@
 \alias{plotSlopeHealth}
 \title{Return the slope health plot as a \code{gridExtra} grob}
 \usage{
-plotSlopeHealth(dfout, dfn, dfMed, dfAsuml, aval = 0.5)
+plotSlopeHealth(dfout, dfn, dfMed, dfAsuml, aval = 0.1)
 }
 \arguments{
 \item{dfout}{A 579 by 11 data frame containing all the health and health anomaly information at three points}
@@ -26,4 +26,3 @@ Return the slope health plot as a \code{gridExtra} grob
 plotSlopeHealth(dfout, dfn, dfMed, dfAsuml, aval)
 }
 }
-

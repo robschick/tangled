@@ -4,8 +4,14 @@
 \alias{calcKMCurves}
 \title{Return lists to be used in plotting Kaplan-Meier survival curves}
 \usage{
-calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12,
-  medProb = TRUE)
+calcKMCurves(
+  survdf,
+  kdpasurvldf,
+  nboot = 1,
+  dcut,
+  increment = 12,
+  medProb = TRUE
+)
 }
 \arguments{
 \item{\code{survdf}}{is the data frame containing survival data for all
@@ -49,4 +55,3 @@ around the death times through the use of a boot strap
 calcKMCurves(survdf, kdpasurvldf, nboot = 1, dcut, increment = 12, medProb = TRUE)
 }
 }
-

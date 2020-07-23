@@ -36,7 +36,7 @@ A ggplot2 object that can be used to create the output plot
 This is a function that will build a \code{ggplot2} object that displays
 the KM curve along with the times animals get censored. The median estimates
 of survivorship and censored times are used to make the main line. This comes
-from the first element of each list that is passed to the function.
+from the first element of each list that is passed to the function. 
 
 The idea behind this function is to show the uncertainty in survivorship
 that arises from the different estimates of death in each animal.
@@ -46,4 +46,3 @@ that arises from the different estimates of death in each animal.
 plotSurv(kmlines, censTicks, 7)
 }
 }
-
