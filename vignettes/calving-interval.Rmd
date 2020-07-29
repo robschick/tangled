@@ -72,7 +72,7 @@ dfLong %>%
 
 ## Pairing with Amy's Case Studies
 
-Amy prepared a set of data that 
+Amy prepared a set of data that has the cases she wishes to analyze.
 
 ```{r}
 cases <- read_csv(here::here('data-raw', '2020-07-23_Calving-interval-analysis_Case-Study_all-cases.csv')) %>% 
@@ -82,17 +82,28 @@ cases <- read_csv(here::here('data-raw', '2020-07-23_Calving-interval-analysis_C
 cases$StartDate <- parse_date(cases$StartDate, "%d-%b-%y")
 cases$EndDate <- parse_date(cases$EndDate, "%d-%b-%y")
 
-# cases <- cases %>% 
-  # filter(EndDate < as.Date("2017-12-31", "%Y-%m-%d"))
+
 ```
+
+__UPDATE__ ("2020-07-29"): Amy sent me an update of that file that has cases of entanglements that happened when the whale was already pregnant. So she wants me to remove those.
+
+```{r}
+cases_to_remove <- read_csv(here::here('data-raw', '2020-07-25_Calving-interval-analysis_cases-to-remove.csv')) %>% 
+  select(!starts_with('X')) %>% 
+  rename(ent_id = `Entanglement ID`)
+
+cases <- cases %>% 
+  filter(! EntanglementID %in% cases_to_remove$ent_id)
+```
+
 
 I start by joining the two databases
 
 ```{r}
 # testing
-df_sub <- dfLong %>% filter(egno == 3101)
-cases_sub <- cases %>% filter(EGNo == 3101)
-right_join(df_sub, cases_sub, by = c("egno" = "EGNo_1", "EntanglementId" = "EntanglementID"))
+# df_sub <- dfLong %>% filter(egno == 3101)
+# cases_sub <- cases %>% filter(EGNo == 3101)
+# right_join(df_sub, cases_sub, by = c("egno" = "EGNo_1", "EntanglementId" = "EntanglementID"))
 
 # real
 df_out <- right_join(dfLong, cases, by = c("egno" = "EGNo_1", "EntanglementId" = "EntanglementID")) 
