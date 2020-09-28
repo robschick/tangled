@@ -35,10 +35,38 @@ We have two different data frames that we need to work with: 1)  the list of eve
 
 ```{r}
 pregnant <- cases <- read_csv(here::here('data-raw', '2020-08-26-pregnancy_yes-no.csv'))%>% 
-  select(!starts_with('X')) 
+  select(!starts_with('X')) %>% 
+  filter(Year >=1980 & Year <= 2013)
 ```
 
 ### Health and Entanglement data
+Now that we have the dependent variables, we need to build up the information on health and entanglement status. Let's do health first
+
+```{r}
+healthmean <- sumh / ng
+pregnant$health <- 0
+
+for(i in 1:nrow(pregnant)){
+    
+  rowidx <- match(pregnant$EGNo[i], ID)
+  s <- match(paste0("1-", pregnant$Year[i]), myName)
+  e <- match(paste0("12-", pregnant$Year[i]), myName)
+  colidx <- s:e  
+  pregnant$health[i] <- mean(healthmean[rowidx, colidx], na.rm = TRUE)
+}
+```
+
+Then we add in the decadal information
+
+```{r}
+pregnant <- pregnant %>% 
+  mutate(decade = case_when(Year >= 1980 & Year <= 1989 ~ 1980,
+                            Year >= 1990 & Year <= 1999 ~ 1990,
+                            Year >= 2000 & Year <= 2009 ~ 2000,
+                            Year >= 2010 & Year <= 2019 ~ 2010))
+```
+
+
 A reminder that this is the order of the categories:
 
 gearInj | Definition
