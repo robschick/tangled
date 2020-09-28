@@ -1,0 +1,204 @@
+---
+title: "Evaluation of Health and Pregnancy Success"
+author: "Rob Schick"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Evaluation of Health and Calving Intervals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r global_options, echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+
+library(tangled)
+library(tidyverse)
+library(ggplot2)
+library(gghighlight)
+```
+
+The goal of this vignette is to describe health during available years by building up a data frame where the dependent variable is success of pregnancy, and the covariates are as follows:
+
+1. Health during available year
+2. whether the animal was entangled or not during the available year
+3. severity of entanglement
+4. time since last pregnancy
+5. decade
+
+We begin by preparing the data.
+
+## Data Preparation
+We have two different data frames that we need to work with: 1)  the list of every known pregnancy event, and 2) the individual estimates of health that form the core of the model output.
+
+### Pregnancy Data
+
+```{r}
+pregnant <- cases <- read_csv(here::here('data-raw', '2020-08-26-pregnancy_yes-no.csv'))%>% 
+  select(!starts_with('X')) 
+```
+
+### Health and Entanglement data
+A reminder that this is the order of the categories:
+
+gearInj | Definition
+-----------|----------
+1 | Severe with gear
+2 | Moderate with gear
+3 | Severe no gear
+4 | Minor with gear
+5 | Moderate no gear
+6 | Minor no gear
+
+We take the `tangRepro` data frame that is created in the `prepAmyEntanglementData.R` script as part of `tangled` package construction. We loop over the events and extract monthly estimates of the health anomaly during the event, as well as a derived variable `lthold` that indicates the number of months (if any) the health estimate was below 67. 
+
+
+```{r}
+tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE, thold = 67)
+dfLong <- bind_rows(tmp$dfLongRepro, tmp$dfLongNonRepro) %>% 
+  mutate(severity = case_when(gearInj %in% c(6, 4) ~ 'minor',
+                              gearInj %in% c(5, 2) ~ 'moderate',
+                              gearInj %in% c(3, 1) ~ 'severe')) %>% 
+  arrange(egno, eventNo)
+```
+
+At the end of this looping the new data look like this:
+
+```{r, warning=FALSE, message=FALSE}
+head(dfLong)
+```
+
+We can quickly summarise that to get a feel for how health changes as a function of gear injury type as well as an estimate of how many events are in each category. This simply shows the median health values during the impacted period, as well as the median number of months below a health value of 67.
+
+```{r }
+dfLong %>% 
+  dplyr::filter(variable == 'impacted') %>% 
+  group_by(gearInj) %>% 
+  summarise(anomaly = median(hAnom, na.rm = TRUE),
+            n_months = median(lthold)) %>% 
+  mutate(severity = case_when(gearInj == 6 ~ 'minor',
+                              gearInj == 4 ~ 'minor - gear',
+                              gearInj == 5 ~ 'moderate',
+                              gearInj == 2 ~ 'moderate - gear',
+                              gearInj == 3 ~ 'severe',
+                              gearInj == 1 ~ 'severe - gear'))
+```
+
+## Pairing with Amy's Case Studies
+
+Amy prepared a set of data that has the cases she wishes to analyze.
+
+```{r}
+cases <- read_csv(here::here('data-raw', '2020-07-23_Calving-interval-analysis_Case-Study_all-cases.csv')) %>% 
+  select(!starts_with('X')) %>% 
+  arrange(EGNo, CalvingYear)
+
+cases$StartDate <- parse_date(cases$StartDate, "%d-%b-%y")
+cases$EndDate <- parse_date(cases$EndDate, "%d-%b-%y")
+
+
+```
+
+__UPDATE__ ("2020-07-29"): Amy sent me an update of that file that has cases of entanglements that happened when the whale was already pregnant. So she wants me to remove those.
+
+```{r}
+cases_to_remove <- read_csv(here::here('data-raw', 
+                                       '2020-07-25_Calving-interval-analysis_cases-to-remove.csv')) %>% 
+  select(!starts_with('X')) %>% 
+  rename(ent_id = `Entanglement ID`)
+
+cases <- cases %>% 
+  filter(! EntanglementID %in% cases_to_remove$ent_id)
+```
+
+
+I start by joining the two databases
+
+```{r}
+df_out <- right_join(dfLong, cases, by = c("egno" = "EGNo_1", "EntanglementId" = "EntanglementID")) 
+```
+
+Now I need to summarize over the same calving year for each animal; note that while here I'll add in the decade
+
+```{r}
+df_sum <- df_out %>% 
+  drop_na(eventNo) %>% 
+  group_by(egno, CalvingYear) %>% 
+  summarize(lthold = sum(lthold, na.rm = TRUE),
+            health = mean(hAnom, na.rm = TRUE),
+            gearInj = min(gearInj, na.rm = TRUE), # to retain the worse event when there are multiple groupings
+            interval = unique(CalvingInterval, na.rm = TRUE)) %>% 
+  mutate(severity = case_when(gearInj %in% c(6, 4) ~ 'minor',
+                              gearInj %in% c(5, 2) ~ 'moderate',
+                              gearInj %in% c(3, 1) ~ 'severe')) %>% 
+  mutate(decade = case_when(CalvingYear >= 1980 & CalvingYear <= 1989 ~ 1980,
+                            CalvingYear >= 1990 & CalvingYear <= 1999 ~ 1990,
+                            CalvingYear >= 2000 & CalvingYear <= 2009 ~ 2000,
+                            CalvingYear >= 2010 & CalvingYear <= 2019 ~ 2010))
+```
+
+Amy asked what the mean health and threshold of months below was.
+
+```{r}
+df_sum %>% 
+  group_by(severity) %>% 
+  summarize(mean_months = mean(lthold, na.rm = TRUE),
+            median_health = median(health, na.rm = TRUE))
+```
+
+A quick plot
+
+```{r fig.width=6.5}
+library(ggthemes)
+ggplot(data = df_sum, aes(lthold, interval,  shape = factor(decade)))+
+  geom_jitter(size = 3) +
+  facet_grid(~ severity)+
+  labs(x = "# of Months Below 67", y = 'Calving Interval (years)')+
+  theme_few()+
+  scale_shape_few(name = "Decade")
+```
+
+### Linear Models
+Ok, I'll run a few different models so we can see if any of these patterns are statistically significant. First, we just run a means parameterization to estimate the mean calving interval by severity:
+
+```{r}
+summary(lm(interval ~ factor(severity) - 1, data = df_sum))
+```
+
+But we may want an effects parameterization instead:
+
+```{r}
+summary(lm(interval ~ factor(severity), data = df_sum))
+```
+
+So there's no real statistical support that the means are different. Interestingly the trend is for a shorter interval for moderate and a longer interval for severe, but we don't have the data right now to support a significant difference. 
+
+We might next ask what's the difference by health?
+
+```{r}
+summary(lm(interval ~ health, data = df_sum))
+```
+
+Or by threshold?
+
+```{r}
+summary(lm(interval ~ lthold, data = df_sum))
+```
+
+So there's some weak evidence that as threshold goes up, so does interval, but it's weak.
+
+How about an interaction with severity?
+
+```{r}
+summary(lm(interval ~ lthold:severity, data = df_sum))
+```
+
+Nothing. Add in decade and an interaction? -- Also nothing:
+
+```{r}
+summary(lm(interval ~ lthold + decade + lthold:decade, data = df_sum))
+```
+
+## Summary
+Ok, when we first ran this with just the 1-year cases, we got a weak, but significant, relationship between interval and the number of months below threshold (what I'm calling `lthold` in the modeling). When we add the additional cases in to increase the sample size, we no longer see a significant relationship. The only one that stands out is a weak (negative) relationship between health and interval, and a weak (positive) relationship between months below 67 and interval. We interpret that as when health goes down in raw numbers, the interval goes up. The alternative way to look at this is, as the number of months below the health threshold goes up, so does interval. This makes sense as it's two ways to look at the same phenomenon.
+
