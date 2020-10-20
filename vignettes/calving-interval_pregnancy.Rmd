@@ -32,7 +32,7 @@ We have two different data frames that we need to work with: 1)  the list of eve
 ### Pregnancy Data
 
 ```{r}
-pregnant <- cases <- read_csv(here::here('data-raw', '2020-08-26-pregnancy_yes-no.csv'))%>% 
+pregnant <- cases <- read_csv(here::here('data-raw', '2020-10-20_pregnancy_yes-no')) %>% 
   select(!starts_with('X')) %>% 
   filter(Year >=1980 & Year <= 2013)
 ```
@@ -43,6 +43,7 @@ Now that we have the dependent variables, we need to build up the information on
 ```{r}
 healthmean <- sumh / ng
 pregnant$health <- 0
+pregnant$health_min <- 0
 
 for(i in 1:nrow(pregnant)){
     
@@ -51,6 +52,7 @@ for(i in 1:nrow(pregnant)){
   e <- match(paste0("12-", pregnant$Year[i]), myName)
   colidx <- s:e  
   pregnant$health[i] <- mean(healthmean[rowidx, colidx], na.rm = TRUE)
+  pregnant$health_min[i] <- min(healthmean[rowidx, colidx], na.rm = TRUE)
 }
 ```
 
@@ -66,56 +68,34 @@ pregnant <- pregnant %>%
 
 Ok, let's move on to the entanglement data. What I'm after now are whether or not the animal was entangled in a given available year, and if so what the severity was.
 
-A reminder that this is the order of the categories:
-
-gearInj | Definition
------------|----------
-1 | Severe with gear
-2 | Moderate with gear
-3 | Severe no gear
-4 | Minor with gear
-5 | Moderate no gear
-6 | Minor no gear
-
-We take the `tangRepro` data frame that is created in the `prepAmyEntanglementData.R` script as part of `tangled` package construction. We loop over the events and extract monthly estimates of the health anomaly during the event, as well as a derived variable `lthold` that indicates the number of months (if any) the health estimate was below 67. 
-
 
 ```{r}
-tmp <- prepBoxplotHealthData(tangRepro, tangNonRepro, anomFlag = FALSE, thold = 67)
-dfLong <- bind_rows(tmp$dfLongRepro, tmp$dfLongNonRepro) %>% 
-  mutate(severity = case_when(gearInj %in% c(6, 4) ~ 'minor',
-                              gearInj %in% c(5, 2) ~ 'moderate',
-                              gearInj %in% c(3, 1) ~ 'severe')) %>% 
-  arrange(egno, eventNo)
+ent_tidy <- read_csv(here::here('data-raw','2020-09-29-entanglement_tidy.csv')) %>% 
+  select(!starts_with('X')) %>% 
+  select(!starts_with('Created')) %>% 
+  select(!starts_with('Edited')) %>% 
+  select(!starts_with('Change')) %>% 
+  mutate(year = lubridate::year(lubridate::dmy(EndDate)))
+
 ```
 
-At the end of this looping the new data look like this:
-
-```{r, warning=FALSE, message=FALSE}
-head(dfLong)
-```
-
-We wish to intersect these to bring the entanglement information across. In particular, we want `gearInj` and `lthold`. While we don't need `severity` since it's already in `gearInj`, I'll grab it anyway.
+We wish to intersect these to bring the entanglement information across. In particular, we need `severity`.
 
 ```{r }
-pregnant$gearInj <- 0
-pregnant$lthold <- NA
 pregnant$severity <- 'unentangled'
 
 for (i in 1:nrow(pregnant)){
   # Get the Animal out and the year out for looking at the entanglement data
   egno_p <- pregnant$EGNo[i]
-  year <- pregnant$Year[i]
+  year_p <- pregnant$Year[i]
   
   # subset the entanglement data to just pull out the 
-  dsub <- dfLong %>% 
-    filter(egno == egno_p & endDate == year)
+  dsub <- ent_tidy %>% 
+    filter(EGNo == egno_p & year == year_p)
   
   if(nrow(dsub) == 0) next()
-  
-  pregnant$gearInj[i] <- dsub$gearInj
-  pregnant$lthold[i] <- dsub$lthold
-  pregnant$severity[i] <- dsub$severity
+  if(nrow(dsub) > 1) print(i) # note that while these are both cases where the status is the same, you should add a rule for error trapping if/when more data come in
+  pregnant$severity[i] <- dsub$EntanglementStatus
   
 }
 
@@ -131,11 +111,26 @@ pregnant <- pregnant %>%
 mn_year <- mean(pregnant$Year)
 sd_year <- sd(pregnant$Year)
 pregnant$std_year <- (pregnant$Year - mn_year) / sd_year
+
+pregnant$fctr_yr <- factor(pregnant$Year)
+pregnant$EGNo <- factor(pregnant$EGNo)
+pregnant$health_scl <- (pregnant$health - mean(pregnant$health, na.rm = TRUE)) / sd(pregnant$health, na.rm = TRUE)
+pregnant$health_min_scl <- (pregnant$health_min - mean(pregnant$health_min, na.rm = TRUE)) / sd(pregnant$health_min, na.rm = TRUE)
 ```
 
+We'll run two binomial glms that only vary in how the entanglement covariate is constructed. In the first, it will be simply unentangled vs. entangled; in the second, we will have the 3 standard levels of entanglement
+
+
 ```{r}
-fit1 <- glm(Pregnant ~ health + severity + std_year + factor(decade), data = pregnant, family = binomial(link = "logit"))
+fit1 <- glm(Pregnant ~ health_scl + health_min_scl + ent_status + std_year + factor(decade), data = pregnant, family = binomial(link = "logit"))
 summary(fit1)
+```
+
+Now we'll examine a covariate with all 4 levels of entanglement (not-entangled, minor, moderate, severe).
+
+```{r}
+fit2 <- glm(Pregnant ~ health_scl + health_min_scl  + severity + std_year + factor(decade), data = pregnant, family = binomial(link = "logit"))
+summary(fit2)
 ```
 
 ### Just Looking at the "Complete Cases"
@@ -144,18 +139,15 @@ summary(fit1)
 preg_sub <- pregnant %>% 
   filter(severity != 'unentangled')
 
-fit2 <- glm(Pregnant ~ health + Year + factor(decade) + severity, data = preg_sub, family = binomial(link = "logit"))
-summary(fit2)
+fit3 <- glm(Pregnant ~ health_scl + Year + factor(decade) + severity, data = preg_sub, family = binomial(link = "logit"))
+summary(fit3)
 ```
 
 ## Random Effects
 ### Let's start with a test for individual
 
 ```{r}
-pregnant$fctr_yr <- factor(pregnant$Year)
-pregnant$EGNo <- factor(pregnant$EGNo)
-pregnant$health_scl <- (pregnant$health - mean(pregnant$health, na.rm = TRUE)) / sd(pregnant$health, na.rm = TRUE)
-fit.re <- glmer(Pregnant ~ health_scl + (1 | EGNo) + std_year, data = pregnant, family = binomial)
+fit.re <- glmer(Pregnant ~ health_scl + health_min_scl + (1 | EGNo) + std_year, data = pregnant, family = binomial)
 
 ```
 
@@ -176,7 +168,7 @@ qqmath(ranef(fit.re))
 
 Note that I can't get this to fit
 ```{r}
-fit.re <- glmer(Pregnant ~ health_scl + (1 | EGNo) + severity, data = pregnant, family = binomial)
+fit.re <- glmer(Pregnant ~ health_scl + health_min_scl + (1 | decade) + severity, data = pregnant, family = binomial)
 
 ```
 
