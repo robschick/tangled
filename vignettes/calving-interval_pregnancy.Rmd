@@ -32,9 +32,17 @@ We have two different data frames that we need to work with: 1)  the list of eve
 ### Pregnancy Data
 
 ```{r}
-pregnant <- cases <- read_csv(here::here('data-raw', '2020-10-20_pregnancy_yes-no')) %>% 
+pregnant <- read_csv(here::here('data-raw', '2021-01-08_years_since_pregnancy_ark.csv'))%>% 
   select(!starts_with('X')) %>% 
-  filter(Year >=1980 & Year <= 2013)
+  filter(Year >=1980 & Year <= 2013) %>% 
+  drop_na(Pregnant)
+
+pregnant$Pregnant[pregnant$Pregnant == 'F'] <- '1'
+pregnant$Pregnant <- as.numeric(pregnant$Pregnant)
+
+# pregnant_old <- read_csv(here::here('data-raw', '2020-10-20_pregnancy_yes-no.csv')) %>%
+# select(!starts_with('X')) %>%
+# filter(Year >=1980 & Year <= 2013)
 ```
 
 ### Health and Entanglement data
@@ -101,37 +109,64 @@ for (i in 1:nrow(pregnant)){
 
 ```
 
+### Covariate Creation and Standardization
 Before we run the glm, we need to get the reference levels correct for the entanglement severity, and I want to make a binomial column for entanglement status. I also want to standardize the year covariate
 
 ```{r}
 pregnant$severity <- factor(pregnant$severity, levels = c('unentangled', 'minor', 'moderate', 'severe')) 
 pregnant <- pregnant %>% 
-  mutate(ent_status = if_else(severity == 'unentangled', 0, 1))
+  mutate(ent_status = if_else(severity == 'unentangled', 0, 1)) %>% 
+  mutate(ent_status_2 = case_when(severity == 'unentangled' ~ 'unentangled',
+                            severity == 'minor' ~ 'minor',
+                            severity == 'moderate' ~ 'mod_sev',
+                            severity == 'severe' ~ 'mod_sev'))
+
+pregnant$ent_status_2 <- factor(pregnant$ent_status_2, levels = c('unentangled', 'minor', 'mod_sev')) 
 
 mn_year <- mean(pregnant$Year)
 sd_year <- sd(pregnant$Year)
 pregnant$std_year <- (pregnant$Year - mn_year) / sd_year
 
+pregnant$elapsed <- as.numeric(pregnant$elapsed)
 pregnant$fctr_yr <- factor(pregnant$Year)
 pregnant$EGNo <- factor(pregnant$EGNo)
 pregnant$health_scl <- (pregnant$health - mean(pregnant$health, na.rm = TRUE)) / sd(pregnant$health, na.rm = TRUE)
 pregnant$health_min_scl <- (pregnant$health_min - mean(pregnant$health_min, na.rm = TRUE)) / sd(pregnant$health_min, na.rm = TRUE)
 ```
 
+Calculating elapsed times. We need two final covariates:
+
+1. Time since last entanglement
+2. Time since last calving  (Amy made this)
+
+```{r}
+# block from function to go in here
+```
+
+
+## Model Fits
 We'll run two binomial glms that only vary in how the entanglement covariate is constructed. In the first, it will be simply unentangled vs. entangled; in the second, we will have the 3 standard levels of entanglement
 
 
 ```{r}
-fit1 <- glm(Pregnant ~ health_scl + health_min_scl + ent_status + std_year + factor(decade), data = pregnant, family = binomial(link = "logit"))
+fit1 <- glm(Pregnant ~ health_scl + ent_status + std_year + factor(decade), data = pregnant, family = binomial(link = "logit"), na.action = na.exclude)
 summary(fit1)
 ```
 
 Now we'll examine a covariate with all 4 levels of entanglement (not-entangled, minor, moderate, severe).
 
 ```{r}
-fit2 <- glm(Pregnant ~ health_scl + health_min_scl  + severity + std_year + factor(decade), data = pregnant, family = binomial(link = "logit"))
+fit2 <- glm(Pregnant ~ health_scl + severity + std_year + factor(decade), data = pregnant, family = binomial(link = "logit"))
 summary(fit2)
 ```
+
+Since it looks like there's an effect of entanglement, but owing to the relatively few cases for severe, I'm going to try and lump the severe and moderate to see if I can tease out a signal.
+
+```{r}
+fit3 <- glm(Pregnant ~ health_scl + ent_status_2 + std_year + factor(decade), data = pregnant, family = binomial(link = "logit"))
+summary(fit3)
+```
+
 
 ### Just Looking at the "Complete Cases"
 
@@ -168,7 +203,7 @@ qqmath(ranef(fit.re))
 
 Note that I can't get this to fit
 ```{r}
-fit.re <- glmer(Pregnant ~ health_scl + health_min_scl + (1 | decade) + severity, data = pregnant, family = binomial)
+fit.re <- glmer(Pregnant ~ health_scl + (1 | decade) + severity, data = pregnant, family = binomial)
 
 ```
 
@@ -183,5 +218,80 @@ Ok, and then let's plot that out:
 
 ```{r}
 qqmath(ranef(fit.re))
+```
+### Time Since Last Entanglement
+
+```{r}
+
+
+dsub <- pregnant %>% 
+  # dplyr::slice_head(n = 250) %>%
+  select(EGNo, Year, Pregnant) %>% 
+  arrange(EGNo, Year)
+egno <- unique(dsub$EGNo)
+# id <- 1013 # testing
+# loop over animals
+df_all <- numeric(0)
+for(id in egno){
+  
+  my_dsub <- pregnant %>% 
+    filter(EGNo == id) 
+  
+  # Expand to fill all years
+  df_exp <- data.frame(EGNo = unique(my_dsub$EGNo),
+                       Year = seq(my_dsub$Year[1], 
+                                       my_dsub$Year[length(my_dsub$Year)],
+                                       by = 1))
+  
+  df <- left_join(df_exp, my_dsub, by = c('Year', 'EGNo') ) 
+  df$severity <- df$severity %>%  replace_na(0)
+    
+    df <- df %>% 
+    mutate(sev_num = case_when(severity == '0' ~ 0,
+                               severity == 'unentangled' ~ 0,
+              severity == 'minor' ~ 1,
+              severity == 'moderate' ~ 2,
+              severity == 'severe' ~ 3)) %>% 
+      select(-severity)
+  
+  # df$sev_num <- as.numeric(df$sev_num)
+  
+  df <- df %>% 
+    mutate(ent_group = cumsum(sev_num))
+  
+  df <- df %>% 
+    filter(ent_group > 0) %>% 
+    group_by(ent_group) %>% 
+    mutate(ent_elapsed = Year - first(Year)) %>% 
+    mutate(last_severity = first(sev_num)) %>% 
+    ungroup(ent_group) %>%
+    select(EGNo, Year, ent_elapsed, last_severity)
+  
+  # df_1 <- left_join(my_dsub, df, by = c('Year', 'EGNo') ) # keep rows in my_dsub
+  # df_2 <- left_join(df, my_dsub, by = c('Year', 'EGNo') ) # keep rows in df
+
+  df <- inner_join(my_dsub, df, by = c('Year', 'EGNo') ) # keep rows in my_dsub
+  
+  df_all <- rbind(df_all, df)
+}
+write_csv(df_all, '../data/years_since_entanglement.csv')
+
+# time since last entanglement
+mn_year <- mean(df_all$Year)
+sd_year <- sd(df_all$Year)
+df_all$std_year <- (df_all$Year - mn_year) / sd_year
+
+df_all$elapsed <- as.numeric(df_all$elapsed + 1)
+df_all$ent_elapsed <- as.numeric(df_all$ent_elapsed + 1)
+df_all$fctr_yr <- factor(df_all$Year)
+df_all$EGNo <- factor(df_all$EGNo)
+df_all$health_scl <- (df_all$health - mean(df_all$health, na.rm = TRUE)) / sd(df_all$health, na.rm = TRUE)
+df_all$health_min_scl <- (df_all$health_min - mean(df_all$health_min, na.rm = TRUE)) / sd(df_all$health_min, na.rm = TRUE)
+
+
+fit3 <- glm(Pregnant ~ health_scl + factor(last_severity) * ent_elapsed, data = df_all, family = binomial(link = "logit"))
+summary(fit3)
+
+
 ```
 
