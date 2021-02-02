@@ -116,19 +116,36 @@ for (i in 1:nrow(pregnant)){
 
 ```
 
+Now we have to distinguish the unimpacted vs. the unentangled
+
+```{r}
+pregnant <- pregnant %>% 
+    mutate(sev_num = case_when(severity == '0' ~ 0,
+                               severity == 'unentangled' ~ 0,
+              severity == 'minor' ~ 1,
+              severity == 'moderate' ~ 2,
+              severity == 'severe' ~ 3))
+  
+pregnant <- pregnant %>% 
+    mutate(ent_group = cumsum(sev_num)) 
+pregnant$severity[pregnant$ent_group == 0] <- 'unimpacted'
+```
+
 ### Covariate Creation and Standardization
 Before we run the glm, we need to get the reference levels correct for the entanglement severity, and I want to make a binomial column for entanglement status. I also want to standardize the year covariate
 
 ```{r}
-pregnant$severity <- factor(pregnant$severity, levels = c('unentangled', 'minor', 'moderate', 'severe')) # this should have an added level to account for never yet entangled, i.e. unimpacted
+pregnant$severity <- factor(pregnant$severity, levels = c('unimpacted', 'unentangled', 'minor', 'moderate', 'severe')) # this should have an added level to account for never yet entangled, i.e. unimpacted
 pregnant <- pregnant %>% 
+  mutate(after_2010 = if_else(Year < 2010, 0, 1)) %>%
   mutate(ent_status = if_else(severity == 'unentangled', 0, 1)) %>% 
-  mutate(ent_status_2 = case_when(severity == 'unentangled' ~ 'unentangled',
+  mutate(ent_status_2 = case_when(severity == 'unimpacted' ~ 'unimpacted',
+                                  severity == 'unentangled' ~ 'unentangled',
                             severity == 'minor' ~ 'minor',
                             severity == 'moderate' ~ 'mod_sev',
                             severity == 'severe' ~ 'mod_sev'))
 
-pregnant$ent_status_2 <- factor(pregnant$ent_status_2, levels = c('unentangled', 'minor', 'mod_sev')) 
+pregnant$ent_status_2 <- factor(pregnant$ent_status_2, levels = c('unimpacted', 'unentangled', 'minor', 'mod_sev')) 
 
 mn_year <- mean(pregnant$Year)
 sd_year <- sd(pregnant$Year)
@@ -160,7 +177,7 @@ fit1 <- glm(Pregnant ~ health_scl + ent_status + std_year + factor(decade), data
 summary(fit1)
 ```
 
-Now we'll examine a covariate with all 4 levels of entanglement (not-entangled, minor, moderate, severe).
+Now we'll examine a covariate with all 5 levels of entanglement (unimpacted, not-entangled, minor, moderate, severe).
 
 ```{r}
 fit2 <- glm(Pregnant ~ health_scl + severity + std_year + factor(decade), data = pregnant, family = binomial(link = "logit"))
@@ -177,7 +194,7 @@ summary(fit3)
 
 ### Just Looking at the "Complete Cases"
 
-```{r}
+```{r, eval=FALSE}
 preg_sub <- pregnant %>% 
   filter(severity != 'unentangled')
 
@@ -232,7 +249,7 @@ Goal of this last one is to look at elapsed variables, i.e. to take into account
 
 #### Time Since Last Pregnancy
 First we prep up the data
-```{r}
+```{r, eval=FALSE}
 dsub <- pregnant %>% 
   # dplyr::slice_head(n = 250) %>%
   select(EGNo, Year, Pregnant) %>% 
@@ -265,9 +282,11 @@ for(id in egno){
     select(- preg_group)
   
   df <- left_join(my_dsub, df, by = c('Year', 'EGNo', 'Pregnant') ) 
+  # df <- inner_join(my_dsub, df, by = c('Year', 'EGNo') ) # keep rows in my_dsub
   
   df_all <- rbind(df_all, df)
 }
+elapsed_preg <- df_all # for later joining to the elapsed ent data
 ```
 
 Ok, then we run the tests:
@@ -289,12 +308,39 @@ fit4 <- glm(Pregnant ~ health_scl * severity + std_year + factor(decade)+ elapse
 
 fit3 <- glm(Pregnant ~ health_scl + ent_status_2 + std_year + factor(decade) + elapsed, data = pregnant, family = binomial(link = "logit"))
 # summary(fit3)
+
+# Interaction with elapsed and pre-post 2010
+fit5 <- glm(Pregnant ~ health_scl + ent_status + std_year + factor(decade) + elapsed*after_2010, 
+            data = pregnant, 
+            family = binomial(link = "logit"), 
+            na.action = na.exclude)
+
+# quadratic fit for elapsed
+fit6 <- glm(Pregnant ~ health_scl + ent_status + std_year + factor(decade) + poly(elapsed, 2), 
+            data = subset(pregnant, is.finite(elapsed)), 
+            family = binomial(link = "logit"), 
+            na.action = na.exclude)
+# summary(fit6)
+
+# interaction between elapsed and decade  - something there
+fit7 <- glm(Pregnant ~ health_scl + ent_status + std_year + factor(decade) + elapsed:factor(decade), 
+            data = pregnant, 
+            family = binomial(link = "logit"), 
+            na.action = na.exclude)
+summary(fit7)
+
+# interaction between elapsed and year
+fit8 <- glm(Pregnant ~ health_scl + ent_status + std_year + factor(decade) + elapsed:std_year, 
+            data = pregnant, 
+            family = binomial(link = "logit"), 
+            na.action = na.exclude)
+summary(fit8)
 ```
 
 Is there a best model:
 
 ```{r}
-AIC(fit1, fit2, fit3, fit4)
+AIC(fit1, fit2, fit3, fit4, fit5, fit6)
 ```
 
 Not really - they are all pretty much the same. Parsimony would favor the simpler model, which is model 1:
