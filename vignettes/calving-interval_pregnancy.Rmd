@@ -192,58 +192,6 @@ summary(fit3)
 ```
 
 
-### Just Looking at the "Complete Cases"
-
-```{r, eval=FALSE}
-preg_sub <- pregnant %>% 
-  filter(severity != 'unentangled')
-
-fit3 <- glm(Pregnant ~ health_scl + Year + factor(decade) + severity, data = preg_sub, family = binomial(link = "logit"))
-summary(fit3)
-```
-
-## Random Effects
-### Let's start with a test for individual
-
-```{r}
-fit.re <- glmer(Pregnant ~ health_scl + health_min_scl + (1 | EGNo) + std_year, data = pregnant, family = binomial)
-
-```
-
-With it fit, let's summarize, and look at the coefficients.
-
-```{r}
-summary(fit.re)
-# coef(fit.re)
-```
-
-Ok, and then let's plot that out:
-
-```{r}
-qqmath(ranef(fit.re))
-```
-
-### Let's use with a test for severity
-
-Note that I can't get this to fit
-```{r}
-fit.re <- glmer(Pregnant ~ health_scl + (1 | decade) + severity, data = pregnant, family = binomial)
-
-```
-
-With it fit, let's summarize, and look at the coefficients.
-
-```{r}
-summary(fit.re)
-coef(fit.re)
-```
-
-Ok, and then let's plot that out:
-
-```{r}
-qqmath(ranef(fit.re))
-```
-
 ## Time Since Last Event
 Goal of this last one is to look at elapsed variables, i.e. to take into account the fact that as time has elapsed, there is a stronger likelihood of an animal either getting pregnant, or perhaps not getting pregnant. I'll put two subsections here - one for time since pregnancy and one for time since entanglement. Note that each block of code is similar, and starts with the `pregnant` data frame
 
