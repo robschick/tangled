@@ -275,26 +275,31 @@ fit7 <- glm(Pregnant ~ health_scl + ent_status + std_year + factor(decade) + ela
             data = pregnant, 
             family = binomial(link = "logit"), 
             na.action = na.exclude)
-summary(fit7)
+# summary(fit7)
 
 # interaction between elapsed and year
 fit8 <- glm(Pregnant ~ health_scl + ent_status + std_year + factor(decade) + elapsed:std_year, 
             data = pregnant, 
             family = binomial(link = "logit"), 
             na.action = na.exclude)
-summary(fit8)
+# summary(fit8)
+
+fit9 <- glm(Pregnant ~ health_scl + severity + std_year + factor(decade) + elapsed:factor(decade), 
+            data = pregnant, 
+            family = binomial(link = "logit"), 
+            na.action = na.exclude)
 ```
 
 Is there a best model:
 
 ```{r}
-AIC(fit1, fit2, fit3, fit4, fit5, fit6)
+AIC(fit1, fit2, fit3, fit4, fit5, fit6, fit7, fit8, fit9)
 ```
 
-Not really - they are all pretty much the same. Parsimony would favor the simpler model, which is model 1:
+Not really - they are all pretty much the same. I'm choosing model 9
 
 ```{r}
-summary(fit1)
+summary(fit9)
 ```
 
 My interpretation of that is: 
@@ -305,7 +310,7 @@ My interpretation of that is:
 * as time since a pregnancy increases, animals are less likely to get pregnant, which is not what I would have expected, but consistent with the idea that maybe some animals are giving up. It's weak, but it is significant.
 
 #### Time Since Last Entanglement
-Next we turn to the years since entanglement to test whether or not a similar pattern is seen with these disturbances. First, we prep the data
+Next we turn to the years since entanglement to test whether or not a similar pattern is seen with these disturbances. First, we prep the data. It's important to note that we will be missing the unimpacted from this, so it's not a perfect data comparison to the previous.
 ```{r}
 dsub <- pregnant %>% 
   # dplyr::slice_head(n = 250) %>%
@@ -331,16 +336,17 @@ for(id in egno){
     
     df <- df %>% 
     dplyr::mutate(sev_num = case_when(severity == '0' ~ 0,
-                               severity == 'unentangled' ~ 0,
-              severity == 'minor' ~ 1,
-              severity == 'moderate' ~ 2,
-              severity == 'severe' ~ 3)) %>% 
+                               severity == 'unimpacted' ~ 0,
+                               severity == 'unentangled' ~ 1,
+              severity == 'minor' ~ 2,
+              severity == 'moderate' ~ 3,
+              severity == 'severe' ~ 4)) %>% 
       dplyr::select(-severity)
   
   # df$sev_num <- as.numeric(df$sev_num)
   
-  df <- df %>% 
-    mutate(ent_group = cumsum(sev_num))
+  # df <- df %>% 
+    # mutate(ent_group = cumsum(sev_num))
   
   df <- df %>% 
     filter(ent_group > 0) %>% 
@@ -350,7 +356,7 @@ for(id in egno){
     ungroup(ent_group) %>%
     select(EGNo, Year, ent_elapsed, last_severity)
 
-  df <- inner_join(my_dsub, df, by = c('Year', 'EGNo') ) # keep rows in my_dsub
+  df <- inner_join(my_dsub, df, by = c('Year', 'EGNo')) # keep rows in my_dsub
   
   df_all <- rbind(df_all, df)
 }
@@ -372,8 +378,9 @@ knitr::kable(df_all %>%
 Ok, so the regression I set up is a binomial regression of the probability an animal gets pregnant in an available year as a function of health and an interaction between time (in years) since entanglement and the severity of the last entanglement. This is close in spirit to what you we had done before in terms of the animal entering a state and then staying in that:
 
 ```{r}
-fit3 <- glm(Pregnant ~ health_scl + factor(last_severity) * ent_elapsed, data = df_all, family = binomial(link = "logit"))
-summary(fit3)
+fit1 <- glm(Pregnant ~ health_scl + factor(last_severity) * ent_elapsed, 
+            data = df_all, family = binomial(link = "logit"))
+summary(fit1)
 ```
 
 What we see is two fold:
@@ -384,3 +391,31 @@ What we see is two fold:
 Though this second result is significant, which is what we were looking for, it's important to note that there's a large standard error on the coefficient. Both of these (marginal significance and high SE) are a) related and b) likely owing to the fact that we don't have tons of these cases. In any event, the story is consistent with the fact that severe entanglements are bad. 
 
 Over to you.
+
+## Understanding the Last Regression
+Let's recap. we have a regression with three seemingly counter-intuitive results:
+
+1. the probability of getting pregnant goes down as more time has passed since the last entanglement
+2. if the last entanglement was severe, the probability of getting pregnant is quite a bit lower
+3. the interaction between status of last entanglement and time since that entanglement is positive when the last entanglement was severe
+
+So what to make of these - especially the last one. The first two things to try are to: a do a likelihood ratio test for models that include this interaction and ones that don't; and b) to plot out the data in this factor combination.
+
+### Likelihood Ratio Test
+Here we fit a model without that interaction and compare the results:
+
+```{r}
+library(lmtest)
+fit2 <- glm(Pregnant ~ health_scl + factor(last_severity) + ent_elapsed, 
+            data = df_all, family = binomial(link = "logit"))
+lrtest(fit2, fit1)
+
+```
+
+This coupled with the `AIC()` test would suggest that parsimony says we should favor (*slightly*) the simpler model without the interaction, i.e. `fit2`. Let's plot them just in case so we can be sure of what we're looking at.
+
+```{r}
+ggplot(df_all)+
+  geom_point(aes(x = ent_elapsed, y = factor(last_severity)))
+```
+
