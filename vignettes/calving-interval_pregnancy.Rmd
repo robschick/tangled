@@ -408,14 +408,54 @@ Here we fit a model without that interaction and compare the results:
 library(lmtest)
 fit2 <- glm(Pregnant ~ health_scl + factor(last_severity) + ent_elapsed, 
             data = df_all, family = binomial(link = "logit"))
-lrtest(fit2, fit1)
+summary(fit2)
 
 ```
 
-This coupled with the `AIC()` test would suggest that parsimony says we should favor (*slightly*) the simpler model without the interaction, i.e. `fit2`. Let's plot them just in case so we can be sure of what we're looking at.
+Next we compare the two models:
 
 ```{r}
-ggplot(df_all)+
-  geom_point(aes(x = ent_elapsed, y = factor(last_severity)))
+lrtest(fit2, fit1)
+AIC(fit2, fit1)
 ```
 
+This  would suggest that parsimony says we should favor (*slightly*) the simpler model without the interaction, i.e. `fit2`. Let's plot the interactions, though, just so we can be sure of what we're looking at. I'm going to use an example from Fox's Companion to Applied Regression Book. First we calculate the mean values by category and outcome:
+
+```{r}
+means <- tapply(df_all$ent_elapsed, list(df_all$last_severity, df_all$Pregnant), mean)
+
+```
+
+Then we make the plot:
+
+```{r}
+
+plot(c(0.5, 4.5), range(df_all$ent_elapsed), 
+     xlab = 'Severity of Last Entanglement', ylab = 'Years Since Last Entanglement',
+     axes = F, type = 'n')
+axis(1, at=1:4, c('Unentangled', 'Minor', 'Moderate', 'Severe'))
+axis(2)
+box()
+# Unsuccessful
+points(jitter(df_all$last_severity[df_all$Pregnant == 0]),
+       df_all$ent_elapsed[df_all$Pregnant == 0], pch = 1,
+       col = rgb(red = 0, green = 0, blue = 0, alpha = 0.5))
+# Successful
+points(jitter(df_all$last_severity[df_all$Pregnant == 1]),
+       df_all$ent_elapsed[df_all$Pregnant == 1], pch = 16,
+       col = rgb(red = 0, green = 0, blue = 0, alpha = 0.65))
+
+lines(1:4, means[, 1], lty = 3, lwd = 3, type = 'b', pch = 1, col = '#fdbb84') # not pregnant
+lines(1:4, means[, 2], lty = 1, lwd = 3, type = 'b', pch = 19, col = '#e34a33') # pregnant
+
+legend(x = 2.75, y = 33, c('Pregnant', 'Not-Pregnant'), lty = c(1, 3), lwd = c(3, 3), pch = c(16, 1),
+       col = c('#e34a33', '#fdbb84'))
+```
+
+What this plot shows is the years since entanglement on the y-axis, status of last entanglement on the x-axis. The points (jittered for clarity) are empty if the whale did not get pregnant in an available year, and filled if the whale did get pregnant. I also add the colored lines that show the mean of each factor combination. It's the uptick in the last, severe, column that is what the regression is picking up.
+
+And I think this helps clarify what confused me last week. The story as I understand it (summarizing both the plot and the regression where we evaluate pregnancy events since the last entanglment):
+
+* as time increases from an entanglement, animals are less likely to get pregnant
+* if the last entanglement was severe, the animal is significantly less likely to get pregnant
+* however, even within that severe class, some whales *do* manage to get pregnant, hence that uptick of the average in that class (see thick orange line in the above plot). This, to me, suggests there's some possibility of recover - *some*
