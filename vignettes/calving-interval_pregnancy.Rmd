@@ -93,15 +93,17 @@ ent_tidy <- read_csv(here::here('data-raw','2020-09-29-entanglement_tidy.csv')) 
   select(!starts_with('Change')) %>% 
   mutate(year = lubridate::year(lubridate::dmy(EndDate)),
          gear = str_detect(EntanglementComment, 'GEAR'),
-         gear_vec = if_else(gear, 1, 0)) %>% 
-  select(-gear)
+         gear_vec = if_else(gear, 1, 0))# %>% select(-gear)
 
 ```
 
 We wish to intersect these to bring the entanglement information across. In particular, we need `severity`.
 
+UPDATE - should I do this with a join instead?
+
 ```{r }
 pregnant$severity <- 'unentangled'
+pregnant$gear <- 0
 
 for (i in 1:nrow(pregnant)){
   # Get the Animal out and the year out for looking at the entanglement data
@@ -115,6 +117,7 @@ for (i in 1:nrow(pregnant)){
   if(nrow(dsub) == 0) next()
   if(nrow(dsub) > 1) print(i) # note that while these are both cases where the status is the same, you should add a rule for error trapping if/when more data come in
   pregnant$severity[i] <- dsub$EntanglementStatus
+  pregnant$gear[i] <- dsub$gear_vec
   
 }
 
@@ -131,6 +134,7 @@ pregnant <- pregnant %>%
               severity == 'severe' ~ 3))
   
 pregnant <- pregnant %>% 
+  group_by(EGNo) %>% 
     mutate(ent_group = cumsum(sev_num)) 
 pregnant$severity[pregnant$ent_group == 0] <- 'unimpacted'
 ```
@@ -200,7 +204,7 @@ summary(fit3)
 Goal of this last one is to look at elapsed variables, i.e. to take into account the fact that as time has elapsed, there is a stronger likelihood of an animal either getting pregnant, or perhaps not getting pregnant. I'll put two subsections here - one for time since pregnancy and one for time since entanglement. Note that each block of code is similar, and starts with the `pregnant` data frame
 
 #### Time Since Last Pregnancy
-First we prep up the data
+First we prep up the data; Note, Amy calcualted this, so I don;t have to do it. 
 ```{r, eval=FALSE}
 dsub <- pregnant %>% 
   # dplyr::slice_head(n = 250) %>%
@@ -315,6 +319,7 @@ My interpretation of that is:
 
 #### Time Since Last Entanglement
 Next we turn to the years since entanglement to test whether or not a similar pattern is seen with these disturbances. First, we prep the data. It's important to note that we will be missing the unimpacted from this, so it's not a perfect data comparison to the previous.
+
 ```{r}
 dsub <- pregnant %>% 
   # dplyr::slice_head(n = 250) %>%
@@ -336,7 +341,7 @@ for(id in egno){
                                        by = 1))
   
   df <- left_join(df_exp, my_dsub, by = c('Year', 'EGNo') ) 
-  df$severity <- fct_explicit_na(df$severity, "0")
+  df$severity <- fct_explicit_na(df$severity, "0") #I'm not sure this is what I want here
     
     df <- df %>% 
     dplyr::mutate(sev_num = case_when(severity == '0' ~ 0,
@@ -347,16 +352,20 @@ for(id in egno){
               severity == 'severe' ~ 4)) %>% 
       dplyr::select(-severity)
   
-  # df$sev_num <- as.numeric(df$sev_num)
-  
-  # df <- df %>% 
-    # mutate(ent_group = cumsum(sev_num))
-  
+   df$sev_num <- as.numeric(df$sev_num)
+
+   df <- df %>%
+     mutate(ent_group = cumsum(sev_num))
+   
+      df <- df %>%
+        mutate(gear_group = cumsum(gear))
+
   df <- df %>% 
     filter(ent_group > 0) %>% 
     group_by(ent_group) %>% 
     mutate(ent_elapsed = Year - first(Year)) %>% 
     mutate(last_severity = first(sev_num)) %>% 
+    mutate(last_gear = first(gear)) %>% 
     ungroup(ent_group) %>%
     select(EGNo, Year, ent_elapsed, last_severity)
 
