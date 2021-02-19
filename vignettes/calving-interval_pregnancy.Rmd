@@ -21,6 +21,7 @@ library(gghighlight)
 library(lme4)
 library(lattice)
 library(forcats)
+library(stringr)
 ```
 
 The goal of this vignette is to describe health during available years by building up a data frame where the dependent variable is success of pregnancy, and the covariates are as follows:
@@ -90,7 +91,10 @@ ent_tidy <- read_csv(here::here('data-raw','2020-09-29-entanglement_tidy.csv')) 
   select(!starts_with('Created')) %>% 
   select(!starts_with('Edited')) %>% 
   select(!starts_with('Change')) %>% 
-  mutate(year = lubridate::year(lubridate::dmy(EndDate)))
+  mutate(year = lubridate::year(lubridate::dmy(EndDate)),
+         gear = str_detect(EntanglementComment, 'GEAR'),
+         gear_vec = if_else(gear, 1, 0)) %>% 
+  select(-gear)
 
 ```
 
