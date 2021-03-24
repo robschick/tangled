@@ -40,7 +40,7 @@ We have two different data frames that we need to work with: 1)  the list of eve
 ### Pregnancy Data
 
 ```{r}
-pregnant <- read_csv(here::here('data-raw', '2021-01-08_years_since_pregnancy_ark.csv'))%>% 
+pregnant <- read_csv(here::here('data-raw', '2021-02-25_years_since_pregnancy_1980-2013.csv'))%>% 
   select(!starts_with('X')) %>% 
   filter(Year >=1980 & Year <= 2013) %>% 
   drop_na(Pregnant)
@@ -103,7 +103,7 @@ UPDATE - should I do this with a join instead?
 
 ```{r }
 pregnant$severity <- 'unentangled'
-pregnant$gear <- 0
+# pregnant$gear <- 0
 
 for (i in 1:nrow(pregnant)){
   # Get the Animal out and the year out for looking at the entanglement data
@@ -117,7 +117,7 @@ for (i in 1:nrow(pregnant)){
   if(nrow(dsub) == 0) next()
   if(nrow(dsub) > 1) print(i) # note that while these are both cases where the status is the same, you should add a rule for error trapping if/when more data come in
   pregnant$severity[i] <- dsub$EntanglementStatus
-  pregnant$gear[i] <- dsub$gear_vec
+  # pregnant$gear[i] <- dsub$gear_vec
   
 }
 
@@ -320,6 +320,8 @@ My interpretation of that is:
 #### Time Since Last Entanglement
 Next we turn to the years since entanglement to test whether or not a similar pattern is seen with these disturbances. First, we prep the data. It's important to note that we will be missing the unimpacted from this, so it's not a perfect data comparison to the previous.
 
+UPDATE - 2021-02-26 - we need to re think this block a little because I want to bring in the gear data after i've expanded the years.
+
 ```{r}
 dsub <- pregnant %>% 
   # dplyr::slice_head(n = 250) %>%
@@ -328,7 +330,7 @@ dsub <- pregnant %>%
 egno <- unique(dsub$EGNo)
 # id <- 1013 # testing
 # loop over animals
-df_all <- numeric(0)
+df_all <- data.frame()
 for(id in egno){
   # print(id)
   my_dsub <- pregnant %>% 
@@ -341,8 +343,10 @@ for(id in egno){
                                        by = 1))
   
   df <- left_join(df_exp, my_dsub, by = c('Year', 'EGNo') ) 
-  df$severity <- fct_explicit_na(df$severity, "0") #I'm not sure this is what I want here
-    
+
+  # to prep the vector for iteratively finding years that change status
+  df$severity <- fct_explicit_na(df$severity, "0") 
+
     df <- df %>% 
     dplyr::mutate(sev_num = case_when(severity == '0' ~ 0,
                                severity == 'unimpacted' ~ 0,
@@ -352,20 +356,16 @@ for(id in egno){
               severity == 'severe' ~ 4)) %>% 
       dplyr::select(-severity)
   
-   df$sev_num <- as.numeric(df$sev_num)
+   # df$sev_num <- as.numeric(df$sev_num)
 
-   df <- df %>%
-     mutate(ent_group = cumsum(sev_num))
+   # df <- df %>%
+     # mutate(ent_group = cumsum(sev_num))
    
-      df <- df %>%
-        mutate(gear_group = cumsum(gear))
-
   df <- df %>% 
     filter(ent_group > 0) %>% 
     group_by(ent_group) %>% 
     mutate(ent_elapsed = Year - first(Year)) %>% 
     mutate(last_severity = first(sev_num)) %>% 
-    mutate(last_gear = first(gear)) %>% 
     ungroup(ent_group) %>%
     select(EGNo, Year, ent_elapsed, last_severity)
 
@@ -382,7 +382,7 @@ df_all$health_min_scl <- (df_all$health_min - mean(df_all$health_min, na.rm = TR
 
 Let's look at a snippet of these data to see if they make sense:
 
-```{r}
+```{r, eval=FALSE}
 knitr::kable(df_all %>% 
   select(EGNo, Year, Pregnant, elapsed, decade, severity, last_severity, ent_elapsed) %>% 
     slice(1:10))
@@ -472,3 +472,104 @@ And I think this helps clarify what confused me last week. The story as I unders
 * as time increases from an entanglement, animals are less likely to get pregnant
 * if the last entanglement was severe, the animal is significantly less likely to get pregnant
 * however, even within that severe class, some whales *do* manage to get pregnant, hence that uptick of the average in that class (see thick orange line in the above plot). This, to me, suggests there's some possibility of recover - *some*
+
+## Testing for Impact of Gear
+UPDATE - 2021-02-26 - we need to re think this block a little because I want to bring in the gear data after i've expanded the years. I'm going to pare down pregnant to just the animals that had gear.
+
+```{r}
+ent_gear <- ent_tidy %>% 
+  filter(gear_vec == 1) 
+ent_gear$EGNo <- factor(ent_gear$EGNo)
+
+df_all_no_gear <- df_all %>% 
+  filter(!(EGNo %in% unique(ent_gear$EGNo)))
+
+# note that here we only look at animals that experienced gear at some point
+dsub <- pregnant %>% 
+  filter(EGNo %in% unique(ent_gear$EGNo)) %>%
+  select(EGNo, Year, Pregnant) %>% 
+  arrange(EGNo, Year)
+
+egno <- unique(dsub$EGNo)
+# id <- 1163 # testing for gear
+# loop over animals
+df_all_gear <- data.frame()
+for(id in egno){
+  # print(id)
+  my_dsub <- pregnant %>% 
+    filter(EGNo == id) 
+  
+  # Expand to fill all years
+  df_exp <- data.frame(EGNo = unique(my_dsub$EGNo),
+                       Year = seq(my_dsub$Year[1], 
+                                       my_dsub$Year[length(my_dsub$Year)],
+                                       by = 1))
+  
+  df <- left_join(df_exp, my_dsub, by = c('Year', 'EGNo') ) 
+  df <- left_join(df, ent_gear, by = c('Year' = 'year', 'EGNo' = 'EGNo') ) 
+  
+  # to prep the vector for iteratively finding years that change status
+  df$severity <- fct_explicit_na(df$severity, "0") 
+  df$gear_vec[is.na(df$gear_vec)] <- 0
+    
+    df <- df %>% 
+    dplyr::mutate(sev_num = case_when(severity == '0' ~ 0,
+                               severity == 'unimpacted' ~ 0,
+                               severity == 'unentangled' ~ 1,
+              severity == 'minor' ~ 2,
+              severity == 'moderate' ~ 3,
+              severity == 'severe' ~ 4)) %>% 
+      dplyr::select(-severity)
+  
+   df$sev_num <- as.numeric(df$sev_num)
+
+   df <- df %>%
+     mutate(ent_group = cumsum(sev_num))
+   
+   df <- df %>%
+     mutate(gear_group = cumsum(gear_vec))
+
+  df <- df %>% 
+    filter(ent_group > 0) %>% 
+    group_by(ent_group) %>% 
+    mutate(ent_elapsed = Year - first(Year)) %>% 
+    mutate(last_severity = first(sev_num)) %>% 
+    ungroup(ent_group) %>%
+    group_by(gear_group) %>% 
+    mutate(last_gear = first(gear_vec)) %>% 
+    ungroup(gear_group) %>% 
+    select(EGNo, Year, ent_elapsed, last_severity, last_gear)
+
+  df <- inner_join(my_dsub, df, by = c('Year', 'EGNo')) # keep rows in my_dsub
+  
+  df_all_gear <- rbind(df_all_gear, df)
+}
+# write_csv(df_all, '../data/years_since_entanglement.csv')
+```
+
+
+Ok, so the regression I set up is a binomial regression of the probability an animal gets pregnant in an available year as a function of health and an interaction between time (in years) since entanglement and the severity of the last entanglement. This is close in spirit to what you we had done before in terms of the animal entering a state and then staying in that:
+
+```{r}
+fit_gear <- glm(Pregnant ~ health_scl + factor(decade) + last_gear*last_severity, 
+            data = df_all_gear, family = binomial(link = "logit"))
+summary(fit_gear)
+```
+
+### Add back in Non-Gear Animals
+So the above test is just the subset of animals that had gear, and to be complete we want to compare against all possible pregnancies
+
+```{r}
+df_all_no_gear$last_gear <- 0
+df_all_final <- bind_rows(df_all_gear, df_all_no_gear)
+df_all_final$health_scl <- (df_all_final$health - mean(df_all_final$health, na.rm = TRUE)) / sd(df_all_final$health, na.rm = TRUE)
+```
+
+
+Run the test
+```{r}
+
+fit_gear_all <- glm(Pregnant ~ health_scl + factor(decade) + last_gear*last_severity, 
+            data = df_all_final, family = binomial(link = "logit"))
+summary(fit_gear_all)
+```
