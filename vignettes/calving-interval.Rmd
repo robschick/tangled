@@ -88,7 +88,8 @@ cases$EndDate <- parse_date(cases$EndDate, "%d-%b-%y")
 __UPDATE__ ("2020-07-29"): Amy sent me an update of that file that has cases of entanglements that happened when the whale was already pregnant. So she wants me to remove those.
 
 ```{r}
-cases_to_remove <- read_csv(here::here('data-raw', '2020-07-25_Calving-interval-analysis_cases-to-remove.csv')) %>% 
+cases_to_remove <- read_csv(here::here('data-raw', 
+                                       '2020-07-25_Calving-interval-analysis_cases-to-remove.csv')) %>% 
   select(!starts_with('X')) %>% 
   rename(ent_id = `Entanglement ID`)
 
@@ -100,16 +101,10 @@ cases <- cases %>%
 I start by joining the two databases
 
 ```{r}
-# testing
-# df_sub <- dfLong %>% filter(egno == 3101)
-# cases_sub <- cases %>% filter(EGNo == 3101)
-# right_join(df_sub, cases_sub, by = c("egno" = "EGNo_1", "EntanglementId" = "EntanglementID"))
-
-# real
 df_out <- right_join(dfLong, cases, by = c("egno" = "EGNo_1", "EntanglementId" = "EntanglementID")) 
 ```
 
-Now I need to summarize over the same calving year for each animal
+Now I need to summarize over the same calving year for each animal; note that while here I'll add in the decade
 
 ```{r}
 df_sum <- df_out %>% 
@@ -121,21 +116,75 @@ df_sum <- df_out %>%
             interval = unique(CalvingInterval, na.rm = TRUE)) %>% 
   mutate(severity = case_when(gearInj %in% c(6, 4) ~ 'minor',
                               gearInj %in% c(5, 2) ~ 'moderate',
-                              gearInj %in% c(3, 1) ~ 'severe'))
+                              gearInj %in% c(3, 1) ~ 'severe')) %>% 
+  mutate(decade = case_when(CalvingYear >= 1980 & CalvingYear <= 1989 ~ 1980,
+                            CalvingYear >= 1990 & CalvingYear <= 1999 ~ 1990,
+                            CalvingYear >= 2000 & CalvingYear <= 2009 ~ 2000,
+                            CalvingYear >= 2010 & CalvingYear <= 2019 ~ 2010))
+```
+
+Amy asked what the mean health and threshold of months below was.
+
+```{r}
+df_sum %>% 
+  group_by(severity) %>% 
+  summarize(mean_months = mean(lthold, na.rm = TRUE),
+            median_health = median(health, na.rm = TRUE))
 ```
 
 A quick plot
 
 ```{r fig.width=6.5}
-ggplot(data = df_sum, aes(lthold, interval))+
-  geom_jitter() +
+library(ggthemes)
+ggplot(data = df_sum, aes(lthold, interval,  shape = factor(decade)))+
+  geom_jitter(size = 3) +
   facet_grid(~ severity)+
-  labs(x = "# of Months Below 67", y = 'Calving Interval (years)')
+  labs(x = "# of Months Below 67", y = 'Calving Interval (years)')+
+  theme_few()+
+  scale_shape_few(name = "Decade")
 ```
 
-And an even quicker `lm()` to see what we see
+### Linear Models
+Ok, I'll run a few different models so we can see if any of these patterns are statistically significant. First, we just run a means parameterization to estimate the mean calving interval by severity:
 
 ```{r}
-summary(lm(interval ~ lthold , data = df_sum))
+summary(lm(interval ~ factor(severity) - 1, data = df_sum))
 ```
+
+But we may want an effects parameterization instead:
+
+```{r}
+summary(lm(interval ~ factor(severity), data = df_sum))
+```
+
+So there's no real statistical support that the means are different. Interestingly the trend is for a shorter interval for moderate and a longer interval for severe, but we don't have the data right now to support a significant difference. 
+
+We might next ask what's the difference by health?
+
+```{r}
+summary(lm(interval ~ health, data = df_sum))
+```
+
+Or by threshold?
+
+```{r}
+summary(lm(interval ~ lthold, data = df_sum))
+```
+
+So there's some weak evidence that as threshold goes up, so does interval, but it's weak.
+
+How about an interaction with severity?
+
+```{r}
+summary(lm(interval ~ lthold:severity, data = df_sum))
+```
+
+Nothing. Add in decade and an interaction? -- Also nothing:
+
+```{r}
+summary(lm(interval ~ lthold + decade + lthold:decade, data = df_sum))
+```
+
+## Summary
+Ok, when we first ran this with just the 1-year cases, we got a weak, but significant, relationship between interval and the number of months below threshold (what I'm calling `lthold` in the modeling). When we add the additional cases in to increase the sample size, we no longer see a significant relationship. The only one that stands out is a weak (negative) relationship between health and interval, and a weak (positive) relationship between months below 67 and interval. We interpret that as when health goes down in raw numbers, the interval goes up. The alternative way to look at this is, as the number of months below the health threshold goes up, so does interval. This makes sense as it's two ways to look at the same phenomenon.
 
