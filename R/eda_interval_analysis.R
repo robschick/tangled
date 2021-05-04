@@ -167,3 +167,10 @@ summary(fit7)
 
 fit8 <- glm(elapsed ~ sev_num:mon_below_scl, data = pregnant)
 summary(fit8)
+
+fit9 <- glm(elapsed ~ mon_below_scl:factor(decade) + factor(sev_num), data = pregnant) # something popping out here
+summary(fit9)
+
+
+fit10 <- glm(elapsed ~ mon_below_scl:factor(decade) + factor(sev_num):factor(decade), data = pregnant) # something popping out here
+summary(fit10)
