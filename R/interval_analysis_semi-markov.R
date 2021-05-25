@@ -11,10 +11,12 @@ library(SemiMarkov)
 
 # read in the data
 pregnant <- read_csv(here::here('data-raw', '2021-02-25_years_since_pregnancy_1980-2013.csv'))%>% 
-  select(!starts_with('X')) %>% 
-  select(!c(`Last year sighted`, `F = first pregnancy detected`)) %>% 
-  filter(Year >=1980 & Year <= 2013) %>% 
-  drop_na(Pregnant)
+  dplyr::select(!starts_with('X')) %>% 
+  dplyr::select(!c(`Last year sighted`, `F = first pregnancy detected`)) %>% 
+  dplyr::filter(Year >=1980 & Year <= 2013)  %>% 
+  drop_na(elapsed)
+  
+pregnant$Pregnant[is.na(pregnant$Pregnant)] <- 0 # so it can be either pregnant or not-pregnant
 
 pregnant$Pregnant[pregnant$Pregnant == 'F'] <- '1'
 pregnant$Pregnant <- as.numeric(pregnant$Pregnant)
@@ -34,9 +36,9 @@ pregnant$Pregnant <- as.numeric(pregnant$Pregnant)
 
 # Preserve only the pregnancy years since we're looking at the interval
 # ditto the NAs, since that means (I think) it's the first observed pregnancy
-pregnant <- pregnant %>% 
-  filter(Pregnant == 1) %>% 
-  drop_na(elapsed)
+# pregnant <- pregnant %>% 
+#   filter(Pregnant == 1) %>% 
+#   drop_na(elapsed)
 
 # Build up the covariates to test the model
 # Health data
@@ -70,10 +72,10 @@ pregnant <- pregnant %>%
 
 # bring in entanglement data
 ent_tidy <- read_csv(here::here('data-raw','2020-09-29-entanglement_tidy.csv')) %>% 
-  select(!starts_with('X')) %>% 
-  select(!starts_with('Created')) %>% 
-  select(!starts_with('Edited')) %>% 
-  select(!starts_with('Change')) %>% 
+  dplyr::select(!starts_with('X')) %>% 
+  dplyr::select(!starts_with('Created')) %>% 
+  dplyr::select(!starts_with('Edited')) %>% 
+  dplyr::select(!starts_with('Change')) %>% 
   mutate(year = lubridate::year(lubridate::dmy(EndDate)),
          gear = str_detect(EntanglementComment, 'GEAR'),
          gear_vec = if_else(gear, 1, 0))
@@ -178,3 +180,43 @@ pregnant$health_min_scl <- (pregnant$health_min - mean(pregnant$health_min, na.r
 
 
 # Assemble the data for semi-markov model(s)
+# we want the transitions from not-pregnant to pregnant (this is the one we care about) & 
+# from pregnant to non-pregnant
+# trying to index this to find the year of pregnancy and the immediate next year for each animal
+# h = not pregnant
+# j = pregnant
+hj_idx <- which(pregnant$Pregnant == 1)
+jh_idx <- hj_idx + 1
+preg_sub_hj <- pregnant[hj_idx, ]
+preg_sub_jh <- pregnant[jh_idx, ]
+
+# States and Transitions
+semi_dat_hj <- preg_sub_hj %>% 
+  dplyr::select(id = EGNo, Pregnant = Pregnant, time = elapsed, severity = sev_num, decade = decade) %>% 
+  mutate(state.h = 1, state.j = Pregnant + 1)
+
+semi_dat_jh <- preg_sub_jh %>% 
+  dplyr::select(id = EGNo, Pregnant = Pregnant, time = elapsed, severity = sev_num, decade = decade) %>% 
+  mutate(state.h = 2, state.j = Pregnant + 1)
+
+semi_dat <- bind_rows(semi_dat_hj, semi_dat_jh)
+
+ent_sev <- as.data.frame(cbind(semi_dat$severity, semi_dat$decade))
+
+semi_df <- data.frame(semi_dat$id, semi_dat$state.h, semi_dat$state.j, semi_dat$time)
+
+# Transition set up
+states_1 <- c("1","2")
+mtrans_1 <- matrix(FALSE, nrow = 2, ncol = 2)
+mtrans_1[1, 2] <- "E"
+mtrans_1[2, 1] <- "E"
+
+# Model fit
+## semi-Markov model without covariates
+fit1 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1)
+
+## semi-markov model with covariates (severity & decade) affecting all transitions
+fit2 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = ent_sev)
+
+## semi-markov model with covariates (severity & decade) affecting only the transition from resting/available to pregnant
+fit3 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = ent_sev, cov_tra = list(c("12"),c("12")))
