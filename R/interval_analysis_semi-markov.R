@@ -192,16 +192,17 @@ preg_sub_jh <- pregnant[jh_idx, ]
 
 # States and Transitions
 semi_dat_hj <- preg_sub_hj %>% 
-  dplyr::select(id = EGNo, Pregnant = Pregnant, time = elapsed, severity = sev_num, decade = decade) %>% 
+  dplyr::select(id = EGNo, year = Year, Pregnant = Pregnant, time = elapsed, severity = sev_num, decade = decade, health = health_scl) %>% 
   mutate(state.h = 1, state.j = Pregnant + 1)
 
 semi_dat_jh <- preg_sub_jh %>% 
-  dplyr::select(id = EGNo, Pregnant = Pregnant, time = elapsed, severity = sev_num, decade = decade) %>% 
+  dplyr::select(id = EGNo, year = Year, Pregnant = Pregnant, time = elapsed, severity = sev_num, decade = decade, health = health_scl) %>% 
   mutate(state.h = 2, state.j = Pregnant + 1)
 
-semi_dat <- bind_rows(semi_dat_hj, semi_dat_jh)
+semi_dat <- bind_rows(semi_dat_hj, semi_dat_jh) %>% 
+  arrange(id, year)
 
-ent_sev <- as.data.frame(cbind(semi_dat$severity, semi_dat$decade))
+ent_sev <- data.frame(ent_severity = semi_dat$severity, decade = semi_dat$decade, health = semi_dat$health)#, ent_sev_fac = as.factor(semi_dat$severity)
 
 semi_df <- data.frame(semi_dat$id, semi_dat$state.h, semi_dat$state.j, semi_dat$time)
 
@@ -214,9 +215,28 @@ mtrans_1[2, 1] <- "E"
 # Model fit
 ## semi-Markov model without covariates
 fit1 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1)
+print(fit1)
 
 ## semi-markov model with covariates (severity & decade) affecting all transitions
 fit2 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = ent_sev)
 
 ## semi-markov model with covariates (severity & decade) affecting only the transition from resting/available to pregnant
-fit3 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = ent_sev, cov_tra = list(c("12"),c("12")))
+fit3 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
+                   cov = ent_sev[, c(1,2)], 
+                   cov_tra = list(c("12"), c("12")))
+print(fit3)
+
+# tried same as a factor, but they look to be having to be numeric in the code; I got this error:
+# Error in as.matrix(cova.mat) %*% matrix(beta, ncol = 1) : 
+#   requires numeric/complex matrix/vector arguments
+# ## semi-markov model with covariates (severity & decade) affecting only the transition from resting/available to pregnant
+# fit3_fac <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = ent_sev[, c(2,3)], cov_tra = list(c("12"),c("12")))
+# print(fit3_fac)
+
+## semi-markov model with covariates (severity, decade, scaled health) affecting only the transition from resting/available to pregnant
+fit4 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = ent_sev, cov_tra = list(c("12"),c("12"),c("12")))
+print(fit4)
+
+## semi-markov model with covariates (severity) affecting only the transition from resting/available to pregnant
+fit5 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = as.data.frame(ent_sev[, 1]), cov_tra = list(c("12")))
+print(fit5)
