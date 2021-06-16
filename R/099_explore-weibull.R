@@ -1,6 +1,7 @@
+library(dplyr)
 # explore weibull vs exponential
 pregnant <- read_csv(here::here('data-raw', '2021-02-25_years_since_pregnancy_1980-2013.csv'))%>% 
-  select(!starts_with('X')) %>% 
+  dplyr::select(!starts_with('X')) %>% 
   filter(Year >=1980 & Year <= 2013) %>% 
   drop_na(Pregnant) %>% 
   drop_na(elapsed) %>% 
@@ -25,7 +26,7 @@ plot(allyears, npregyr, type = 's')
 wlik <- function(param){
   lp <- param[1]
   cp <- param[2]
-  lik <- log(cp * lp^cp*pregnant$elapsed^(cp - 1)) - (lp * pregnant$elapsed)^cp
+  lik <- log(cp * lp^cp * pregnant$elapsed^(cp - 1)) - (lp * pregnant$elapsed)^cp
   return(-sum(lik))
 }
 
