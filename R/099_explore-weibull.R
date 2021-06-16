@@ -51,3 +51,25 @@ like <- -sum(log(lmle) - lmle*pregnant$elapsed)
 likw <- out$value
 dev <- 2 * (like - likw)
 pr <- 1 - pchisq(dev, 1)
+
+## Adding in Covariates
+pregnant <- readRDS("/Users/rob/Documents/research/projects/right-whales_PCOD/rightWhaleEntanglement/data/2021-06-15_pregnancy-with-covariates.rds")
+xdat <- pregnant[, c("Pregnant", "health_scl", "elapsed", "severity", "num_events", "sev_num", "std_year")]
+xdat <- xdat[xdat$Pregnant > 0, ]
+
+# likelihood function
+wlik <- function(param){
+  lp <- param[1]
+  b0 <- param[2]
+  b1 <- param[3]
+  # b2 <- param[4]
+  cp <- exp(b0 + b1 * xdat$sev_num ) #+ b2 * xdat$health_scl
+  lik <- log(cp * lp^cp * xdat$elapsed^(cp - 1)) - (lp * xdat$elapsed)^cp
+  return(-sum(lik))
+}
+
+param0 <- c(0.1, 1, 1) #, 1
+out <- optim(param0, wlik, 
+             lower = c(0.01, 0.01, 0.01), 
+             upper = c(10, 10, 10), 
+             method = "L-BFGS-B", hessian = TRUE)
