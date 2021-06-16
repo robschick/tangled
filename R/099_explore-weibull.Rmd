@@ -1,0 +1,137 @@
+---
+title: "Weibull on Pregnancy Intervals"
+author: "Rob Schick"
+date: "6/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+```
+
+## Introduction
+As we've discussed, I'm interested in looking at the intervals between pregnancies to see if reduced health and/or increased entanglements lengthen the interval. I'm following Section 6.3 from Clark (2007) where he conducted an MLE analysis of the "time since fire" with an exponential and a Weibull, concluding there is support for a Weibull formulation. 
+
+## Pregnancy Interval Data
+We start with the pregnancy data, that are gathered by Amy Knowlton at New England Aquarium. This dataset has all the pregnancies by year for each individual.
+
+```{r }
+pregnant <- read_csv(here::here('data-raw', '2021-02-25_years_since_pregnancy_1980-2013.csv'))%>% 
+  dplyr::select(!starts_with('X')) %>% 
+  filter(Year >=1980 & Year <= 2013) %>% 
+  drop_na(Pregnant) %>% 
+  drop_na(elapsed) %>% 
+  filter(elapsed >= 1) %>% 
+  filter(Pregnant > 0)
+
+pregnant$Pregnant[pregnant$Pregnant == 'F'] <- '1'
+pregnant$Pregnant <- as.numeric(pregnant$Pregnant)
+head(pregnant)
+```
+
+We then summrize them along the lines of how Clark does in the book (Table 6.2), which shows a peak interval of 3 years along with a long tail:
+
+```{r}
+pregdata <- pregnant %>% 
+  group_by(elapsed) %>% 
+  tally()
+colnames(pregdata) <- c('years', 'npreg')
+allyears <- seq(0, max(pregdata$years), by = 1)
+npregyr <- allyears * 0
+for(i in 1:length(pregdata$years)){
+  npregyr[allyears[pregdata$years[i] == allyears]] <- pregdata$npreg[i]
+}
+plot(allyears, npregyr, type = 's', xlab = 'Pregnancy Interval (Years)', ylab = 'Number Observed')
+```
+
+Next we write down a likelihood function for the Weibull:
+
+```{r}
+wlik <- function(param){
+  lp <- param[1]
+  cp <- param[2]
+  lik <- log(cp * lp^cp * pregnant$elapsed^(cp - 1)) - (lp * pregnant$elapsed)^cp
+  return(-sum(lik))
+}
+```
+
+Then we call `optim()`:
+
+```{r}
+param0 <- c(0.1, 1)
+out <- optim(param0, wlik, lower = c(0.01, 0.01), upper = c(10, 10), method = "L-BFGS-B", hessian = TRUE)
+sigma <- solve(out$hessian)
+se <- sqrt(diag(sigma))
+# c(out$par[1], out$par[2])
+b1_up <- out$par[1] + 1.96*se[1]
+b1_low <- out$par[1] - 1.96*se[1]
+
+b2_up <- out$par[2] + 1.96*se[2]
+b2_low <- out$par[2] - 1.96*se[2]
+```
+
+plot the results:
+
+```{r}
+lw <- out$par[1]
+cw <- out$par[2]
+time <- seq(0, 40, length = 100)
+hazard <- cw*lw^cw*time^(cw-1)
+fweib <- hazard*exp(-(lw*time)^cw)
+plot(allyears, npregyr / sum(npregyr), type = 's')
+lines(time, fweib)
+lines(time, hazard, lty = 2)
+```
+
+...and summarize and evaluate them:
+
+```{r}
+lmle <- 1 / mean(pregnant$elapsed)
+like <- -sum(log(lmle) - lmle*pregnant$elapsed)
+
+likw <- out$value
+dev <- 2 * (like - likw)
+pr <- 1 - pchisq(dev, 1)
+```
+
+This yields a deviance of: ```r dev```, which indicates **strong** support for the Weibull over the exponential. 
+
+## Covariates
+Fair enough, but how do we incorporate covariates? Though it's not shown above, I have calculated information about the entanglements and the health over every pregnancy interval. How then can we incorporate a link function to the covariates and which parameter do we make dependent on the covariates? 
+
+I did a bit of exploring on stack overflow, and [found this answer](https://stackoverflow.com/questions/20786249/how-to-code-a-multiparameter-log-likelihood-function-in-r) that seems pretty close. However, their likelihood function is a bit different than Jim's as they call `dweibull` directly:
+
+```{r eval=FALSE}
+LL_weibull = function(par, data, mm, inv_link_fun = function(.) .){
+  P = ncol(mm) ## number of regression coefficients
+  N = nrow(mm) ## number of observations
+  shapes = inv_link_fun(mm %*% par[1:P]) ## shape vector (possibly transformed)
+  scales = rep(par[P+1], N) ## scale vector
+  -sum(dweibull(data, shape = shapes, scale = scales, log = T)) ## negative log likelihood
+}
+```
+
+Herein they have the **shape** parameter depend on the covariates. Here's my first attempt at what I would feed in for two covariates (entanglement severity and months below a pre-determined health threshold):
+
+- `data`: the pregnancy interval
+- `par`: length 3 (intercept, $\beta_1$, and $\beta_2$)
+- `mm`: model matrix for intercept only and for covariate model
+
+## Questions:
+
+- given that these paramaterizations are different, is one preferred?
+- Jim estimates both the shape and scale parameter but this example only estimates the shape. Again, is one way preferred for this example?
+- Could I do something like this:
+
+```{r eval=FALSE}
+wlik <- function(param){
+  lp <- param[1]
+  b0 <- param[2]
+  b1 <- param[3]
+  b2 <- param[4]
+  cp <- exp(b0 + b1 * xdat[, 1] + b2 * xdat[, 2]) #seems fuzzy
+  lik <- log(cp * lp^cp * pregnant$elapsed^(cp - 1)) - (lp * pregnant$elapsed)^cp
+  return(-sum(lik))
+}
+```
