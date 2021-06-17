@@ -54,9 +54,11 @@ pr <- 1 - pchisq(dev, 1)
 
 ## Adding in Covariates
 pregnant <- readRDS("/Users/rob/Documents/research/projects/right-whales_PCOD/rightWhaleEntanglement/data/2021-06-15_pregnancy-with-covariates.rds")
-xdat <- pregnant[, c("Pregnant", "health_scl", "elapsed", "severity", "num_events", "sev_num", "std_year")]
+xdat <- pregnant[, c("Pregnant", "health_scl", "mon_below_scl", "elapsed", "severity", "num_events", "sev_num", "std_year")]
 xdat <- xdat[xdat$Pregnant > 0, ]
 xdat <- xdat[xdat$elapsed > 0, ]
+xdat$sev_fac <- xdat$sev_num
+xdat$sev_fac[xdat$sev_num > 0] <- 1
 
 # likelihood function
 wlik <- function(param){
@@ -64,7 +66,7 @@ wlik <- function(param){
   b0 <- param[2]
   b1 <- param[3]
   b2 <- param[4]
-  cp <- exp(b0 + b1 * xdat$sev_num + b2 * xdat$health_scl) 
+  cp <- exp(b0 + b1 * xdat$sev_fac + b2 * xdat$mon_below_scl) 
   lik <- log(cp * lp^cp * xdat$elapsed^(cp - 1)) - (lp * xdat$elapsed)^cp
   
   # if(is.infinite(sum(lik))){
@@ -89,3 +91,4 @@ b2_low <- out$par[4] - 1.96*se[4]
 my_pars <- data.frame(cov = c('entanglement', 'health'), mle = c(out$par[3], out$par[4]),
                       low = c(b1_low, b2_low),
                       high = c(b1_up, b2_up))
+my_pars
