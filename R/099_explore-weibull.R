@@ -56,20 +56,36 @@ pr <- 1 - pchisq(dev, 1)
 pregnant <- readRDS("/Users/rob/Documents/research/projects/right-whales_PCOD/rightWhaleEntanglement/data/2021-06-15_pregnancy-with-covariates.rds")
 xdat <- pregnant[, c("Pregnant", "health_scl", "elapsed", "severity", "num_events", "sev_num", "std_year")]
 xdat <- xdat[xdat$Pregnant > 0, ]
+xdat <- xdat[xdat$elapsed > 0, ]
 
 # likelihood function
 wlik <- function(param){
   lp <- param[1]
   b0 <- param[2]
   b1 <- param[3]
-  # b2 <- param[4]
-  cp <- exp(b0 + b1 * xdat$sev_num ) #+ b2 * xdat$health_scl
+  b2 <- param[4]
+  cp <- exp(b0 + b1 * xdat$sev_num + b2 * xdat$health_scl) 
   lik <- log(cp * lp^cp * xdat$elapsed^(cp - 1)) - (lp * xdat$elapsed)^cp
+  
+  # if(is.infinite(sum(lik))){
+  #   browser()
+  # }
   return(-sum(lik))
 }
 
-param0 <- c(0.1, 1, 1) #, 1
+param0 <- c(0.1, 1, -1, -1) 
 out <- optim(param0, wlik, 
-             lower = c(0.01, 0.01, 0.01), 
-             upper = c(10, 10, 10), 
              method = "L-BFGS-B", hessian = TRUE)
+out$par
+
+sigma <- solve(out$hessian)
+se <- sqrt(diag(sigma))
+b1_up <- out$par[3] + 1.96*se[3]
+b1_low <- out$par[3] - 1.96*se[3]
+
+b2_up <- out$par[4] + 1.96*se[4]
+b2_low <- out$par[4] - 1.96*se[4]
+
+my_pars <- data.frame(cov = c('entanglement', 'health'), mle = c(out$par[3], out$par[4]),
+                      low = c(b1_low, b2_low),
+                      high = c(b1_up, b2_up))
