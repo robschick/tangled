@@ -1,0 +1,267 @@
+---
+title: "Weibull on Pregnancy Intervals"
+author: "Rob Schick"
+date: "6/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+```
+
+## Introduction
+Here I examine the intervals between pregnancies to see if reduced health and/or increased entanglement burden lengthen the interval. I'm following Section 6.3 from Clark (2007) where he conducted an MLE analysis of the "time since fire" with an exponential and a Weibull, concluding there is support for a Weibull formulation. n.b. this is actually from Clark (1990). 
+
+## Pregnancy Interval Data
+We start with the pregnancy data, which have all the pregnancies by year for each individual.
+
+```{r }
+pregnant <- read_csv(here::here('data-raw', '2021-02-25_years_since_pregnancy_1980-2013.csv'))%>% 
+  dplyr::select(!starts_with('X')) %>% 
+  filter(Year >=1980 & Year <= 2013) %>% 
+  drop_na(Pregnant) %>% 
+  drop_na(elapsed) %>% 
+  filter(elapsed >= 1) %>% 
+  filter(Pregnant > 0)
+
+pregnant$Pregnant[pregnant$Pregnant == 'F'] <- '1'
+pregnant$Pregnant <- as.numeric(pregnant$Pregnant)
+head(pregnant)
+```
+
+We then summarize them along the lines of how Clark does in the book (Table 6.2), which shows a peak interval of 3 years along with a long tail:
+
+```{r}
+pregdata <- pregnant %>% 
+  group_by(elapsed) %>% 
+  tally()
+colnames(pregdata) <- c('years', 'npreg')
+allyears <- seq(0, max(pregdata$years), by = 1)
+npregyr <- allyears * 0
+for(i in 1:length(pregdata$years)){
+  npregyr[allyears[pregdata$years[i] == allyears]] <- pregdata$npreg[i]
+}
+plot(allyears, npregyr, type = 's', xlab = 'Pregnancy Interval (Years)', ylab = 'Number Observed')
+```
+
+Next we write down a likelihood function for the Weibull, which is parameterized as follows:
+
+\[ f(a) = c\lambda a^{c-1} exp[-\lambda a^c],\]
+
+where $c$ is the shape parameter, and $\lambda$ is the scale parameter.
+
+```{r}
+wlik <- function(param){
+  lp <- param[1]
+  cp <- param[2]
+  lik <- log(cp * lp^cp * pregnant$elapsed^(cp - 1)) - (lp * pregnant$elapsed)^cp
+  return(-sum(lik))
+}
+```
+
+Then we call `optim()`:
+
+```{r}
+param0 <- c(0.1, 1)
+out <- optim(param0, wlik, lower = c(0.01, 0.01), upper = c(10, 10), method = "L-BFGS-B", hessian = TRUE)
+sigma <- solve(out$hessian)
+se <- sqrt(diag(sigma))
+
+b1_up <- out$par[1] + 1.96*se[1]
+b1_low <- out$par[1] - 1.96*se[1]
+
+b2_up <- out$par[2] + 1.96*se[2]
+b2_low <- out$par[2] - 1.96*se[2]
+```
+
+plot the results:
+
+```{r}
+lw <- out$par[1]
+cw <- out$par[2]
+time <- seq(0, 40, length = 100)
+hazard <- cw*lw^cw*time^(cw-1)
+fweib <- hazard*exp(-(lw*time)^cw)
+plot(allyears, npregyr / sum(npregyr), type = 's')
+lines(time, fweib)
+lines(time, hazard, lty = 2)
+```
+
+...and summarize and evaluate them:
+
+```{r}
+lmle <- 1 / mean(pregnant$elapsed)
+like <- -sum(log(lmle) - lmle*pregnant$elapsed)
+
+likw <- out$value
+dev <- 2 * (like - likw)
+pr <- 1 - pchisq(dev, 1)
+```
+
+This yields a deviance of: ```r dev```, which indicates **strong** support for the Weibull over the exponential. 
+
+## Covariates
+Fair enough, but how do we incorporate covariates? We add a link function to the likelihood function over which we optimize. So covariates are entangled (no/yes), health (scaled months below the fecundity threshold from Rolland et al. 2016) and they are acting through the shape parameter $c$:
+
+```{r }
+wlik <- function(param){
+  lp <- param[1]
+  b0 <- param[2]
+  b1 <- param[3]
+  b2 <- param[4]
+  cp <- exp(b0 + b1 *  xdat$sev_fac + b2 * xdat$health_scl) 
+  lik <- log(cp * lp^cp * xdat$elapsed^(cp - 1)) - (lp * xdat$elapsed)^cp
+  
+  return(-sum(lik))
+}
+```
+
+Now that we have the formulation correct, let's give it a whirl. We do some data prep:
+
+```{r}
+pregnant <- readRDS("/Users/rob/Documents/research/projects/right-whales_PCOD/rightWhaleEntanglement/data/2021-06-15_pregnancy-with-covariates.rds")
+xdat <- pregnant[, c("Pregnant", "health_scl", "mon_below_scl", "elapsed", 
+                     "severity", "num_events", "sev_num", "std_year", "decade")]
+xdat <- xdat[xdat$Pregnant > 0, ]
+xdat <- xdat[xdat$elapsed > 0, ]
+xdat$sev_fac <- xdat$sev_num
+xdat$sev_fac[xdat$sev_num > 0] <- 1
+xdat$decade_scl <- scale(xdat$decade)
+```
+
+And then call the function. Note that our starting values for the covariates are negative, but are not constrained in the optimizer. The assumption then is that as either a) if the whale becomes entanglement (i.e. the covariate increases), or if the animal spends more months below a threshold (i.e. the covariate increases), then we expect the shape parameter ($c$) to decrease. A decrease in this parameter results in a longer tail for the distribution as well as a higher mean.
+
+```{r}
+param0 <- c(0.1, 1, -1, -1) 
+out <- optim(param0, wlik, 
+             method = "L-BFGS-B", hessian = TRUE)
+out$par
+```
+
+Store the values along with the confidence intervals for the parameters:
+
+```{r}
+sigma <- solve(out$hessian)
+se <- sqrt(diag(sigma))
+b1_up <- out$par[3] + 1.96*se[3]
+b1_low <- out$par[3] - 1.96*se[3]
+
+b2_up <- out$par[4] + 1.96*se[4]
+b2_low <- out$par[4] - 1.96*se[4]
+
+my_pars <- data.frame(cov = c('entanglement', 'health'), mle = c(out$par[3], out$par[4]),
+                      low = c(b1_low, b2_low),
+                      high = c(b1_up, b2_up))
+knitr::kable(my_pars)
+```
+
+### Interpretation
+We see a significant relationship between both entanglement (negative) and poor health (positive). How do we interpret these? 
+
+Let's do a quick EDA to see the patterns:
+
+```{r}
+library(ggplot2)
+ggplot(data = xdat, aes(elapsed, group = factor(sev_fac)))+
+  geom_boxplot()
+```
+
+While significant, the effect is not huge:
+
+```{r}
+xdat %>% group_by(sev_fac) %>% summarize(mean(elapsed))
+```
+
+Now about the health:
+
+```{r}
+ggplot(data = xdat, aes(health_scl, elapsed ))+
+  geom_point()+
+  geom_smooth()
+```
+
+This was not what I'd expected to see, and I'm wondering about the animals with 9 year + gaps. Like is there something fundamentally different about them, and/or if there's a time factor in here too. I'm just going to pull those out to investigate:
+
+```{r}
+ggplot(data = subset(xdat, elapsed < 9), aes(health_scl, elapsed ))+
+  geom_point()+
+  geom_smooth()
+```
+
+
+Let's facet by decade just for exploration
+
+```{r}
+ggplot(data = xdat, aes(health_scl, elapsed ))+
+  geom_point()+
+  geom_smooth()+
+  facet_grid('decade')
+```
+
+So we have a number of whales in poor health with longer intervals in the 1990's, but also a lot of whales in better health _still_ with long intervals in the 2000's. Though there's also a mean shift by decade as well:
+
+```{r}
+xdat %>% 
+  group_by(decade) %>% 
+  summarize(mean(health_scl))
+```
+
+
+Let's look at the subset again:
+
+```{r}
+ggplot(data = subset(xdat, elapsed < 9), aes(health_scl, elapsed ))+
+  geom_point()+
+  geom_smooth()+
+  facet_grid('decade')
+```
+
+### Updated Formulation
+From above, I've talked myself into including decade as a covariate. Let's look at that again:
+
+```{r}
+# new likelihood function
+wlik <- function(param){
+  lp <- param[1]
+  b0 <- param[2]
+  b1 <- param[3]
+  b2 <- param[4]
+  b3 <- param[5]
+  cp <- exp(b0 + b1 *  xdat$sev_fac + b2 * xdat$health_scl + b3 * xdat$decade_scl) 
+  lik <- log(cp * lp^cp * xdat$elapsed^(cp - 1)) - (lp * xdat$elapsed)^cp
+  
+  return(-sum(lik))
+}
+
+# call optim
+param0 <- c(0.1, 1, -1, -1, 1) 
+out <- optim(param0, wlik, 
+             method = "L-BFGS-B", hessian = TRUE)
+
+# recover params
+sigma <- solve(out$hessian)
+se <- sqrt(diag(sigma))
+b1_up <- out$par[3] + 1.96*se[3]
+b1_low <- out$par[3] - 1.96*se[3]
+
+b2_up <- out$par[4] + 1.96*se[4]
+b2_low <- out$par[4] - 1.96*se[4]
+
+b3_up <- out$par[5] + 1.96*se[5]
+b3_low <- out$par[5] - 1.96*se[5]
+
+my_pars <- data.frame(cov = c('entanglement', 'health', 'decade'), mle = c(out$par[3], out$par[4], out$par[5]),
+                      low = c(b1_low, b2_low, b3_low),
+                      high = c(b1_up, b2_up, b3_up))
+knitr::kable(my_pars)
+```
+
+
+
+# References
+Clark, J. S. 1990. Fire and climate change during the last 750 yr in northwestern Minnesota. Ecological Monographs 60:135–159.
+
+Clark, J. S. 2007. Models for Ecological Data: An Introduction. Princeton University Press.
+
+Rolland, R. M., R. S. Schick, H. M. Pettis, A. R. Knowlton, P. K. Hamilton, J. S. Clark, and S. D. Kraus. 2016. Health of North Atlantic right whales Eubalaena glacialis over three decades: from individual health to demographic and population health trends. Marine ecology progress series 542:265–282.
