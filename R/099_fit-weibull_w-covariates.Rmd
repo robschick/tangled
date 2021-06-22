@@ -21,8 +21,8 @@ pregnant <- read_csv(here::here('data-raw', '2021-02-25_years_since_pregnancy_19
   dplyr::select(!starts_with('X')) %>% 
   filter(Year >=1980 & Year <= 2013) %>% 
   drop_na(Pregnant) %>% 
-  drop_na(elapsed) %>% 
-  filter(elapsed >= 1) %>% 
+  drop_na(elapsed) %>%
+  filter(elapsed >= 1) %>%
   filter(Pregnant > 0)
 
 pregnant$Pregnant[pregnant$Pregnant == 'F'] <- '1'
@@ -157,7 +157,7 @@ knitr::kable(my_pars)
 ```
 
 ### Interpretation
-We see a significant relationship between both entanglement (negative) and poor health (positive). How do we interpret these? 
+We see a significant relationship between both entanglement (negative) and good health (negative). How do we interpret these - especially health? 
 
 Let's do a quick EDA to see the patterns:
 
@@ -257,7 +257,89 @@ my_pars <- data.frame(cov = c('entanglement', 'health', 'decade'), mle = c(out$p
 knitr::kable(my_pars)
 ```
 
+### Update - 2021-06-18
+After meeting with Josh, we decided to take health out for this, because he suggested that we have a data censoring issue here to an extent. By that we mean we're only looking at whales that have gone on to give birth after an entanglement; we're not looking at whales that did *not* give birth. In that sense we're sort of artificially censoring the data. We'll want to change that in the next iteration of PCOMS. For now, I think this is sufficient.
 
+```{r}
+# new likelihood function
+wlik <- function(param){
+  lp <- param[1]
+  b0 <- param[2]
+  b1 <- param[3]
+  b2 <- param[4]
+  cp <- exp(b0 + b1 *  xdat$sev_fac + b2 * xdat$decade_scl) 
+  lik <- log(cp * lp^cp * xdat$elapsed^(cp - 1)) - (lp * xdat$elapsed)^cp
+  
+  return(-sum(lik))
+}
+
+# call optim
+param0 <- c(0.1, 1, -1, 1) 
+out <- optim(param0, wlik, 
+             method = "L-BFGS-B", hessian = TRUE)
+
+# recover params
+sigma <- solve(out$hessian)
+se <- sqrt(diag(sigma))
+b1_up <- out$par[3] + 1.96*se[3]
+b1_low <- out$par[3] - 1.96*se[3]
+
+b2_up <- out$par[4] + 1.96*se[4]
+b2_low <- out$par[4] - 1.96*se[4]
+
+
+my_pars <- data.frame(cov = c('entanglement', 'decade'), mle = c(out$par[3], out$par[4]),
+                      low = c(b1_low, b2_low),
+                      high = c(b1_up, b2_up))
+
+likw_2param <- out$value
+
+knitr::kable(my_pars)
+```
+
+And let's run a model with entanglement alone:
+
+```{r}
+# new likelihood function
+wlik <- function(param){
+  lp <- param[1]
+  b0 <- param[2]
+  b1 <- param[3]
+  cp <- exp(b0 + b1 *  xdat$sev_fac) 
+  lik <- log(cp * lp^cp * xdat$elapsed^(cp - 1)) - (lp * xdat$elapsed)^cp
+  
+  return(-sum(lik))
+}
+
+# call optim
+param0 <- c(0.1, 1, -1) 
+out <- optim(param0, wlik, 
+             method = "L-BFGS-B", hessian = TRUE)
+
+# recover params
+sigma <- solve(out$hessian)
+se <- sqrt(diag(sigma))
+b1_up <- out$par[3] + 1.96*se[3]
+b1_low <- out$par[3] - 1.96*se[3]
+
+my_pars <- data.frame(cov = c('entanglement'), mle = c(out$par[3]),
+                      low = c(b1_low),
+                      high = c(b1_up))
+likw_1param <- out$value
+knitr::kable(my_pars)
+```
+
+And conduct a likelihood ratio test:
+
+```{r}
+dev <- 2 * (likw_1param - likw_2param)
+pr <- 1 - pchisq(dev, 1)
+```
+
+### Final Summary
+The LRT yields a p-value of `r pr`, which indicates support for the extra parameter. This means we have a model for the intervals between pregnancies for animals in relation to entanglement status during that interval and decade. Both these relationships are negative, though entanglement doesn't seem to be significant. There's still support to keep the parameter, so it has some explanatory power, but it's clearly weak. And as noted above, we're only examining whales that have given birth, not those that ceased to give birth. To do that, we'd need to do a different survival type analysis, where we have censoring when the "study" ends where the animals are still alive and we're tracking their health, but they have yet to give birth again. 
+
+Sort of leaning towards doing that in a separate analysis/manuscript.
 
 # References
 Clark, J. S. 1990. Fire and climate change during the last 750 yr in northwestern Minnesota. Ecological Monographs 60:135–159.
