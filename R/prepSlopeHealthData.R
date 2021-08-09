@@ -17,8 +17,8 @@
 #' }
 prepSlopeHealthData <- function(){
   
-  pvec <- tangleOut[, 'EndDate'] - tangleOut[, 'StartDate'] <= 365
-  tangleOut <- tangleOut[pvec, ]
+  # pvec <- tangleOut[, 'EndDate'] - tangleOut[, 'StartDate'] <= 365
+  # tangleOut <- tangleOut[pvec, ]
   dfout <- numeric(0)
   
   for(i in 1:nrow(tangleOut)){
