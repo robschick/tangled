@@ -47,11 +47,11 @@ plotBoxplotHealth <- function(dfLong, bsize, cval = 4){
     annotate('text', x = c(0 + 0.82, 0 + 1.18, 1 + 0.82, 1 + 1.18, 1 + 1.82, 1 + 2.18, 1 + 2.82, 1 + 3.18,
                            1 + 3.82, 1 + 4.18, 1 + 4.82, 1 + 5.18, 1 + 5.82, 1 + 6.18), y = 91, 
              label = plabel, cex = cval)+
-    labs(y = 'Population Health', x = 'Entanglement Impact Category', fill = 'Reproductive Status')+
+    labs(y = 'Estimated Health', x = 'Entanglement Impact Category', fill = 'Reproductive Status')+
     scale_x_discrete(labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear', 
                                 'Moderate\nNo Gear','Moderate\nGear', 
                                 'Severe\nNo Gear', 'Severe\nGear'))+
-    scale_fill_grey(start = 1, end = 0.65,labels = c('All Other\nDemographic\nCategories\n', 'Reproductive\nFemales\n'))+
+    scale_fill_grey(start = 1, end = 0.65,labels = c('Non-reproductive \nCategories\n', 'Reproductive\nFemales\n'))+
     theme_bw(base_size = bsize)
   p
   

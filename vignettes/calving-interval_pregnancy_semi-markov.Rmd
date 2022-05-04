@@ -22,6 +22,291 @@ library(lme4)
 library(lattice)
 library(forcats)
 library(stringr)
-library(SemiMarkov)
+# library(SemiMarkov)
+library(survival)
+library(SurvRegCensCov)
+library(eha)
+library(rms)
 ```
 
+## Introduction
+We are interested in looking at the impacts of entanglement on fecundity. So far we have tested this relationship in two different ways:
+1. we looked at the probability of getting pregnant in any given year as a function of latent health and entanglement status. This was formatted as a binomial glm (0: not pregnant; 1: pregnant). This showed a significant relationship between variables (details below)
+2. the association between the length of time between pregnancy years (also as a function of health and entanglement). This too was significant
+
+### Quick Look Regression Results
+First analysis took two different forms. The first was like this:
+
+```{r eval = FALSE}
+fit2 <- glm(Pregnant ~ health_scl + severity + std_year + factor(decade), 
+            data = pregnant, family = binomial(link = "logit"))
+```
+
+And we found significance for healthier animals more likely to get pregnant, signficance of decade, and year. We found some significance of entanglement, but the signs weren't entirely expected. The $\beta$ for severely entangled whales was _very_ negative, but not significant; the $\beta$ for minor entanglments was actually positive and significant, which was a surprise.
+
+In the second formulation I looked at the probability (in a given year) of getting pregnant as a function of health and an interaction between entanglement severity and time since the last entanglement:
+```{r eval = FALSE}
+fit1 <- glm(Pregnant ~ health_scl + factor(last_severity) * ent_elapsed, 
+            data = df_all, family = binomial(link = "logit"))
+```
+
+The second type of glm I ran was an association between the duration of the event between pregnancies and health and entanglement, etc.,
+
+```{r eval = FALSE}
+fit7 <- glm(elapsed ~ mon_below_scl:factor(decade) + severity, 
+            data = df_all)
+```
+
+Here I found marginally significant positive effects of severity and interval between pregnancies and some influence of decade. To summarize, two different looks at the data, and two ways of showing that entanglements are having some impact on fecundity. Some of these results are stronger than others, but they all point to a similar (if a bit messy) story.
+
+
+Ok, back to our **regularly scheduled program.** Since on the Double Mocha front we've been looking at Markov processes a lot, and since I had started to look at a semi-markov model for the dive summary data, I wanted to try that approach here. There are only two R packages that I'm aware of `SMM` and `SemiMarkov` that fit these type of models, and only the latter includes covariates, so that's what I'll use here. 
+
+I'll run all the prep code for the health and entanglement data, but since it's not relevant for your review, it's hidden here.
+
+```{r, prepEntHealth, echo=FALSE, warning=FALSE, message=FALSE}
+pregnant <- read_csv(here::here('data-raw', '2021-02-25_years_since_pregnancy_1980-2013.csv'))%>% 
+  dplyr::select(!starts_with('X')) %>% 
+  dplyr::select(!c(`Last year sighted`, `F = first pregnancy detected`)) %>% 
+  dplyr::filter(Year >=1980 & Year <= 2013)  %>% 
+  drop_na(elapsed)
+  
+pregnant$Pregnant[is.na(pregnant$Pregnant)] <- 0 # so it can be either pregnant or not-pregnant
+
+pregnant$Pregnant[pregnant$Pregnant == 'F'] <- '1'
+pregnant$Pregnant <- as.numeric(pregnant$Pregnant)
+
+# Build up the covariates to test the model
+# Health data
+healthmean <- sumh / ng
+pregnant$health <- 0
+pregnant$health_min <- 0
+pregnant$mon_below_scl <- 0
+pregnant$mon_below <- 0
+pregnant$year_start <- 1971 # this will help me establish the window of the interval
+
+for(i in 1:nrow(pregnant)){
+  
+  rowidx <- match(pregnant$EGNo[i], ID)
+  s <- match(paste0("1-", pregnant$Year[i] - pregnant$elapsed[i]), myName) # note how this changes - it's over the whole interval now
+  pregnant$year_start[i] <- pregnant$Year[i] - pregnant$elapsed[i]
+  e <- match(paste0("12-", pregnant$Year[i]), myName)
+  colidx <- s:e  
+  colidx <- colidx[colidx > firstSight[ID == pregnant$EGNo[i]]] #remove months before firstSight
+  pregnant$health[i] <- mean(healthmean[rowidx, colidx], na.rm = TRUE) # mean health over the interval
+  pregnant$health_min[i] <- min(healthmean[rowidx, colidx], na.rm = TRUE) # min health over the interval
+  pregnant$mon_below[i] <- length(which(healthmean[rowidx, colidx] < 67)) # number of months below the Rolland et al threshold
+  pregnant$mon_below_scl[i] <- pregnant$mon_below[i] / length(healthmean[rowidx, colidx]) # scaled number of months below the Rolland et al threshold
+}
+
+# decadal covariate
+pregnant <- pregnant %>% 
+  mutate(decade = case_when(Year >= 1980 & Year <= 1989 ~ 1980,
+                            Year >= 1990 & Year <= 1999 ~ 1990,
+                            Year >= 2000 & Year <= 2009 ~ 2000,
+                            Year >= 2010 & Year <= 2019 ~ 2010))
+
+# bring in entanglement data
+ent_tidy <- read_csv(here::here('data-raw','2020-09-29-entanglement_tidy.csv')) %>% 
+  dplyr::select(!starts_with('X')) %>% 
+  dplyr::select(!starts_with('Created')) %>% 
+  dplyr::select(!starts_with('Edited')) %>% 
+  dplyr::select(!starts_with('Change')) %>% 
+  mutate(year = lubridate::year(lubridate::dmy(EndDate)),
+         gear = str_detect(EntanglementComment, 'GEAR'),
+         gear_vec = if_else(gear, 1, 0))
+
+ent_tidy <- ent_tidy %>% 
+  mutate(entvec = case_when(EntanglementStatus == 'minor' & gear_vec == 0 ~ 6,
+                            EntanglementStatus == 'moderate' & gear_vec == 0 ~ 5,
+                            EntanglementStatus == 'minor' & gear_vec == 1 ~ 4,
+                            EntanglementStatus == 'severe' & gear_vec == 0 ~ 3,
+                            EntanglementStatus == 'moderate' & gear_vec == 1 ~ 2,
+                            EntanglementStatus == 'severe' & gear_vec == 1 ~ 1))
+
+# pair up entanglement data with pregnancy data
+pregnant$severity <- 0
+pregnant$num_events <- 0
+
+# now how figure out the entanglement during the interval
+for (i in 1:nrow(pregnant)){
+  # Get the Animal out and the year out for looking at the entanglement data
+  egno_p <- pregnant$EGNo[i]
+  year_end_int <- pregnant$Year[i]
+  year_start_int <- pregnant$year_start[i]
+  
+  # subset the entanglement data to just pull out the 
+  dsub <- ent_tidy %>% 
+    filter(EGNo == egno_p & year %in% year_start_int:year_end_int)
+  
+  if(nrow(dsub) == 0) next()
+  # if(nrow(dsub) > 1) print(i) 
+  pregnant$num_events[i] <- nrow(dsub)
+  pregnant$severity[i] <- min(dsub$entvec, na.rm = TRUE) # keep the worst one
+  
+}
+
+# # Establish severity & get unimpacted
+pregnant <- pregnant %>%
+  mutate(sev_num = case_when(severity == 0 ~ 0,
+                             severity %in% c(4, 6) ~ 1,
+                             severity %in% c(2, 5) ~ 2,
+                             severity %in% c(3, 1)  ~ 3))
+
+mn_year <- mean(pregnant$Year)
+sd_year <- sd(pregnant$Year)
+pregnant$std_year <- (pregnant$Year - mn_year) / sd_year
+
+pregnant$elapsed <- as.numeric(pregnant$elapsed)
+pregnant$fctr_yr <- factor(pregnant$Year)
+pregnant$EGNo <- factor(pregnant$EGNo)
+pregnant$health_scl <- (pregnant$health - mean(pregnant$health, na.rm = TRUE)) / sd(pregnant$health, na.rm = TRUE)
+pregnant$health_min_scl <- (pregnant$health_min - mean(pregnant$health_min, na.rm = TRUE)) / sd(pregnant$health_min, na.rm = TRUE)
+
+```
+
+At this point we have a data frame that contains the pregnancy data:
+
+```{r echo=FALSE}
+knitr::kable(pregnant[1:5, ], caption = "First 5 rows of pregnancy and health data. EGNo is individual identifier, and elapsed is time since last pregancy.")
+```
+
+And one that contains the entanglement data:
+
+```{r echo=FALSE}
+knitr::kable(ent_tidy[1:5, ], caption = "First 5 rows of entanglement event data. Data are from Amy Knowlton, New England Aquarium.")
+
+```
+
+## Semi-Markov Analysis
+Now we turn to prepping the data for analysis. Note that our $H_0$ here is that entanglement does not influence the dwell time of the available state. I follow guidance from the `SemiMarkov` package here to prep the data. The data need to be in this form:
+
+```{r}
+data("asthma")
+asthma[1:3, ]
+```
+
+### Data Set-up
+Where we have an individual identifier, the states (transitions are from $h$ to $j$), the time in state $h$, and three covariates. The next block re-arranges our data to that form
+
+```{r}
+hj_idx <- which(pregnant$Pregnant == 1)
+jh_idx <- hj_idx + 1
+preg_sub_hj <- pregnant[hj_idx, ]
+preg_sub_jh <- pregnant[jh_idx, ]
+
+# States and Transitions
+semi_dat_hj <- preg_sub_hj %>% 
+  dplyr::select(id = EGNo, year = Year, Pregnant = Pregnant, time = elapsed, 
+                severity = severity, num_events = num_events,  sev_num = sev_num, 
+                decade = decade, std_year = std_year, health = health_scl) %>% 
+  mutate(state.h = 1, state.j = Pregnant + 1)
+
+semi_dat_jh <- preg_sub_jh %>% 
+  dplyr::select(id = EGNo, year = Year, Pregnant = Pregnant, time = elapsed, 
+                severity = severity, num_events = num_events,  sev_num = sev_num, 
+                decade = decade, std_year = std_year, health = health_scl) %>% 
+  mutate(state.h = 2, state.j = Pregnant + 1)
+
+semi_dat <- bind_rows(semi_dat_hj, semi_dat_jh) %>% 
+  arrange(id, year)
+
+ent_sev <- data.frame(ent_severity = semi_dat$severity, 
+                      ent_sev_bin = semi_dat$severity, 
+                      decade = semi_dat$decade, 
+                      health = semi_dat$health)
+
+ent_sev$ent_sev_bin <- ifelse(ent_sev$ent_severity > 0, 1, 0)
+
+semi_df <- data.frame(semi_dat$id, semi_dat$state.h, semi_dat$state.j, semi_dat$time)
+```
+
+Which generates:
+
+```{r echo=FALSE}
+knitr::kable(head(semi_df))
+```
+
+This feels a little kludgy since I'm saying we have two states - pregnant/not-pregnant, and I only really care about the transition from not pregnant to pregnant _and_ the animals only spend one year in the pregnant state. The covariates look like:
+
+```{r echo=FALSE}
+knitr::kable(head(ent_sev))
+```
+Here I have severity on an ordinal scale (0, 1, 2, 3) for not entangled, minor, moderate and severe. A binary not-entangled/entangled (0,1). Then decade, and a scaled covariate of the median latent health (from the PCOMS model we've been talking about) during the interval between pregnancies.
+
+### Weibull Regression
+Update (2021-06-07) going to try an accelerated failure time model on the intervals with a Weibull regression, and leave out the semi-markov model formulation below
+
+```{r}
+wdat <- semi_dat
+wdat$ent_sev_bin <- ifelse(wdat$sev_num > 0, 1, 0)
+wdat$time[wdat$time == 0] <- 1
+
+# Time to event
+wei.ttp <- survreg(Surv(time = time, event = Pregnant) ~ ent_sev_bin + health + std_year, data = wdat, dist = 'weibull')
+summary(wei.ttp)
+
+# Weibull
+wei.elapsed <- WeibullReg(Surv(time = time, event = Pregnant) ~ ent_sev_bin + health + std_year, data = wdat, conf.level = 0.95)
+wei.elapsed
+```
+
+
+### Markov Model set-up
+First we set up the state vector and the transition matrix; options for the distributions are exponential, weibull, and exponentiated weibull (I've tried all 3 and can only get the exponential to fit):
+
+```{r eval=FALSE}
+states_1 <- c("1","2")
+mtrans_1 <- matrix(FALSE, nrow = 2, ncol = 2)
+mtrans_1[1, 2] <- "E"
+mtrans_1[2, 1] <- "E"
+```
+
+### Model Fit and Summary
+Ok, then we fit it. I've tried a bunch of iterations, but the one that I like best examines the impact of the 0/1 entanglement vector, and decade:
+
+```{r eval=FALSE}
+fit3_bin <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
+                   cov = ent_sev[, c(2, 3)], 
+                   cov_tra = list(c("12"), c("12")))
+print(fit3_bin)
+```
+
+I interpret this as saying when an animal is entangled, it's significantly less likely to transition from the resting state to the pregnancy state. As the decades have passed, animals are less likely to become pregnant; while this is significant it's not as strong as the $\beta$ for entanglement.
+
+Couple questions that I have for you:
+
+1. Why do I get quite different values for $\beta_1$ if I look at it with a univariate formulation (see model below)?
+2. Why would you guess I can't get the Weibull to fit - not enough variability in the data?
+3. Because I'm only estimating an exponential, then the hazard for the 1->2 transition is constant, but just lower when the animal is entangled. Is that correct?
+4. When I fit the model with no covariates, I get different estimates for the dwell times in state $h$, which I don't understand (see model below).
+
+**Univariate formulation of entanglement covariate**
+
+```{r eval=FALSE}
+fit6 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
+                   cov = as.data.frame(ent_sev[, 2]), cov_tra = list(c("12")))
+print(fit6)
+```
+
+**Model Fit w/out Covariates**
+
+```{r eval=FALSE}
+fit1 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1)
+print(fit1)
+```
+
+### Update from Josh
+
+Amy, I sent the write up to Josh for his take on what we've done, and I'm going to roughly interleave his answers that are most relevant for us in below:
+
+1. *Why do I get quite different values for $\beta_1$ if I look at it with a univariate formulation (see model below)?*
+  - this is basically a model formulation issue. The hazard rate $\alpha_{hj}$ had a numerical answer in the absence of covariates, which is $1/\alpha_{hj}$. When you add covariates, you have a 1/$\frac{1}{\alpha_{hj}\cdot exp(\beta_{hj}Z_{hj})}$. To balance these out, the estimates will change
+2. *Why would you guess I can't get the Weibull to fit - not enough variability in the data?*
+  - yes. In our formulation we have only a constant probability of going from pregnant to not-pregnant, i.e. one parameter. Weibull is a 2 parameter distribution, so it won't fit.
+3. *Because I'm only estimating an exponential, then the hazard for the 1->2 transition is constant, but just lower when the animal is entangled. Is that correct?*
+  - yes
+4. *When I fit the model with no covariates, I get different estimates for the dwell times in state $h$, which I don't understand (see model below).*
+  - see above comment about model formulation
+  
+His suggestion, because we have a constant change back out of the pregnant state with no variability, is to do what we did when we were looking at the intervals between pregnancies as a function of health and covariates, but instead of the glm approach we too, to take a time to event approach. One such approach is a survival regression with a Weibull distribution just on the waiting times (i.e. times in the available state). I'll try that next week.

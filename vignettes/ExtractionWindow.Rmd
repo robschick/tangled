@@ -41,10 +41,11 @@ We can accomplish this with three data inputs:
 3. `tangleOut` to show the timing of the information of each entanglement event.
 
 ```{r}
-hdat <- subset(healthmean, row.names(healthmean) == 1167)
-hsd <- subset(healthsd, row.names(healthsd) == 1167)
-hanom <- subset(anom, row.names(anom) == 1167)
-tdat <- subset(tangleOut, EGNo == 1167)
+my_egno <- 2301
+hdat <- subset(healthmean, row.names(healthmean) == my_egno) # old was 1167
+hsd <- subset(healthsd, row.names(healthsd) == my_egno)
+hanom <- subset(anom, row.names(anom) == my_egno)
+tdat <- subset(tangleOut, EGNo == my_egno)
 
 tdatplot <- tdat %>% 
   dplyr::select(c(2:10, 13))
@@ -62,14 +63,14 @@ hplot <- data.frame(date = dateTime,
 
 hplot$pos <- hplot$hanom > 0
 
-event2Start <- as.Date(tdatplot$StartDateWindow[2]) - years(1)
-event2End <- as.Date(tdatplot$EndDateWindow[2]) + years(1)
-event4Start <- as.Date(tdatplot$StartDateWindow[4]) - years(1)
-event4End <- as.Date(tdatplot$recov12months[4]) + years(1)
+event2Start <- as.Date(tdatplot$StartDateWindow[1]) - years(1)
+event2End <- as.Date(tdatplot$EndDateWindow[1]) + years(1)
+event3Start <- as.Date(tdatplot$StartDateWindow[3]) - years(1)
+event3End <- as.Date(tdatplot$EndDateWindow[3]) + years(1)
 hplotsub1 <- hplot[hplot$date >= event2Start & hplot$date <= event2End, ]
-hplotsub2 <- hplot[hplot$date >= event4Start & hplot$date <= event4End, ]
+hplotsub2 <- hplot[hplot$date >= event3Start & hplot$date <= event3End, ]
 hplotsub1$event <- 2
-hplotsub2$event <- 4
+hplotsub2$event <- 3
 hplotsub <- rbind(hplotsub1, hplotsub2)
 
 ```
@@ -271,6 +272,67 @@ ggsave(plot = p, filename = 'extractionWindow.pdf',
        path = 'D:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images\\', device = 'pdf', width = 9, height = 6, units = 'in')
 ggsave(plot = p, filename = 'extractionWindow.png',
        path = 'D:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images\\', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+```
+
+### Updated Entanglement Diagram for Manuscript
+
+```{r}
+library(ggplot2)
+library(scales)
+library(lubridate)
+base_size <- 10
+datelims <- c(as.Date('1996-01-01'), as.Date('2006-12-01'))
+# datelims <- c(as.Date('1981-04-01'), as.Date('2014-01-01'))
+pal <- RColorBrewer::brewer.pal(3, 'Greys')
+p1 <- ggplot(data = hplot, aes(x = date, y = health))+
+      # geom_line(data = pophealth, aes(x = date, y = popHealth), lty = 2, colour = 'grey50')+
+      geom_ribbon(aes(x = date, ymin = hsdLower, ymax = hsdUpper), alpha = 0.2)+
+      geom_line()+
+      ylim(c(0, 100))+
+      labs(x = '', y = 'Health')+
+      scale_x_date(minor_breaks = date_breaks(width = "1 year"), 
+               limits = datelims)+
+   # Ent Event 1 - single time
+      geom_point(aes(x = as.Date(tdatplot$EndDateWindow[1]), y = 25 ), 
+               size = 3, pch = 16)  +
+   annotate('rect', xmin = as.Date(tdatplot$StartDateWindow[1]) - months(3), 
+               xmax = as.Date(tdatplot$EndDateWindow[1]), 
+               ymin = 0, ymax = 100, alpha = 0.4, fill = pal[3]) + 
+   annotate("text", x = as.Date(tdatplot$EndDateWindow[1] + months(5)), y = 27.5 , label = "Scars Only")+
+  # Ent Event 2 - window with gear
+      geom_point(aes(x = as.Date(tdatplot$EndDate[3]), y = 25 ), 
+               size = 3, pch = 15)  +
+      annotate('segment', x = as.Date(tdatplot$EndDate[3]), 
+               xend = as.Date(tdatplot$LastDatewGear[3]), 
+               y = 25, yend = 25, size = 1)+
+   geom_point(aes(x = as.Date(tdatplot$LastDatewGear[3]), y = 25 ), 
+               size = 3, pch = '|')  +
+   annotate('rect', xmin = as.Date(tdatplot$EndDate[3]) - months(6), 
+               xmax = as.Date(tdatplot$LastDatewGear[3]) + months(3), 
+               ymin = 0, ymax = 100, alpha = 0.4, fill = pal[3]) +
+  geom_vline(xintercept = as.Date(tdatplot$EndDate[3]) - months(3), lty = 2) +
+  geom_segment(aes(x = as.Date(tdatplot$EndDate[3] - months(24)), y = 27.5, 
+                   xend = as.Date(tdatplot$EndDate[3] - months(3)), yend = 27.5), 
+                   arrow = arrow(length = unit(0.03, "npc")))+
+  annotate("text", x = as.Date(tdatplot$EndDate[3] - months(32)), y = 27.5 , label = "Estimated Start Date \n of Entanglement")+
+   annotate("text", x = as.Date(tdatplot$EndDate[3] + months(4)), y = 20 , label = "Duration Observed with\n Attached Gear")+
+  theme_bw()+
+   labs(title = 'Entanglement Health Windows', subtitle = 'EGNo 2301')
+ 
+ggsave(plot = p1, filename = 'EntanglementWindow.pdf', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
+ggsave(plot = p1, filename = 'EntanglementWindow.png', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 1.5)
+ 
+ # +
+ #      theme(plot.margin = unit(c(0.5, 1, 0, 0.5), 'line'))+
+ #      theme(axis.text.y = element_text(size = base_size, hjust=1),
+ #            axis.text.x = element_blank(),
+ #            axis.ticks.x = element_blank(),
+ #            axis.title.x = element_blank(),
+ #        axis.title.y = element_text(size = base_size, angle=90),
+ #        legend.text = element_text(size = base_size),
+ #        legend.title = element_text(size = base_size),
+ #        panel.grid.minor.x = element_line(colour = 'grey70', size = 0.25),
+ #        panel.grid.major.x = element_line(colour = 'grey50', size = 0.5))
 ```
 
 

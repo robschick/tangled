@@ -171,8 +171,8 @@ So let's make it. This is accomplished with one call:
 ```{r, fig.width=8, fig.height=6}
 library(gridExtra)
 pOut <- plotSlopeHealth(dfout, dfn, dfMed, dfAsuml, aval = 0.1)
-pOut
+pOut <- pOut + theme(panel.grid.major = element_line(linetype = 3, colour = gray(.15)))
 ggsave(plot = pOut, filename = 'slopeHealth.pdf', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')
-ggsave(plot = pOut, filename = 'slopeHealth.png', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+ggsave(plot = pOut, filename = 'slopeHealth.png', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 1.5) # , scale = 0.8
 ```
 

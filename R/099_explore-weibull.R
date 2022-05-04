@@ -50,7 +50,7 @@ like <- -sum(log(lmle) - lmle*pregnant$elapsed)
 
 likw <- out$value
 dev <- 2 * (like - likw)
-pr <- 1 - pchisq(dev, 1)
+pr <- 1 - pchisq(dev, 1) # difference in number of parameters, e.g. 2-1
 
 ## Adding in Covariates
 pregnant <- readRDS("/Users/rob/Documents/research/projects/right-whales_PCOD/rightWhaleEntanglement/data/2021-06-15_pregnancy-with-covariates.rds")

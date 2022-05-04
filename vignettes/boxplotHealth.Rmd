@@ -92,6 +92,7 @@ And then we want to summarize these by decade to get a feel for how much data we
 ```{r}
 dfLong %>% 
   filter(!is.na(decade)) %>% 
+  filter(!is.na(gearInj)) %>% 
   group_by(decade, status, gearInj) %>% 
   summarise(numEvents = n())
 
@@ -104,6 +105,10 @@ ggplot(subset(dfLong, gearInj > 0 & !is.na(decade)))+
 Ok, so then let's make the plot:
 
 ```{r, echo=FALSE, fig.width = 8, fig.height=6}
+dfLong <- dfLong %>% 
+  # filter(!is.na(decade)) %>% 
+  filter(!is.na(gearInj))
+
 pOut <- plotBoxplotHealth(dfLong, bsize = 12, cval = 3)
 pOut
 ggsave(plot = pOut, filename = 'boxplotHealth.pdf', path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 9, height = 6, units = 'in')

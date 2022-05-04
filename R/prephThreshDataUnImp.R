@@ -29,9 +29,12 @@ prephThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
 
   # this will be for the unimpacted calving females:
   healthurf <- healthmean
+  hsd <- healthsd
   for(i in 1:nrow(healthurf)){
     healthurf[i, 1:firstSight[i]] <- NA
     healthurf[i, lastSight[i]:nt] <- NA
+    hsd[i, 1:firstSight[i]] <- NA
+    hsd[i, lastSight[i]:nt] <- NA
   }
 
   # for females are in calf table but not in tangle I want stretches of health and after or including the first pregnancy year 
@@ -49,12 +52,14 @@ prephThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
   # essentially all animals that are not in this category are set to NA
   idx <- match(ID, ctabid$EGNo)
   healthnew <- healthurf[which(is.finite(idx)),]
+  hsdnew <- hsd[which(is.finite(idx)),]
   cID <- ID[which(is.finite(idx))]
 
   # And then for the animals that are in the category, any times before their first pregnancy year are set to NA
   for(i in 1:nrow(ctabid)){
    iint <- match(ctabid$monyr[i], myName)
-   healthnew[cID == ctabid$EGNo[i], 1:iint] <- NA  
+   healthnew[cID == ctabid$EGNo[i], 1:iint] <- NA
+   hsdnew[cID == ctabid$EGNo[i], 1:iint] <- NA
   }
   
   nmon <- length(which(is.finite(healthnew)))
@@ -64,9 +69,30 @@ prephThreshDataUnImp <- function(healthmean, firstSight, lastSight, thold){
   pThold <- (nmonThold / nmon) * 100
   numAn <- nrow(healthnew)
   
+  #Add a posterior prediction
+  lthold_post <- numeric(0)
+  for(j in 1:nrow(healthnew)){
+    my_mu <- na.omit(as.vector(healthnew[j, ]))
+    my_sd <- na.omit(as.vector(hsdnew[j, ]))
+    
+    pthold_post <- numeric(0)
+    for(i in 1:1000){
+      new_health <- rnorm(length(my_mu), my_mu, my_sd)
+      pthold_post[i] <- (length(which(new_health < thold))/ length(my_mu)) * 100
+    } # i loop over posterior
+    lthold_post[j] <- mean(pthold_post, na.rm = TRUE)
+  } # j loop over individuals
+  
+  # weighted mean
+  # df <- data.frame(id = nmonInd, pct_hold = lthold_post) %>% 
+  #   tidyr::drop_na(pct_hold)
+  # 
+  # weighted.mean(df$pct_hold, df$id)
+    
+  
   list(healthnew = healthnew, nmon = nmon, nmonInd = nmonInd,
        nmonThold = nmonThold, nmonTholdInd = nmonTholdInd, pThold = pThold,
-       pTholdInd = (nmonTholdInd / nmonInd) * 100, nAnimal = numAn)
+       pTholdInd = (nmonTholdInd / nmonInd) * 100, nAnimal = numAn, pthold_post = pthold_post)
        
        
 }

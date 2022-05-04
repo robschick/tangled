@@ -192,19 +192,41 @@ preg_sub_jh <- pregnant[jh_idx, ]
 
 # States and Transitions
 semi_dat_hj <- preg_sub_hj %>% 
-  dplyr::select(id = EGNo, year = Year, Pregnant = Pregnant, time = elapsed, severity = sev_num, decade = decade, health = health_scl) %>% 
+  dplyr::select(id = EGNo, year = Year, Pregnant = Pregnant, 
+                time = elapsed, severity = sev_num, decade = decade, 
+                health = health_scl) %>% 
   mutate(state.h = 1, state.j = Pregnant + 1)
 
 semi_dat_jh <- preg_sub_jh %>% 
-  dplyr::select(id = EGNo, year = Year, Pregnant = Pregnant, time = elapsed, severity = sev_num, decade = decade, health = health_scl) %>% 
+  dplyr::select(id = EGNo, year = Year, Pregnant = Pregnant, 
+                time = elapsed, severity = sev_num, decade = decade, 
+                health = health_scl) %>% 
   mutate(state.h = 2, state.j = Pregnant + 1)
 
 semi_dat <- bind_rows(semi_dat_hj, semi_dat_jh) %>% 
   arrange(id, year)
 
-ent_sev <- data.frame(ent_severity = semi_dat$severity, decade = semi_dat$decade, health = semi_dat$health)#, ent_sev_fac = as.factor(semi_dat$severity)
+ent_sev <- data.frame(ent_severity = semi_dat$severity, 
+                      ent_sev_bin = semi_dat$severity, 
+                      decade = semi_dat$decade, 
+                      health = semi_dat$health)
+
+ent_sev$ent_sev_bin <- ifelse(ent_sev$ent_severity > 0, 1, 0)
 
 semi_df <- data.frame(semi_dat$id, semi_dat$state.h, semi_dat$state.j, semi_dat$time)
+
+# Weibull test
+# Transition set up
+states_1 <- c("1","2")
+mtrans_1 <- matrix(FALSE, nrow = 2, ncol = 2)
+mtrans_1[1, 2] <- "W"
+mtrans_1[2, 1] <- "W"
+
+# Model fit
+## semi-Markov model without covariates
+fit0 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1)
+print(fit0)
+# End Weibull test
 
 # Transition set up
 states_1 <- c("1","2")
@@ -219,24 +241,48 @@ print(fit1)
 
 ## semi-markov model with covariates (severity & decade) affecting all transitions
 fit2 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = ent_sev)
+print(fit2)
 
 ## semi-markov model with covariates (severity & decade) affecting only the transition from resting/available to pregnant
 fit3 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
-                   cov = ent_sev[, c(1,2)], 
+                   cov = ent_sev[, c(1,3)], 
                    cov_tra = list(c("12"), c("12")))
 print(fit3)
 
-# tried same as a factor, but they look to be having to be numeric in the code; I got this error:
-# Error in as.matrix(cova.mat) %*% matrix(beta, ncol = 1) : 
-#   requires numeric/complex matrix/vector arguments
-# ## semi-markov model with covariates (severity & decade) affecting only the transition from resting/available to pregnant
-# fit3_fac <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = ent_sev[, c(2,3)], cov_tra = list(c("12"),c("12")))
-# print(fit3_fac)
+## semi-markov model with covariates (severity binary & decade) affecting only the transition from resting/available to pregnant
+fit3_bin <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
+                   cov = ent_sev[, c(2,3)], 
+                   cov_tra = list(c("12"), c("12")))
+print(fit3_bin)
 
 ## semi-markov model with covariates (severity, decade, scaled health) affecting only the transition from resting/available to pregnant
-fit4 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = ent_sev, cov_tra = list(c("12"),c("12"),c("12")))
+fit4 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
+                   cov = ent_sev, cov_tra = list(c("12"),c("12"),c("12")))
 print(fit4)
 
+# Univariate Models
 ## semi-markov model with covariates (severity) affecting only the transition from resting/available to pregnant
-fit5 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, cov = as.data.frame(ent_sev[, 1]), cov_tra = list(c("12")))
+fit5 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
+                   cov = as.data.frame(ent_sev[, 1]), cov_tra = list(c("12")))
 print(fit5)
+
+## semi-markov model with covariates (severity yes/no) affecting only the transition from resting/available to pregnant
+fit6 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
+                   cov = as.data.frame(ent_sev[, 2]), cov_tra = list(c("12")))
+print(fit6)
+
+## semi-markov model with covariates (decade) affecting only the transition from resting/available to pregnant
+fit7 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
+                   cov = as.data.frame(ent_sev[, 3]), cov_tra = list(c("12")))
+print(fit7)
+
+## semi-markov model with covariates (scaled health) affecting only the transition from resting/available to pregnant
+fit8 <- semiMarkov(data = semi_df, states = states_1, mtrans = mtrans_1, 
+                   cov = as.data.frame(ent_sev[, 4]), cov_tra = list(c("12")))
+print(fit8)
+
+
+# Plot the Hazard - this does not look like I'd expected it to
+plot(hazard(fit6, cov = 0), hazard(fit6, cov = 1), transitions = "12")
+plot(hazard(fit6, cov = 0, type = "lambda"), hazard(fit6, cov = 1, type = "lambda"), 
+     transitions = "12", legend.pos = c(3.75, 0.119),   cex = 0.8)

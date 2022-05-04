@@ -41,7 +41,7 @@ We have two different data frames that we need to work with: 1)  the list of eve
 
 ```{r}
 pregnant <- read_csv(here::here('data-raw', '2021-02-25_years_since_pregnancy_1980-2013.csv'))%>% 
-  select(!starts_with('X')) %>% 
+  dplyr::select(!starts_with('X')) %>% 
   filter(Year >=1980 & Year <= 2013) %>% 
   drop_na(Pregnant)
 
@@ -441,7 +441,7 @@ means <- tapply(df_all$ent_elapsed, list(df_all$last_severity, df_all$Pregnant),
 
 Then we make the plot:
 
-```{r}
+```{r eval=FALSE}
 
 plot(c(0.5, 4.5), range(df_all$ent_elapsed), 
      xlab = 'Severity of Last Entanglement', ylab = 'Years Since Last Entanglement',

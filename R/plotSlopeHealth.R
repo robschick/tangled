@@ -15,8 +15,7 @@ plotSlopeHealth <- function(dfout, dfn, dfMed, dfAsuml, aval = 0.1){
   
   dfn$sevLab <- c('Severe', 'Moderate', 'Severe', 'Minor', 'Moderate', 'Minor')
   dfn$gearLab <- c('Gear', 'Gear', 'No Gear', 'Gear', 'No Gear', 'No Gear')
-  dfn$label <- c('n = 33', 'n = 27', 'n = 13',
-                 'n = 21', 'n = 123', 'n = 597')
+  dfn$label <- paste("n =", dfn$n)
   
   p <- ggplot(data = dfout)+
     geom_segment(aes(y = startHealth, yend = endHealth, x = 0, xend = 1), colour = alpha('black', aval)) +

@@ -121,13 +121,14 @@ Now that we have the formulation correct, let's give it a whirl. We do some data
 
 ```{r}
 pregnant <- readRDS("/Users/rob/Documents/research/projects/right-whales_PCOD/rightWhaleEntanglement/data/2021-06-15_pregnancy-with-covariates.rds")
-xdat <- pregnant[, c("Pregnant", "health_scl", "mon_below_scl", "elapsed", 
+xdat <- pregnant[, c("Pregnant", "health_scl", "health_min", "mon_below_scl", "elapsed", 
                      "severity", "num_events", "sev_num", "std_year", "decade")]
 xdat <- xdat[xdat$Pregnant > 0, ]
 xdat <- xdat[xdat$elapsed > 0, ]
 xdat$sev_fac <- xdat$sev_num
 xdat$sev_fac[xdat$sev_num > 0] <- 1
 xdat$decade_scl <- scale(xdat$decade)
+xdat$health_min_scl <- scale(xdat$health_min)
 ```
 
 And then call the function. Note that our starting values for the covariates are negative, but are not constrained in the optimizer. The assumption then is that as either a) if the whale becomes entanglement (i.e. the covariate increases), or if the animal spends more months below a threshold (i.e. the covariate increases), then we expect the shape parameter ($c$) to decrease. A decrease in this parameter results in a longer tail for the distribution as well as a higher mean.
@@ -204,23 +205,17 @@ So we have a number of whales in poor health with longer intervals in the 1990's
 ```{r}
 xdat %>% 
   group_by(decade) %>% 
-  summarize(mean(health_scl))
+  summarize(median(health_scl))
 ```
 
-
-Let's look at the subset again:
-
-```{r}
-ggplot(data = subset(xdat, elapsed < 9), aes(health_scl, elapsed ))+
-  geom_point()+
-  geom_smooth()+
-  facet_grid('decade')
-```
 
 ### Updated Formulation
 From above, I've talked myself into including decade as a covariate. Let's look at that again:
 
-```{r}
+```{r eval=FALSE, echo=FALSE}
+# xdat <- xdat %>% 
+#   dplyr::filter(elapsed < 9)
+
 # new likelihood function
 wlik <- function(param){
   lp <- param[1]
@@ -228,14 +223,15 @@ wlik <- function(param){
   b1 <- param[3]
   b2 <- param[4]
   b3 <- param[5]
-  cp <- exp(b0 + b1 *  xdat$sev_fac + b2 * xdat$health_scl + b3 * xdat$decade_scl) 
+  cp <- exp(b0 + b1 *  xdat$sev_fac + b2 * xdat$health_min_scl + b3 * xdat$decade_scl)
+  # cp <- exp(b0 + b1 *  xdat$sev_fac + b2 * xdat$health_min_scl) 
   lik <- log(cp * lp^cp * xdat$elapsed^(cp - 1)) - (lp * xdat$elapsed)^cp
   
   return(-sum(lik))
 }
 
 # call optim
-param0 <- c(0.1, 1, -1, -1, 1) 
+param0 <- c(0.1, 1, -1, -1, -1) 
 out <- optim(param0, wlik, 
              method = "L-BFGS-B", hessian = TRUE)
 
@@ -254,6 +250,10 @@ b3_low <- out$par[5] - 1.96*se[5]
 my_pars <- data.frame(cov = c('entanglement', 'health', 'decade'), mle = c(out$par[3], out$par[4], out$par[5]),
                       low = c(b1_low, b2_low, b3_low),
                       high = c(b1_up, b2_up, b3_up))
+
+# my_pars <- data.frame(cov = c('entanglement', 'health'), mle = c(out$par[3], out$par[4]),
+#                       low = c(b1_low, b2_low),
+#                       high = c(b1_up, b2_up))
 knitr::kable(my_pars)
 ```
 
@@ -261,20 +261,23 @@ knitr::kable(my_pars)
 After meeting with Josh, we decided to take health out for this, because he suggested that we have a data censoring issue here to an extent. By that we mean we're only looking at whales that have gone on to give birth after an entanglement; we're not looking at whales that did *not* give birth. In that sense we're sort of artificially censoring the data. We'll want to change that in the next iteration of PCOMS. For now, I think this is sufficient.
 
 ```{r}
+# only look at animals with a delayed interval
+xdat <- xdat %>% 
+  dplyr::filter(elapsed >= 5)
 # new likelihood function
 wlik <- function(param){
   lp <- param[1]
   b0 <- param[2]
   b1 <- param[3]
   b2 <- param[4]
-  cp <- exp(b0 + b1 *  xdat$sev_fac + b2 * xdat$decade_scl) 
+  cp <- exp(b0 + b1 *  xdat$sev_num + b2 * xdat$health_min_scl) 
   lik <- log(cp * lp^cp * xdat$elapsed^(cp - 1)) - (lp * xdat$elapsed)^cp
   
   return(-sum(lik))
 }
 
 # call optim
-param0 <- c(0.1, 1, -1, 1) 
+param0 <- c(0.1, 1, -1, -1) 
 out <- optim(param0, wlik, 
              method = "L-BFGS-B", hessian = TRUE)
 
@@ -287,8 +290,7 @@ b1_low <- out$par[3] - 1.96*se[3]
 b2_up <- out$par[4] + 1.96*se[4]
 b2_low <- out$par[4] - 1.96*se[4]
 
-
-my_pars <- data.frame(cov = c('entanglement', 'decade'), mle = c(out$par[3], out$par[4]),
+my_pars <- data.frame(cov = c('entanglement', 'health_min_scl'), mle = c(out$par[3], out$par[4]),
                       low = c(b1_low, b2_low),
                       high = c(b1_up, b2_up))
 
@@ -296,10 +298,43 @@ likw_2param <- out$value
 
 knitr::kable(my_pars)
 ```
+### Glimpse of the Data
+Here's the relationship between entanglement and interval for those animals with a delayed interval: 
+
+```{r}
+ggplot(data = subset(xdat, elapsed >= 5), aes(elapsed, group = factor(sev_fac)))+
+  geom_boxplot()
+```
+
+and for minimum health across an interval (for delayed animals) and the length of the interval again:
+
+```{r}
+ggplot(data = subset(xdat, elapsed >= 5), aes(health_min_scl, elapsed ))+
+  geom_point()+
+  geom_smooth()+
+  facet_grid('sev_fac')
+``` 
+
+```{r}
+xdat %>% 
+  group_by(sev_num) %>% 
+  summarize(median(health_scl))
+```
+
+By decade and entanglement status
+
+```{r}
+ggplot(data = subset(xdat, elapsed >= 5), aes(health_min_scl, elapsed ))+
+  geom_point()+
+  geom_smooth()+
+  facet_grid(decade ~ sev_fac)
+```
+
+My interpretation is that the value is negative for health, i
 
 And let's run a model with entanglement alone:
 
-```{r}
+```{r }
 # new likelihood function
 wlik <- function(param){
   lp <- param[1]

@@ -39,6 +39,7 @@ To get and store just that last event, we call a function called `makeEvents()`,
 library(magrittr)
 library(dplyr)
 events <- makeEvents()
+events <- events[events$EGNo != 1045,]
 dplyr::select(events, dtime:presA)
 
 ```
@@ -158,7 +159,7 @@ Ok, the processing logic is identical to that above, but the functions differ in
 ```{r, fig.width=8,fig.height=6}
 incVal <- 12
 yearsOut <- 6
-tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1, dcut, increment = incVal, medProb = TRUE)
+tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 10, dcut, increment = incVal, medProb = TRUE)
 p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal, legendLabs)
 p
 ggsave(plot = p, filename = 'survivalGenderSeverity.pdf', 

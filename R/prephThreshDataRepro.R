@@ -43,6 +43,7 @@ prephThreshDataRepro <- function(healthmean, thold){
     ind <- tangRepro$EGNo[i]
     tsub <- tangRepro[i, ]
     htest <- healthmean[which(ID == ind),]
+    hsd <- healthsd[which(ID == ind),]
     
     s <- match(tsub[, 'swindmonyr'], myName)  
     e <- match(tsub[, 'ewindmonyr'], myName)
@@ -50,12 +51,20 @@ prephThreshDataRepro <- function(healthmean, thold){
     gstat <- tsub[, 'gearInj']
     
     hVal <- htest[s:e] # this gets all the health values, but will be ragged
+    hsd_Val <- hsd[s:e]
     lh <- length(hVal)
-    lthold <- length(which(hVal < thold))
-    pthold <- (lthold / lh ) * 100
     
-    dfi <- data.frame(egno = ind, nmonths = lh, monthold = lthold, 
-                      pctmonthold = pthold, gearInjury = gstat) 
+    pthold <- lthold <- numeric(0)
+    for(j in 1:1000){
+      new_health <- rnorm(lh, hVal, hsd_Val)
+      lthold[j] <- length(which(new_health < thold))
+      pthold[j] <- (lthold[j] / lh ) * 100  
+    }
+    
+    # need to put these together across animals; above is just one animal
+    
+    dfi <- data.frame(egno = ind, nmonths = lh, monthold = mean(lthold, na.rm = TRUE), 
+                      pctmonthold = mean(pthold, na.rm = TRUE), gearInjury = gstat) 
     dfout <- rbind(dfout, dfi)
   }
   

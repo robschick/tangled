@@ -153,7 +153,7 @@ summary(fit3)
 fit4 <- glm(elapsed ~ factor(decade), data = pregnant)
 summary(fit4)
 
-fit5 <- glm(elapsed ~ mon_below_scl + factor(decade), data = pregnant)
+fit5 <- glm(elapsed ~ health_scl + factor(decade)+ severity, data = pregnant)
 summary(fit5)
 
 fit6 <- glm(elapsed ~ mon_below_scl:factor(decade), data = pregnant) # something popping out here
@@ -171,6 +171,20 @@ summary(fit8)
 fit9 <- glm(elapsed ~ mon_below_scl:factor(decade) + factor(sev_num), data = pregnant) # something popping out here
 summary(fit9)
 
-
 fit10 <- glm(elapsed ~ mon_below_scl:factor(decade) + factor(sev_num):factor(decade), data = pregnant) # something popping out here
 summary(fit10)
+
+pregnant$sev_fac <- pregnant$sev_num
+pregnant$sev_fac[pregnant$sev_fac > 1] <- 1
+fit11 <- glm(elapsed ~ health_min_scl:factor(decade) + factor(sev_fac), data = pregnant) # something popping out here
+summary(fit11)
+
+long_dur <- pregnant %>% 
+  dplyr::filter(elapsed >= 5)
+fit12 <- glm(elapsed ~ health_min_scl + factor(sev_fac), data = long_dur) # something popping out here
+summary(fit12)
+
+# final model
+fit7 <- glm(elapsed ~ mon_below_scl+factor(decade) + severity, data = pregnant) # something popping out here
+summary(fit7)
+

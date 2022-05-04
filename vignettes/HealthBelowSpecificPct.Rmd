@@ -40,6 +40,56 @@ tmp2 <- prephThreshDataRepro(healthmean, thold)
 tmp2$rfmthold
 ```
 
+## 2022-02-02
+New plot of the values with uncertainty. First we set up the data.
+
+```{r}
+# unimpacted
+# df_plot_unimp <- quantile(tmp$pthold_post, probs =  c(.25, .5, .75))
+df_plot_unimp <- data.frame(gearInj = 0, x = c(4.641350,  8.989394, 23.536114), q = c(.25, .5, .75))
+# impacted
+df_plot <- tmp2$dfout %>% group_by(gearInj) %>% 
+  summarize(x = quantile(pctmonthold, c(.25, .5, .75)), q = c(.25, .5, .75))
+
+gname <- c('Severe - gear', 'Moderate - gear', 'Severe - no gear', 
+             'Minor - gear', 'Moderate - no gear', 'Minor - no gear')
+df_plot_all <- bind_rows(df_plot, df_plot_unimp)
+df <- data.frame(gearInj = unique(df_plot_all$gearInj), 
+                 gearName = c(gname, 'Unimpacted'),
+                 lower = df_plot_all$x[df_plot_all$q == 0.25],
+                 median = df_plot_all$x[df_plot_all$q == 0.5],
+                 upper = df_plot_all$x[df_plot_all$q == 0.75])
+```
+
+```{r eval=FALSE}
+dfb <- prepHealthThresholdPlotData(tmp, tmp2$rfmthold)
+dfb$lower <- df$lower
+dfb$median <- df$median
+dfb$upper <- df$upper
+```
+
+And then make the plot
+
+```{r}
+bsize = 12
+p <- ggplot(df, aes(x = gearName, y = median))+
+    geom_pointrange(aes(ymin = lower, ymax = upper))+
+    theme_bw(base_size = bsize)+
+    labs(y = paste('% of Months w/ Health < ', thold, sep = ''), x = 'Entanglement Category')+
+    scale_x_discrete(limits = c('Unimpacted', 'Minor - no gear', 'Minor - gear', 'Moderate - no gear',
+                                'Moderate - gear', 'Severe - no gear', 'Severe - gear'),
+                     labels = c('Unimpacted', 'Minor\nNo Gear', 'Minor\nGear',
+                                'Moderate\nNo Gear', 'Moderate\nGear',
+                                'Severe\nNo Gear', 'Severe\nGear'))+
+     scale_y_continuous(breaks = c(0, 25, 50, 75), labels = c('0%', '25%', '50%', '75%'))+
+  theme(legend.position="none")
+    # labs(fill = 'Reproductive\nFemales')+
+    # scale_fill_brewer(type = 'qual', palette = 'Paired', direction = -1)+
+    # theme(legend.position = c(0.125, 0.875))
+  p  
+```
+
+
 __UPDATE - 6/14/2016__
 You had asked about the numbers of animals below the threshold as a function of category because you were surprised about the number of minors with all of their months below 67. I've summarised the data a bit to look at that a bit further. 
 
@@ -75,9 +125,9 @@ knitr::kable(dfb)
 ```{r, fig.width=8, fig.height=6}
 p <- plotHealthThreshold(dfb, bsize = 12)
 p
-ggsave(plot = p, filename = 'healthThold.pdf', path = 'D:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images\\', device = 'pdf', width = 9, height = 6, units = 'in')
+ggsave(plot = p, filename = 'healthThold.pdf', path = '~/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images/', device = 'pdf', width = 9, height = 6, units = 'in')
 pweb <- plotHealthThreshold(dfb, bsize = 16)
-ggsave(plot = pweb, filename = 'healthThold.png', path = 'D:\\rob\\Documents\\research\\manuscripts\\KnowltonEtAl_Entanglement\\images\\', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
+ggsave(plot = p, filename = 'healthThold.png', path = '~/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images/', device = 'png', dpi = 300, width = 9, height = 6, units = 'in')
 ```
 
 ## Statistical Analysis of the differences

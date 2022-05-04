@@ -41,6 +41,15 @@ Severe prop cuts when last seen alive and now presumed dead
 * 3522
 * 3853
 
+### Update
+Ok, there are 5 additional animals that Amy Knowlton wants to include in this list:
+
+* 1903
+* 2220
+* 2701
+* 1238
+* 1124
+
 ```{r global_options, echo=FALSE}
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```
@@ -59,8 +68,11 @@ To get and store just that last event, we call a function called `makeEvents()`,
 ```{r pullOutAnimals}
 events <- makeEvents()
 nrow(events)
-avec <- c(1128, 1504, 1907, 1223, 2250, 1623, 2220, 2450, 1014, 2150, 1004, 1909, 2143, 2617, 1267, 3508, 1308,
-          1006, 1045, 2404, 2425, 2820, 3522, 3853)
+avec <- c(1128, 1504, 1907, 1223, 2250, 1623, 2220, 2450, 1014, 
+          2150, 1004, 1909, 2143, 2617, 1267, 3508, 1308, 1006, 
+          1045, 2404, 2425, 2820, 3522, 3853, 1903, 2220, 2701,
+          1238, 1124)
+
 events <- dplyr::filter(events, !EGNo %in% avec)
 nrow(events)
 
@@ -93,9 +105,9 @@ tmp <- calcKMCurvesSevGen(survdf, kdpasurvldf, nboot = 1000, dcut, increment = i
 p <- plotSurvGenderSeverity(tmp$kmlines, tmp$censTicks, yearEnd = yearsOut, increment = incVal, legendLabs)
 p
 ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.pdf',
-       path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 11, height = 8, units = 'in')
+       path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'pdf', width = 11, height = 8, units = 'in')
 ggsave(plot = p, filename = 'survivalGenderSeverity_NoShipStrike.png',
-       path = '~/Dropbox/Papers/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.8)
+       path = '/Users/rob/Documents/research/manuscripts/KnowltonEtAl_Entanglement/images', device = 'png', dpi = 300, width = 9, height = 6, units = 'in', scale = 0.9)
 ```
 
 

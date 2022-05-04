@@ -20,9 +20,10 @@ for(id in egno){
                                        by = 1))
   
   df <- left_join(df_exp, my_dsub, by = c('Year', 'EGNo') ) 
-  df$Pregnant <- df$Pregnant %>%  replace_na(0)
+  df$Pregnant_state <- df$Pregnant %>%  replace_na(2) # where 2 is unavailable
+  df$Pregnant_elapsed <- df$Pregnant %>%  replace_na(0) # where 2 is unavailable
   df <- df %>% 
-    mutate(preg_group = cumsum(Pregnant))
+    mutate(preg_group = cumsum(Pregnant_elapsed))
   
   df <- df %>% 
     filter(preg_group > 0) %>% 
@@ -31,10 +32,10 @@ for(id in egno){
     ungroup(preg_group) %>% 
     select(- preg_group)
   
-  df <- left_join(my_dsub, df, by = c('Year', 'EGNo', 'Pregnant') ) 
+  # df <- left_join(my_dsub, df, by = c('Year', 'EGNo', 'Pregnant') ) 
   
   df_all <- rbind(df_all, df)
 }
-write_csv(df_all, '../data/years_since_pregnancy.csv')
+write_csv(df_all, '../data/years_since_pregnancy_continuous.csv')
 
-amy_dat <- read_csv('../data/years_since_pregnancy-ark.csv')
+# amy_dat <- read_csv('../data/years_since_pregnancy-ark.csv')
